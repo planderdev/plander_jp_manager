@@ -1,0 +1,44 @@
+@import "tailwindcss";
+
+body {
+  background: #ffffff;
+  color: #111827;
+  font-size: 15px;
+}
+
+/* 본문 기본 글자색: 진한 검정 */
+main {
+  color: #111827;
+}
+main input, main select, main textarea {
+  color: #111827 !important;
+  background-color: #ffffff !important;
+}
+main input::placeholder, main textarea::placeholder {
+  color: #6b7280 !important;
+}
+
+/* 사이드바는 무조건 흰 글씨 */
+aside {
+  color: #ffffff !important;
+}
+aside * {
+  color: #ffffff !important;
+}
+aside .text-gray-400 {
+  color: #9ca3af !important;
+}
+
+/* 검정 배경 버튼은 무조건 흰 글씨 (최강 우선순위) */
+button.bg-black,
+button.bg-black *,
+a.bg-black,
+a.bg-black * {
+  color: #ffffff !important;
+}
+.bg-blue-600, .bg-blue-600 * {
+  color: #ffffff !important;
+}
+.bg-red-500, .bg-red-500 * {
+  color: #ffffff !important;
+}
