@@ -7,7 +7,7 @@ Font.register({
 });
 
 const s = StyleSheet.create({
-  ppage: { padding: 36, fontFamily: 'NotoKR', fontSize: 10 },
+  page: { padding: 36, fontFamily: 'NotoKR', fontSize: 10 },
   h1: { fontSize: 18, marginBottom: 6 },
   sub: { fontSize: 10, color: '#555', marginBottom: 12 },
   box: { border: 1, borderColor: '#ccc', padding: 8, marginBottom: 12 },
