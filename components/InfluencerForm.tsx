@@ -101,7 +101,7 @@ export default function InfluencerForm({
           <input name="name_en" value={nameEn}
             onChange={(e) => setNameEn(toUpper(e.target.value))}
             onCompositionEnd={(e: any) => setNameEn(toUpper(e.target.value))}
-            lang="en" inputMode="latin"
+            lang="en" inputMode="text"
             className="w-full border border-gray-400 rounded p-2" />
         </div>
 
@@ -111,7 +111,7 @@ export default function InfluencerForm({
             <input name="bank_name" value={bankName}
               onChange={(e) => setBankName(toUpper(e.target.value))}
               onCompositionEnd={(e: any) => setBankName(toUpper(e.target.value))}
-              lang="en" inputMode="latin"
+              lang="en" inputMode="text"
               className="w-full border border-gray-400 rounded p-2" />
           </div>
           <div>
@@ -119,7 +119,7 @@ export default function InfluencerForm({
             <input name="branch_name" value={branchName}
               onChange={(e) => setBranchName(toUpper(e.target.value))}
               onCompositionEnd={(e: any) => setBranchName(toUpper(e.target.value))}
-              lang="en" inputMode="latin"
+              lang="en" inputMode="text"
               className="w-full border border-gray-400 rounded p-2" />
           </div>
         </div>
