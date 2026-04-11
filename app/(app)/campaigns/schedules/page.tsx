@@ -1,31 +1,25 @@
+import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import ScheduleView from '@/components/schedule/ScheduleView';
-import ScheduleForm from '@/components/schedule/ScheduleForm';
 
 export default async function SchedulesPage() {
   const sb = await createClient();
 
-  const [{ data: schedules }, { data: influencers }, { data: clients }] = await Promise.all([
-    sb.from('schedules')
-      .select('*, clients(company_name), influencers(handle, account_url)')
-      .order('scheduled_at', { ascending: true }),
-    sb.from('influencers').select('id, handle').order('handle'),
-    sb.from('clients').select('id, company_name').order('company_name'),
-  ]);
+  const { data: schedules } = await sb.from('schedules')
+    .select('*, clients(company_name), influencers(handle, account_url)')
+    .order('scheduled_at', { ascending: true });
 
   return (
-    <div className="p-8 space-y-8">
-      <h1 className="text-2xl font-bold">스케줄 관리</h1>
+    <div className="p-4 md:p-8 space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-bold">스케줄 관리</h1>
+        <Link href="/campaigns/schedules/new"
+          className="bg-black text-white px-4 py-2 rounded hover:bg-gray-800">
+          + 신규 등록
+        </Link>
+      </div>
 
-      <section>
-        <h2 className="text-lg font-semibold mb-3">신규 등록</h2>
-        <ScheduleForm influencers={influencers ?? []} clients={clients ?? []} />
-      </section>
-
-      <section>
-        <h2 className="text-lg font-semibold mb-3">전체 스케줄</h2>
-        <ScheduleView schedules={(schedules ?? []) as any} />
-      </section>
+      <ScheduleView schedules={(schedules ?? []) as any} />
     </div>
   );
 }

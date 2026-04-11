@@ -24,3 +24,18 @@ export async function deleteScheduleAction(id: number) {
   if (error) throw new Error(error.message);
   revalidatePath('/campaigns/schedules');
 }
+
+export async function updateScheduleAction(fd: FormData) {
+  const sb = await createClient();
+  const id = Number(fd.get('id'));
+  const payload = {
+    scheduled_at: String(fd.get('scheduled_at')),
+    client_id: Number(fd.get('client_id')),
+    influencer_id: Number(fd.get('influencer_id')),
+    memo: String(fd.get('memo') || '') || null,
+  };
+  const { error } = await sb.from('schedules').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+  revalidatePath('/campaigns/schedules');
+  redirect('/campaigns/schedules');
+}

@@ -1,19 +1,26 @@
 'use client';
 import { useState, useMemo } from 'react';
-import { createScheduleAction } from '@/actions/schedules';
+import { createScheduleAction, updateScheduleAction } from '@/actions/schedules';
 import SubmitButton from '@/components/SubmitButton';
 
 type InfOpt = { id: number; handle: string };
 type CliOpt = { id: number; company_name: string };
 
-export default function ScheduleForm({ influencers, clients }: { influencers: InfOpt[]; clients: CliOpt[] }) {
+export default function ScheduleForm({
+  influencers, clients, schedule,
+}: { influencers: InfOpt[]; clients: CliOpt[]; schedule?: any }) {
+  // 수정 모드면 기존 값으로 초기화
+  const initInf = schedule ? influencers.find(i => i.id === schedule.influencer_id) ?? null : null;
+  const initDate = schedule ? new Date(schedule.scheduled_at) : null;
+  const pad = (n: number) => String(n).padStart(2, '0');
+
   const [query, setQuery] = useState('');
-  const [selInf, setSelInf] = useState<InfOpt | null>(null);
-  const [selCli, setSelCli] = useState<number | ''>('');
-  const [date, setDate] = useState('');
-  const [hour, setHour] = useState('10');
-  const [minute, setMinute] = useState('00');
-  const [memo, setMemo] = useState('');
+  const [selInf, setSelInf] = useState<InfOpt | null>(initInf);
+  const [selCli, setSelCli] = useState<number | ''>(schedule?.client_id ?? '');
+  const [date, setDate] = useState(initDate ? `${initDate.getFullYear()}-${pad(initDate.getMonth()+1)}-${pad(initDate.getDate())}` : '');
+  const [hour, setHour] = useState(initDate ? String(initDate.getHours()) : '10');
+  const [minute, setMinute] = useState(initDate ? (initDate.getMinutes() >= 30 ? '30' : '00') : '00');
+  const [memo, setMemo] = useState(schedule?.memo ?? '');
 
   const filtered = useMemo(() => {
     if (!query) return influencers.slice(0, 8);
@@ -24,12 +31,13 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
   const canSubmit = selInf && selCli && date;
 
   return (
-    <form action={createScheduleAction} className="bg-white p-6 rounded-lg shadow space-y-5 max-w-2xl">
+    <form action={schedule ? updateScheduleAction : createScheduleAction}
+      className="bg-white p-6 rounded-lg shadow space-y-5 max-w-2xl">
+      {schedule && <input type="hidden" name="id" defaultValue={schedule.id} />}
       <input type="hidden" name="scheduled_at" value={scheduledAt || ''} />
       <input type="hidden" name="influencer_id" value={selInf?.id ?? ''} />
       <input type="hidden" name="client_id" value={selCli} />
 
-      {/* 인플루언서 검색 */}
       <div>
         <label className="text-sm block mb-1 font-medium">인플루언서 아이디 *</label>
         {selInf ? (
@@ -54,7 +62,6 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
         )}
       </div>
 
-      {/* 업체명 선택 (인플루언서 선택 후 활성) */}
       <div>
         <label className="text-sm block mb-1 font-medium">업체명 *</label>
         <select value={selCli} onChange={(e) => setSelCli(Number(e.target.value) || '')}
@@ -67,7 +74,6 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
         </select>
       </div>
 
-      {/* 날짜 + 시간 (30분 단위) */}
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="text-sm block mb-1 font-medium">날짜 *</label>
@@ -99,7 +105,7 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
           rows={2} className="w-full border border-gray-400 rounded p-2" />
       </div>
 
-      <SubmitButton>등록</SubmitButton>
+      <SubmitButton>{schedule ? '수정' : '등록'}</SubmitButton>
     </form>
   );
 }

@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, isSameDay, addMonths } from 'date-fns';
 import type { Schedule } from '@/types/db';
 import { ymdKR, todayKR, timeKR, compareDayKR } from '@/lib/datetime';
+import Link from 'next/link';
 
 export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
   const [cursor, setCursor] = useState(new Date());
@@ -79,11 +80,12 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
             </div>
             <div className="p-4 space-y-2">
               {modalItems.map((s) => (
-                <div key={s.id} className="border border-gray-200 rounded p-3 text-sm">
+                <Link key={s.id} href={`/campaigns/schedules/${s.id}`}
+                  className="block border border-gray-200 rounded p-3 text-sm hover:bg-gray-50">
                   <div className="font-semibold">{timeKR(s.scheduled_at)}</div>
                   <div>@{s.influencers?.handle}</div>
                   <div className="text-gray-600">{s.clients?.company_name}</div>
-                </div>
+                </Link>
               ))}
             </div>
           </div>

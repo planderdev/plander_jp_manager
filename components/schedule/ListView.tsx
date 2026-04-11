@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { deleteScheduleAction } from '@/actions/schedules';
 import type { Schedule } from '@/types/db';
 import { shortKR } from '@/lib/datetime';
+import Link from 'next/link';
 
 export default function ListView({ schedules }: { schedules: Schedule[] }) {
   return (
@@ -36,9 +37,14 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
                     </a>
                   )}
                 </td>
+                <td className="p-3 space-x-2">
+                  <Link href={`/campaigns/schedules/${s.id}`} className="text-blue-600">수정</Link>
+                  <DeleteButton id={s.id} />
+                </td>
                 <td className="p-3">
                   <DeleteButton id={s.id} />
                 </td>
+                
               </tr>
             );
           })}
