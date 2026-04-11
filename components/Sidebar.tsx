@@ -16,7 +16,7 @@ export default function Sidebar({
   return (
     <>
       {/* 모바일 상단바 */}
-      <header className="md:hidden bg-gray-900 text-white flex items-center justify-between px-4 h-14 sticky top-0 z-30">
+      <header className="md:hidden bg-black text-white flex items-center justify-between px-4 h-18 sticky top-0 z-30">
         <div className="mb-6">
           <Logo className="h-4 w-auto text-white" />
         </div>
@@ -31,7 +31,7 @@ export default function Sidebar({
 
       {/* 사이드바 본체 */}
       <aside className={`
-        bg-gray-900 text-white p-4 flex flex-col
+        bg-black text-white p-4 flex flex-col
         fixed md:sticky top-0 left-0 h-screen w-64 z-50
         transform transition-transform duration-200
         ${open ? 'translate-x-0' : '-translate-x-full'}
