@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { deleteClientAction } from '@/actions/clients';
+import { clientStatusLabel } from '@/lib/labels';
 
 export default async function ClientsPage() {
   const sb = await createClient();
@@ -34,7 +35,7 @@ export default async function ClientsPage() {
                 <td className="p-3 font-medium">{c.company_name}</td>
                 <td className="p-3">{c.contact_person ?? '-'}</td>
                 <td className="p-3">{c.phone ?? '-'}</td>
-                <td className="p-3">{c.status}</td>
+                <td className="p-3">{clientStatusLabel(c.status)}</td>
                 <td className="p-3">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
                 <td className="p-3">{c.contract_amount?.toLocaleString() ?? '-'}</td>
                 <td className="p-3 space-x-2">
