@@ -16,7 +16,7 @@ export default function Sidebar({
   return (
     <>
       {/* 모바일 상단바 */}
-      <header className="md:hidden bg-black text-white flex items-center justify-between px-4 h-40 sticky top-0 z-30">
+      <header className="md:hidden bg-black text-white flex items-center justify-between px-4 h-12 sticky top-0 z-30">
         <div className="mb-6">
           <Logo className="h-4 w-auto text-white" />
         </div>
