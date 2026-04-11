@@ -18,7 +18,7 @@ export default function Sidebar({
       {/* 모바일 상단바 */}
       <header className="md:hidden bg-gray-900 text-white flex items-center justify-between px-4 h-14 sticky top-0 z-30">
         <div className="mb-6">
-          <Logo className="h-8 w-auto text-white" />
+          <Logo className="h-4 w-auto text-white" />
         </div>
         <button onClick={() => setOpen(true)} aria-label="메뉴 열기" className="text-2xl">☰</button>
       </header>
@@ -39,7 +39,7 @@ export default function Sidebar({
       `}>
         <div className="flex items-center justify-between mb-6">
           <div className="mb-6">
-            <Logo className="h-8 w-auto text-white" />
+            <Logo className="h-4 w-auto text-white" />
           </div>
           <button onClick={close} className="md:hidden text-2xl" aria-label="닫기">✕</button>
         </div>
