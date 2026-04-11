@@ -7,7 +7,7 @@ export default async function DashboardPage() {
   const now = new Date().toISOString();
 
   const [
-      { count: pendingCount },
+    { count: pendingCount },
     { count: upcomingCount },
     { count: influencerCount },
     { data: pastSchedules },
@@ -27,22 +27,17 @@ export default async function DashboardPage() {
       .not('post_url', 'is', null),
   ]);
 
-  // 완료 키 집합 만들기 (스케줄ID 직접연결 + "업체+인플루언서" 매칭)
   const completedScheduleIds = new Set<number>();
-  // const completedPairs = new Set<string>();
-  // for (const p of completedPosts ?? []) {
-  //   if (p.schedule_id) completedScheduleIds.add(p.schedule_id);
-  //   completedPairs.add(`${p.client_id}-${p.influencer_id}`);
-  // }
+  const completedPairs = new Set<string>();
+  for (const p of completedPosts ?? []) {
+    if (p.schedule_id) completedScheduleIds.add(p.schedule_id);
+    completedPairs.add(`${p.client_id}-${p.influencer_id}`);
+  }
 
   const waiting = (pastSchedules ?? []).filter((s: any) => {
-    return !completedScheduleIds.has(s.id);
-  }).slice(0, 10);
-
-  const waiting = (waitingList ?? []).filter((s: any) => {
-    const posts = s.posts;
-    if (!posts || posts.length === 0) return true;
-    return !posts.some((p: any) => p.post_url && p.post_url.trim() !== '');
+    if (completedScheduleIds.has(s.id)) return false;
+    if (completedPairs.has(`${s.client_id}-${s.influencer_id}`)) return false;
+    return true;
   }).slice(0, 10);
 
   const cards = [
@@ -85,15 +80,14 @@ export default async function DashboardPage() {
                 {waiting.map((s: any) => (
                   <tr key={s.id} className="border-t">
                     <td className="p-2">{shortKR(s.scheduled_at)}</td>
-                      <td className="p-2">
-                        <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
-                          @{s.influencers?.handle}
-                        </Link>
-                      </td>
-                      <td className="p-2">{s.clients?.company_name}</td>
-                    </tr>
-                  )
-                )}
+                    <td className="p-2">
+                      <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
+                        @{s.influencers?.handle}
+                      </Link>
+                    </td>
+                    <td className="p-2">{s.clients?.company_name}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
           </div>
