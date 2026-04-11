@@ -11,12 +11,12 @@ function parsePayload(fd: FormData) {
     account_url: String(fd.get('account_url') || '') || null,
     unit_price: Number(fd.get('unit_price')) || null,
     memo: String(fd.get('memo') || '') || null,
-    name_en: String(fd.get('name_en') || '').toUpperCase() || null,
-    bank_name: String(fd.get('bank_name') || '') || null,
-    branch_name: String(fd.get('branch_name') || '') || null,
-    account_number: String(fd.get('account_number') || '') || null,
+    name_en: String(fd.get('name_en') || '').toUpperCase().replace(/[^A-Z ]/g, '') || null,
+    bank_name: String(fd.get('bank_name') || '').toUpperCase().replace(/[^A-Z ]/g, '') || null,
+    branch_name: String(fd.get('branch_name') || '').toUpperCase().replace(/[^A-Z ]/g, '') || null,
+    account_number: String(fd.get('account_number') || '').replace(/\D/g, '') || null,
     phone: String(fd.get('phone') || '') || null,
-    postal_code: String(fd.get('postal_code') || '') || null,
+    postal_code: String(fd.get('postal_code') || '').replace(/\D/g, '') || null,
     prefecture: String(fd.get('prefecture') || '') || null,
     city: String(fd.get('city') || '') || null,
     street: String(fd.get('street') || '') || null,
@@ -33,7 +33,6 @@ export async function createInfluencerAction(fd: FormData) {
   }
   revalidatePath('/influencers');
   redirect('/influencers');
-}
 }
 
 export async function updateInfluencerAction(fd: FormData) {
