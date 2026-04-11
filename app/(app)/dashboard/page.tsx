@@ -92,8 +92,8 @@ export default async function DashboardPage() {
                       </td>
                       <td className="p-2">{s.clients?.company_name}</td>
                     </tr>
-                  );
-                })}
+                  )
+                )}
               </tbody>
             </table>
           </div>
