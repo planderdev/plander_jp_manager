@@ -2,6 +2,8 @@ import { createClient } from '@/lib/supabase/server';
 import { generateReportAction } from '@/actions/reports';
 import DownloadButton from '@/components/report/DownloadButton';
 import DeleteButton from '@/components/report/DeleteButton';
+import SubmitButton from '@/components/SubmitButton';
+
 
 export default async function ReportsPage() {
   const sb = await createClient();
@@ -28,7 +30,7 @@ export default async function ReportsPage() {
             <label className="text-sm block mb-1 font-medium">월 *</label>
             <input type="month" name="year_month" required className="border border-gray-400 rounded p-2" />
           </div>
-          <button type="submit" className="bg-black text-white px-6 py-2 rounded">생성</button>
+          <SubmitButton>생성</SubmitButton>
         </form>
       </section>
 

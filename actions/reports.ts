@@ -12,16 +12,16 @@ export async function generateReportAction(fd: FormData) {
   const { data: client } = await sb.from('clients').select('*').eq('id', clientId).single();
   if (!client) throw new Error('업체 없음');
 
-  const start = `${yearMonth}-01`;
+  const start = `${yearMonth}-01T00:00:00+09:00`;
   const [y, m] = yearMonth.split('-').map(Number);
-  const endDate = new Date(y, m, 1);
-  const end = endDate.toISOString().slice(0, 10);
+  const nextMonth = new Date(y, m, 1);  // m이 0-based 다음달이라 그대로 OK
+  const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}-01T00:00:00+09:00`;
 
   const { data: posts } = await sb.from('posts')
     .select('*, influencers(handle, unit_price)')
     .eq('client_id', clientId)
     .gte('created_at', start)
-    .lt('created_at', end)
+    .lt('created_at', endStr)
     .not('post_url', 'is', null);
 
   const pdfBuffer = await generateReportPdf({ client, month: yearMonth, posts: posts ?? [] });

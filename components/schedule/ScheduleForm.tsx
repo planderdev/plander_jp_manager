@@ -50,7 +50,7 @@ export default function ScheduleForm({
           <>
             <input value={query} onChange={(e) => setQuery(e.target.value)}
               placeholder="아이디 검색..." className="w-full border border-gray-400 rounded p-2" />
-            {filtered.length > 0 && (
+            {query && filtered.length > 0 && (
               <div className="border border-gray-300 rounded mt-1 max-h-48 overflow-auto">
                 {filtered.map((i) => (
                   <button type="button" key={i.id} onClick={() => setSelInf(i)}

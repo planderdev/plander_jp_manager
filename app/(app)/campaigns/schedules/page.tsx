@@ -7,7 +7,7 @@ export default async function SchedulesPage() {
 
   const { data: schedules } = await sb.from('schedules')
     .select('*, clients(company_name), influencers(handle, account_url)')
-    .order('scheduled_at', { ascending: true });
+    .order('scheduled_at', { ascending: false });
 
   return (
     <div className="p-4 md:p-8 space-y-6">

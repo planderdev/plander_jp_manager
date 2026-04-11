@@ -1,13 +1,14 @@
-import DeleteButton from './DeleteButton';
 import Link from 'next/link';
-import { deleteScheduleAction } from '@/actions/schedules';
+import DeleteButton from './DeleteButton';
+import { shortKR, todayKR, ymdKR } from '@/lib/datetime';
 import type { Schedule } from '@/types/db';
-import { shortKR } from '@/lib/datetime';
 
 export default function ListView({ schedules }: { schedules: Schedule[] }) {
+  const today = todayKR();
+
   return (
     <div className="bg-white rounded-lg shadow overflow-x-auto">
-      <table className="w-full text-sm">
+      <table className="w-full text-sm min-w-[700px]">
         <thead className="bg-gray-100 text-left">
           <tr>
             <th className="p-3">일시</th>
@@ -19,10 +20,11 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
         </thead>
         <tbody>
           {schedules.map((s) => {
-            const dateStr = shortKR(s.scheduled_at);
+            const isPast = ymdKR(s.scheduled_at).localeCompare(today) < 0;
+            const rowClass = isPast ? 'bg-gray-100 text-gray-500' : '';
             return (
-              <tr key={s.id} className="border-t">
-                <td className="p-3 font-medium">{dateStr}</td>
+              <tr key={s.id} className={`border-t ${rowClass}`}>
+                <td className="p-3 font-medium">{shortKR(s.scheduled_at)}</td>
                 <td className="p-3">{s.clients?.company_name ?? '-'}</td>
                 <td className="p-3">
                   <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
@@ -31,16 +33,13 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
                 </td>
                 <td className="p-3">
                   {s.influencers?.account_url && (
-                    <a href={s.influencers.account_url} target="_blank" className="text-blue-600 hover:underline">
-                      링크
-                    </a>
+                    <a href={s.influencers.account_url} target="_blank" className="text-blue-600 hover:underline">링크</a>
                   )}
                 </td>
                 <td className="p-3 space-x-2">
                   <Link href={`/campaigns/schedules/${s.id}`} className="text-blue-600">수정</Link>
                   <DeleteButton id={s.id} />
                 </td>
-                
               </tr>
             );
           })}
