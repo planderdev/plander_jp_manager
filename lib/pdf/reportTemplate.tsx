@@ -38,10 +38,9 @@ export function ReportDoc({ client, month, posts }: any) {
         <View style={[s.row, s.head]}>
           <Text style={s.cName}>인플루언서</Text>
           <Text style={s.cLink}>게시물 링크</Text>
-          <Text style={s.cNum}>조회</Text>
-          <Text style={s.cNum}>좋아요</Text>
-          <Text style={s.cNum}>댓글</Text>
-          <Text style={s.cPrice}>단가</Text>
+          <Text style={s.cNum}>조회수</Text>
+          <Text style={s.cNum}>좋아요수</Text>
+          <Text style={s.cNum}>댓글수</Text>
         </View>
         {posts.map((p: any) => (
           <View key={p.id} style={s.row}>
@@ -50,7 +49,6 @@ export function ReportDoc({ client, month, posts }: any) {
             <Text style={s.cNum}>{(p.views ?? 0).toLocaleString()}</Text>
             <Text style={s.cNum}>{(p.likes ?? 0).toLocaleString()}</Text>
             <Text style={s.cNum}>{(p.comments ?? 0).toLocaleString()}</Text>
-            <Text style={s.cPrice}>{p.influencers?.unit_price != null ? `¥${p.influencers.unit_price.toLocaleString()}` : '-'}</Text>
           </View>
         ))}
       </Page>

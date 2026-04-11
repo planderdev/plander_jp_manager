@@ -2,10 +2,14 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminAction } from '@/actions/admins';
 import PhoneInput from '@/components/PhoneInput';
 import SubmitButton from '@/components/SubmitButton';
+import { saveApifyTokenAction, getApifyTokenStatus } from '@/actions/settings';
+import { syncAllPosts } from '@/actions/sync-metrics';
+import { revalidatePath } from 'next/cache';
 
 export default async function AdminsPage() {
   const sb = await createClient();
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
+  const tokenStatus = await getApifyTokenStatus();
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -56,6 +60,53 @@ export default async function AdminsPage() {
               ))}
             </tbody>
           </table>
+        </div>
+      </section>
+      <section>
+        <h2 className="text-lg font-semibold mb-3">Apify API 설정</h2>
+        <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
+          <div className="text-sm text-gray-700">
+            <p>인스타그램 게시물 메트릭(좋아요/조회수/댓글) 자동 수집용 Apify 토큰입니다.</p>
+            <p className="text-xs text-gray-500 mt-1">
+              apify.com → Settings → Integrations → API tokens 에서 발급
+            </p>
+          </div>
+      
+          <div className="text-sm">
+            현재 상태: {tokenStatus.hasToken
+              ? <span className="text-green-600 font-semibold">연동됨 ({tokenStatus.masked})</span>
+              : <span className="text-orange-600 font-semibold">미연동 (Mock 모드)</span>}
+          </div>
+      
+          <form action={saveApifyTokenAction} className="space-y-3">
+            <div>
+              <label className="text-sm block mb-1 font-medium">Apify API Token</label>
+              <input type="password" name="apify_token"
+                placeholder={tokenStatus.hasToken ? '비워두고 저장하면 삭제됩니다' : 'apify_api_xxxxxxxx'}
+                className="w-full border border-gray-400 rounded p-2" />
+            </div>
+            <SubmitButton>저장</SubmitButton>
+          </form>
+        </div>
+      </section>
+      
+      <section>
+        <h2 className="text-lg font-semibold mb-3">게시물 메트릭 동기화</h2>
+        <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
+          <div className="text-sm text-gray-700">
+            <p>대상: 정산 미완료 + 30일 이내 게시물</p>
+            <p className="text-xs text-gray-500 mt-1">
+              토큰이 등록된 경우 실제 데이터 수집, 미등록 시 mock 동작 (DB 변경 없음)
+            </p>
+          </div>
+          <form action={async () => {
+            'use server';
+            const result = await syncAllPosts();
+            console.log('[sync result]', result);
+            revalidatePath('/influencers/posts');
+          }}>
+            <SubmitButton>지금 동기화 실행</SubmitButton>
+          </form>
         </div>
       </section>
     </div>
