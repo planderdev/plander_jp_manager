@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
+import { fullKR } from '@/lib/datetime';
 
 export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -52,11 +53,10 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
             </thead>
             <tbody>
               {schedules.map((s: any) => {
-                const d = new Date(s.scheduled_at);
                 const done = s.posts?.some((p: any) => p.post_url);
                 return (
                   <tr key={s.id} className="border-t">
-                    <td className="py-2">{`${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</td>
+                    <td className="py-2">{fullKR(s.scheduled_at)}</td>
                     <td className="py-2">{s.clients?.company_name}</td>
                     <td className="py-2">
                       <span className={done ? 'text-green-600' : 'text-orange-500'}>

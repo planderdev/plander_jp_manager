@@ -2,6 +2,7 @@ import DeleteButton from './DeleteButton';
 import Link from 'next/link';
 import { deleteScheduleAction } from '@/actions/schedules';
 import type { Schedule } from '@/types/db';
+import { shortKR } from '@/lib/datetime';
 
 export default function ListView({ schedules }: { schedules: Schedule[] }) {
   return (
@@ -18,8 +19,7 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
         </thead>
         <tbody>
           {schedules.map((s) => {
-            const d = new Date(s.scheduled_at);
-            const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+            const dateStr = shortKR(s.scheduled_at);
             return (
               <tr key={s.id} className="border-t">
                 <td className="p-3 font-medium">{dateStr}</td>

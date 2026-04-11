@@ -1,31 +1,43 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { shortKR } from '@/lib/datetime';
 
 export default async function DashboardPage() {
   const sb = await createClient();
   const now = new Date().toISOString();
 
   const [
-    { count: pendingCount },
+      { count: pendingCount },
     { count: upcomingCount },
     { count: influencerCount },
-    { data: waitingList },
+    { data: pastSchedules },
+    { data: completedPosts },
   ] = await Promise.all([
-    // 정산 대기: 업로드 완료(post_url 있음) & 미정산
     sb.from('posts').select('id', { count: 'exact', head: true })
       .eq('settlement_status', 'pending').not('post_url', 'is', null),
-    // 방문 예정: 앞으로의 스케줄
     sb.from('schedules').select('id', { count: 'exact', head: true })
       .gte('scheduled_at', now),
-    // 총 인플루언서
     sb.from('influencers').select('id', { count: 'exact', head: true }),
-    // 업로드 대기: 과거 스케줄 중 post_url 없는 것 (최대 10)
     sb.from('schedules')
-      .select('*, clients(company_name), influencers(handle), posts(post_url)')
+      .select('*, clients(company_name), influencers(handle)')
       .lt('scheduled_at', now)
-      .order('scheduled_at', { ascending: true })
-      .limit(50),
+      .order('scheduled_at', { ascending: true }),
+    sb.from('posts')
+      .select('client_id, influencer_id, schedule_id, post_url')
+      .not('post_url', 'is', null),
   ]);
+
+  // 완료 키 집합 만들기 (스케줄ID 직접연결 + "업체+인플루언서" 매칭)
+  const completedScheduleIds = new Set<number>();
+  // const completedPairs = new Set<string>();
+  // for (const p of completedPosts ?? []) {
+  //   if (p.schedule_id) completedScheduleIds.add(p.schedule_id);
+  //   completedPairs.add(`${p.client_id}-${p.influencer_id}`);
+  // }
+
+  const waiting = (pastSchedules ?? []).filter((s: any) => {
+    return !completedScheduleIds.has(s.id);
+  }).slice(0, 10);
 
   const waiting = (waitingList ?? []).filter((s: any) => {
     const posts = s.posts;
@@ -70,11 +82,9 @@ export default async function DashboardPage() {
                 </tr>
               </thead>
               <tbody>
-                {waiting.map((s: any) => {
-                  const d = new Date(s.scheduled_at);
-                  return (
-                    <tr key={s.id} className="border-t">
-                      <td className="p-2">{`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</td>
+                {waiting.map((s: any) => (
+                  <tr key={s.id} className="border-t">
+                    <td className="p-2">{shortKR(s.scheduled_at)}</td>
                       <td className="p-2">
                         <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
                           @{s.influencers?.handle}

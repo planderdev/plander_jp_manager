@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, isSameDay, addMonths } from 'date-fns';
 import type { Schedule } from '@/types/db';
+import { ymdKR, todayKR, timeKR, compareDayKR } from '@/lib/datetime';
 
 export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
   const [cursor, setCursor] = useState(new Date());
@@ -13,7 +14,7 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
 
   const byDay = new Map<string, Schedule[]>();
   for (const s of schedules) {
-    const key = format(new Date(s.scheduled_at), 'yyyy-MM-dd');
+    const key = ymdKR(s.scheduled_at);
     if (!byDay.has(key)) byDay.set(key, []);
     byDay.get(key)!.push(s);
   }
@@ -35,22 +36,30 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
           const key = format(day, 'yyyy-MM-dd');
           const items = byDay.get(key) ?? [];
           const dim = !isSameMonth(day, cursor);
-          const today = isSameDay(day, new Date());
+        
+          // 한국시간 기준으로 오늘/과거/미래 판정
+          const today = todayKR();
+          const cmp = key.localeCompare(today);
+          const isToday = cmp === 0;
+          const isPast = cmp < 0;
+          const isFuture = cmp > 0;
+        
+          let bgClass = 'bg-white';
+          if (isToday) bgClass = 'bg-yellow-100 hover:bg-yellow-200';
+          else if (isPast) bgClass = 'bg-gray-200 hover:bg-gray-300';
+          else if (isFuture) bgClass = 'bg-purple-50 hover:bg-purple-100';
+        
           return (
             <button type="button" key={key}
               onClick={() => items.length > 0 && setModalDay(key)}
-              className={`bg-white p-1 min-h-[80px] text-left ${dim ? 'opacity-40' : ''} ${items.length > 0 ? 'hover:bg-blue-50' : ''}`}>
-              <div className={`text-xs ${today ? 'font-bold text-blue-600' : ''}`}>{format(day, 'd')}</div>
+              className={`${bgClass} p-1 min-h-[80px] text-left ${dim ? 'opacity-40' : ''}`}>
+              <div className={`text-xs ${isToday ? 'font-bold text-blue-700' : ''}`}>{format(day, 'd')}</div>
               <div className="space-y-0.5 mt-1">
-                {items.slice(0, 3).map((s) => {
-                  const d = new Date(s.scheduled_at);
-                  const hm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                  return (
-                    <div key={s.id} className="text-[10px] bg-blue-100 rounded px-1 truncate">
-                      {hm} @{s.influencers?.handle}
-                    </div>
-                  );
-                })}
+                {items.slice(0, 3).map((s) => (
+                  <div key={s.id} className="text-[10px] bg-blue-100 rounded px-1 truncate">
+                    {timeKR(s.scheduled_at)} @{s.influencers?.handle}
+                  </div>
+                ))}
                 {items.length > 3 && <div className="text-[10px] text-gray-500">+{items.length - 3}</div>}
               </div>
             </button>
@@ -69,17 +78,13 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
               <button onClick={() => setModalDay(null)} className="text-2xl leading-none">✕</button>
             </div>
             <div className="p-4 space-y-2">
-              {modalItems.map((s) => {
-                const d = new Date(s.scheduled_at);
-                const hm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-                return (
-                  <div key={s.id} className="border border-gray-200 rounded p-3 text-sm">
-                    <div className="font-semibold">{hm}</div>
-                    <div>@{s.influencers?.handle}</div>
-                    <div className="text-gray-600">{s.clients?.company_name}</div>
-                  </div>
-                );
-              })}
+              {modalItems.map((s) => (
+                <div key={s.id} className="border border-gray-200 rounded p-3 text-sm">
+                  <div className="font-semibold">{timeKR(s.scheduled_at)}</div>
+                  <div>@{s.influencers?.handle}</div>
+                  <div className="text-gray-600">{s.clients?.company_name}</div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
