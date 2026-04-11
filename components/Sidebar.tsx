@@ -16,11 +16,10 @@ export default function Sidebar({
   return (
     <>
       {/* 모바일 상단바 */}
-      <header className="md:hidden bg-black text-white flex items-center justify-between px-4 h-12 sticky top-0 z-30">
-        <div className="mb-6">
-          <Logo className="h-4 w-auto text-white" />
-        </div>
-        <button onClick={() => setOpen(true)} aria-label="메뉴 열기" className="text-2xl">☰</button>
+      <header className="md:hidden bg-black text-white flex items-center justify-between px-4 h-14 sticky top-0 z-30">
+        <div className="w-8" />
+        <Logo className="h-4 w-auto text-white" />
+        <button onClick={() => setOpen(true)} aria-label="메뉴 열기" className="text-2xl w-8 text-right">☰</button>
       </header>
 
       {/* 어두운 배경 (모바일에서 메뉴 열렸을 때) */}
