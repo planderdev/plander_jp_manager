@@ -2,7 +2,6 @@ import DeleteButton from './DeleteButton';
 import Link from 'next/link';
 import { deleteScheduleAction } from '@/actions/schedules';
 import type { Schedule } from '@/types/db';
-import Link from 'next/link';
 
 export default function ListView({ schedules }: { schedules: Schedule[] }) {
   return (
