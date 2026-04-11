@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { upsertPostAction } from '@/actions/posts';
+import SubmitButton from '@/components/SubmitButton';
 
 type InfOpt = { id: number; handle: string; account_url: string | null; unit_price: number | null; name_en: string | null; bank_name: string | null; branch_name: string | null; account_number: string | null; phone: string | null; prefecture: string | null; city: string | null; street: string | null };
 type CliOpt = { id: number; company_name: string };
@@ -122,9 +123,7 @@ export default function PostForm({
             )}
           </div>
 
-          <button type="submit" className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">
-            저장
-          </button>
+          <SubmitButton>저장</SubmitButton>
         </div>
       )}
     </form>

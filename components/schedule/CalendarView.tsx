@@ -5,6 +5,7 @@ import type { Schedule } from '@/types/db';
 
 export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
   const [cursor, setCursor] = useState(new Date());
+  const [modalDay, setModalDay] = useState<string | null>(null);
 
   const monthStart = startOfMonth(cursor);
   const monthEnd = endOfMonth(cursor);
@@ -16,6 +17,8 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
     if (!byDay.has(key)) byDay.set(key, []);
     byDay.get(key)!.push(s);
   }
+
+  const modalItems = modalDay ? byDay.get(modalDay) ?? [] : [];
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
@@ -34,23 +37,53 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
           const dim = !isSameMonth(day, cursor);
           const today = isSameDay(day, new Date());
           return (
-            <div key={key} className={`bg-white p-1 min-h-[96px] ${dim ? 'opacity-40' : ''}`}>
+            <button type="button" key={key}
+              onClick={() => items.length > 0 && setModalDay(key)}
+              className={`bg-white p-1 min-h-[80px] text-left ${dim ? 'opacity-40' : ''} ${items.length > 0 ? 'hover:bg-blue-50' : ''}`}>
               <div className={`text-xs ${today ? 'font-bold text-blue-600' : ''}`}>{format(day, 'd')}</div>
               <div className="space-y-0.5 mt-1">
-                {items.map((s) => {
+                {items.slice(0, 3).map((s) => {
                   const d = new Date(s.scheduled_at);
                   const hm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
                   return (
                     <div key={s.id} className="text-[10px] bg-blue-100 rounded px-1 truncate">
-                      {hm} @{s.influencers?.handle} · {s.clients?.company_name}
+                      {hm} @{s.influencers?.handle}
                     </div>
                   );
                 })}
+                {items.length > 3 && <div className="text-[10px] text-gray-500">+{items.length - 3}</div>}
               </div>
-            </div>
+            </button>
           );
         })}
       </div>
+
+      {/* 모달 */}
+      {modalDay && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+          onClick={() => setModalDay(null)}>
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="font-bold">{modalDay} 스케줄</h3>
+              <button onClick={() => setModalDay(null)} className="text-2xl leading-none">✕</button>
+            </div>
+            <div className="p-4 space-y-2">
+              {modalItems.map((s) => {
+                const d = new Date(s.scheduled_at);
+                const hm = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+                return (
+                  <div key={s.id} className="border border-gray-200 rounded p-3 text-sm">
+                    <div className="font-semibold">{hm}</div>
+                    <div>@{s.influencers?.handle}</div>
+                    <div className="text-gray-600">{s.clients?.company_name}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

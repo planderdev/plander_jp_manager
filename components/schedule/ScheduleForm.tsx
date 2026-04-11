@@ -1,6 +1,7 @@
 'use client';
 import { useState, useMemo } from 'react';
 import { createScheduleAction } from '@/actions/schedules';
+import SubmitButton from '@/components/SubmitButton';
 
 type InfOpt = { id: number; handle: string };
 type CliOpt = { id: number; company_name: string };
@@ -19,7 +20,7 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
     return influencers.filter(i => i.handle.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
   }, [query, influencers]);
 
-  const scheduledAt = date && `${date}T${hour.padStart(2,'0')}:${minute}:00`;
+  const scheduledAt = date && `${date}T${hour.padStart(2,'0')}:${minute}:00+09:00`;
   const canSubmit = selInf && selCli && date;
 
   return (
@@ -98,10 +99,7 @@ export default function ScheduleForm({ influencers, clients }: { influencers: In
           rows={2} className="w-full border border-gray-400 rounded p-2" />
       </div>
 
-      <button type="submit" disabled={!canSubmit}
-        className="bg-black text-white px-6 py-2 rounded disabled:bg-gray-300">
-        등록
-      </button>
+      <SubmitButton>등록</SubmitButton>
     </form>
   );
 }

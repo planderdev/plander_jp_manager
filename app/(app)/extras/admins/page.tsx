@@ -1,5 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { createAdminAction } from '@/actions/admins';
+import PhoneInput from '@/components/PhoneInput';
+import SubmitButton from '@/components/SubmitButton';
 
 export default async function AdminsPage() {
   const sb = await createClient();
@@ -16,11 +18,14 @@ export default async function AdminsPage() {
             <F name="name" label="담당자명 *" required />
             <F name="company" label="소속" />
             <F name="title" label="직함" />
-            <F name="phone" label="휴대폰번호" />
+            <div>
+              <label className="text-sm block mb-1 font-medium">휴대폰번호</label>
+              <PhoneInput name="phone" />
+            </div>
             <F name="email" label="이메일 (아이디) *" type="email" required />
             <F name="password" label="비밀번호 (6자 이상) *" type="password" required />
           </div>
-          <button type="submit" className="bg-black text-white px-6 py-2 rounded">등록</button>
+          <SubmitButton>등록/SubmitButton>
         </form>
       </section>
 

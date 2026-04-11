@@ -27,10 +27,15 @@ export async function createAdminAction(fd: FormData) {
     { auth: { autoRefreshToken: false, persistSession: false } }
   );
 
-  const { data: created, error } = await admin.auth.admin.createUser({
-    email, password, email_confirm: true,
-  });
-  if (error) throw new Error(error.message);
+const { data: created, error } = await admin.auth.admin.createUser({
+  email, password, email_confirm: true,
+});
+if (error) {
+  if (error.message.includes('already') || error.message.includes('exists') || error.message.includes('registered')) {
+    throw new Error('이미 등록된 이메일입니다');
+  }
+  throw new Error(error.message);
+}
 
   const { error: profileErr } = await sb.from('admins').insert({
     id: created.user.id,

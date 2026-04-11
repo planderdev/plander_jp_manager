@@ -29,7 +29,10 @@ export async function createClientAction(formData: FormData) {
   };
 
   const { data: inserted, error } = await sb.from('clients').insert(payload).select().single();
-  if (error) throw new Error(error.message);
+  if (error) {
+    if (error.code === '23505') throw new Error('이미 등록된 업체명입니다');
+    throw new Error(error.message);
+  }
 
   const file = formData.get('contract_file') as File | null;
   if (file && file.size > 0) {

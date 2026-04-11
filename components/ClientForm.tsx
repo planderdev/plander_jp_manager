@@ -1,4 +1,7 @@
 import type { Client } from '@/types/db';
+import PhoneInput from '@/components/PhoneInput';
+import SubmitButton from '@/components/SubmitButton';
+
 
 export default function ClientForm({ client, action }: { client?: Client; action: (fd: FormData) => void }) {
   return (
@@ -7,7 +10,10 @@ export default function ClientForm({ client, action }: { client?: Client; action
       <Field name="company_name" label="업체명 *" required defaultValue={client?.company_name} />
       <div className="grid grid-cols-2 gap-4">
         <Field name="contact_person" label="담당자" defaultValue={client?.contact_person ?? ''} />
-        <Field name="phone" label="연락처" defaultValue={client?.phone ?? ''} />
+        <div>
+          <label className="text-sm block mb-1">연락처</label>
+          <PhoneInput name="phone" defaultValue={client?.phone ?? ''} />
+        </div>
       </div>
       <Field name="email" label="이메일" type="email" defaultValue={client?.email ?? ''} />
       <div>
@@ -32,7 +38,7 @@ export default function ClientForm({ client, action }: { client?: Client; action
         <input type="file" name="contract_file" accept=".pdf,.png,.jpg,.jpeg" />
         {client?.contract_file_path && <p className="text-xs text-gray-500 mt-1">기존: {client.contract_file_path}</p>}
       </div>
-      <button type="submit" className="bg-black text-white px-6 py-2 rounded">저장</button>
+      <SubmitButton>저장</SubmitButton>
     </form>
   );
 }

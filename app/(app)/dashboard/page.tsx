@@ -30,7 +30,7 @@ export default async function DashboardPage() {
   const waiting = (waitingList ?? []).filter((s: any) => {
     const posts = s.posts;
     if (!posts || posts.length === 0) return true;
-    return posts.every((p: any) => !p.post_url);
+    return !posts.some((p: any) => p.post_url && p.post_url.trim() !== '');
   }).slice(0, 10);
 
   const cards = [

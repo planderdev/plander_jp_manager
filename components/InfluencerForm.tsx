@@ -1,6 +1,8 @@
 'use client';
 import { useState } from 'react';
 import type { Influencer, ChannelType } from '@/types/db';
+import PhoneInput from '@/components/PhoneInput';
+
 
 export default function InfluencerForm({
   influencer, action,
@@ -16,7 +18,6 @@ export default function InfluencerForm({
   const [bankName, setBankName] = useState(i?.bank_name ?? '');
   const [branchName, setBranchName] = useState(i?.branch_name ?? '');
   const [accountNumber, setAccountNumber] = useState(i?.account_number ?? '');
-  const [phone, setPhone] = useState(i?.phone ?? '');
   const [postalCode, setPostalCode] = useState(i?.postal_code ?? '');
 
   // 입력 필터
@@ -134,12 +135,8 @@ export default function InfluencerForm({
         </div>
 
         <div>
-          <label className="text-sm block mb-1 font-medium">휴대폰번호 (숫자만)</label>
-          <input name="phone" value={phone}
-            onChange={(e) => setPhone(toNum(e.target.value))}
-            onCompositionEnd={(e: any) => setPhone(toNum(e.target.value))}
-            inputMode="numeric"
-            className="w-full border border-gray-400 rounded p-2" />
+          <label className="text-sm block mb-1 font-medium">휴대폰번호</label>
+          <PhoneInput name="phone" defaultValue={i?.phone ?? ''} />
         </div>
 
         {/* 주소 - 정산정보 안에 포함 */}
