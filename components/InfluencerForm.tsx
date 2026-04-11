@@ -180,8 +180,8 @@ export default function InfluencerForm({
         <select name="contact_status" defaultValue={i?.contact_status ?? 'active'}
           className="w-full border border-gray-400 rounded p-2 max-w-xs">
           <option value="active">연락 가능</option>
-          <option value="inactive">비활성</option>
-          <option value="blocked">차단</option>
+          <option value="inactive">연락 불가</option>
+          <option value="blocked">탈락</option>
         </select>
       </div>
 

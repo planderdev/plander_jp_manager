@@ -46,3 +46,43 @@ if (error) {
   revalidatePath('/extras/admins');
   redirect('/extras/admins');
 }
+
+export async function updateAdminAction(fd: FormData) {
+  const id = String(fd.get('id'));
+  const sb = await createClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const payload = {
+    name: String(fd.get('name') || ''),
+    company: String(fd.get('company') || '') || null,
+    title: String(fd.get('title') || '') || null,
+    phone: String(fd.get('phone') || '') || null,
+  };
+
+  const { error } = await sb.from('admins').update(payload).eq('id', id);
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/extras/admins');
+  redirect('/extras/admins');
+}
+
+export async function deleteAdminAction(id: string) {
+  const sb = await createClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+  if (user.id === id) throw new Error('자기 자신은 삭제할 수 없습니다');
+
+  // service role로 auth 유저 삭제
+  const { createClient: createSbClient } = await import('@supabase/supabase-js');
+  const adminSb = createSbClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!,
+    { auth: { autoRefreshToken: false, persistSession: false } }
+  );
+  await adminSb.auth.admin.deleteUser(id);
+  // admins 테이블은 cascade 안 걸려있으면 직접 삭제
+  await sb.from('admins').delete().eq('id', id);
+
+  revalidatePath('/extras/admins');
+}

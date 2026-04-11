@@ -41,8 +41,23 @@ export default async function StatsPage({
     posts = data ?? [];
   }
 
-  const totalClients = new Set(posts.map(p => p.client_id)).size;
-  const totalInfluencers = new Set(posts.map(p => p.influencer_id)).size;
+  // 필터 적용된 카운트
+  let totalClients: number;
+  let totalInfluencers: number;
+
+  if (client) {
+    totalClients = 1;
+  } else {
+    const { count } = await sb.from('clients').select('id', { count: 'exact', head: true });
+    totalClients = count ?? 0;
+  }
+  
+  if (influencer) {
+    totalInfluencers = 1;
+  } else {
+    const { count } = await sb.from('influencers').select('id', { count: 'exact', head: true });
+    totalInfluencers = count ?? 0;
+  }
   const uploaded = posts.filter(p => p.post_url).length;
   const totalViews = posts.reduce((a, p) => a + (p.views ?? 0), 0);
   const totalLikes = posts.reduce((a, p) => a + (p.likes ?? 0), 0);

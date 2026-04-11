@@ -5,6 +5,8 @@ import SubmitButton from '@/components/SubmitButton';
 import { saveApifyTokenAction, getApifyTokenStatus } from '@/actions/settings';
 import { syncAllPosts } from '@/actions/sync-metrics';
 import { revalidatePath } from 'next/cache';
+import Link from 'next/link';
+import { deleteAdminAction } from '@/actions/admins';
 
 export default async function AdminsPage() {
   const sb = await createClient();
@@ -45,6 +47,7 @@ export default async function AdminsPage() {
                 <th className="p-3">이메일</th>
                 <th className="p-3">휴대폰</th>
                 <th className="p-3">등록일</th>
+                <th className="p-3">관리</th>
               </tr>
             </thead>
             <tbody>
@@ -56,6 +59,18 @@ export default async function AdminsPage() {
                   <td className="p-3">{a.email}</td>
                   <td className="p-3">{a.phone ?? '-'}</td>
                   <td className="p-3">{new Date(a.created_at).toLocaleDateString('ko-KR')}</td>
+                  <td className="p-3 space-x-2">
+                    <Link href={`/extras/admins/${a.id}`} className="text-blue-600">수정</Link>
+                    <form action={async () => {
+                      'use server';
+                      await deleteAdminAction(a.id);
+                    }} className="inline">
+                      <button className="text-red-500"
+                        formAction={async () => { 'use server'; await deleteAdminAction(a.id); }}>
+                        삭제
+                      </button>
+                    </form>
+                  </td>
                 </tr>
               ))}
             </tbody>

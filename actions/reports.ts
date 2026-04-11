@@ -18,7 +18,7 @@ export async function generateReportAction(fd: FormData) {
   const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}-01T00:00:00+09:00`;
 
   const { data: posts } = await sb.from('posts')
-    .select('*, influencers(handle, unit_price)')
+    .select('*, influencers(handle), created_at')
     .eq('client_id', clientId)
     .gte('created_at', start)
     .lt('created_at', endStr)

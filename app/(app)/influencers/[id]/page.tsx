@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { fullKR } from '@/lib/datetime';
+import { contactStatusLabel } from '@/lib/labels';
 
 export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -32,7 +33,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
             : '-'
         } />
         <Row label="비고" value={i.memo ?? '-'} />
-        <Row label="연락 상태" value={i.contact_status} />
+        <Row label="연락 상태" value={contactStatusLabel(i.contact_status)} />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6 space-y-3">

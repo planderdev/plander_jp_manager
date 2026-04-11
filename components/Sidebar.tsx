@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Logo from '@/components/Logo';
 
 export default function Sidebar({
   userName, signOutAction,
@@ -16,7 +17,9 @@ export default function Sidebar({
     <>
       {/* 모바일 상단바 */}
       <header className="md:hidden bg-gray-900 text-white flex items-center justify-between px-4 h-14 sticky top-0 z-30">
-        <div className="font-bold"><img src="./public/logo.svg" alt="Plander"></img></div>
+        <div className="mb-6">
+          <Logo className="h-8 w-auto text-white" />
+        </div>
         <button onClick={() => setOpen(true)} aria-label="메뉴 열기" className="text-2xl">☰</button>
       </header>
 
@@ -35,7 +38,9 @@ export default function Sidebar({
         md:translate-x-0 md:w-56
       `}>
         <div className="flex items-center justify-between mb-6">
-          <div className="text-xl font-bold"><img src="./public/logo.svg" alt="Plander"></img></div>
+          <div className="mb-6">
+            <Logo className="h-8 w-auto text-white" />
+          </div>
           <button onClick={close} className="md:hidden text-2xl" aria-label="닫기">✕</button>
         </div>
 
