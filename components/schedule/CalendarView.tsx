@@ -38,26 +38,24 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
           const items = byDay.get(key) ?? [];
           const dim = !isSameMonth(day, cursor);
         
-          // 한국시간 기준으로 오늘/과거/미래 판정
           const today = todayKR();
           const cmp = key.localeCompare(today);
           const isToday = cmp === 0;
           const isPast = cmp < 0;
-          const isFuture = cmp > 0;
         
-          let bgClass = 'bg-white';
-          if (isToday) bgClass = 'bg-yellow-100 hover:bg-yellow-200';
-          else if (isPast) bgClass = 'bg-gray-200 hover:bg-gray-300';
-          else if (isFuture) bgClass = 'bg-purple-50 hover:bg-purple-100';
+          // 칩 색 결정
+          let chipClass = 'bg-purple-100 text-purple-900';   // 미래 = 연보라
+          if (isToday) chipClass = 'bg-yellow-200 text-yellow-900';  // 오늘 = 노랑
+          else if (isPast) chipClass = 'bg-gray-200 text-gray-700';  // 과거 = 회색
         
           return (
             <button type="button" key={key}
               onClick={() => items.length > 0 && setModalDay(key)}
-              className={`${bgClass} p-1 min-h-[80px] text-left ${dim ? 'opacity-40' : ''}`}>
+              className={`bg-white hover:bg-blue-50 p-1 min-h-[80px] text-left ${dim ? 'opacity-40' : ''}`}>
               <div className={`text-xs ${isToday ? 'font-bold text-blue-700' : ''}`}>{format(day, 'd')}</div>
               <div className="space-y-0.5 mt-1">
                 {items.slice(0, 3).map((s) => (
-                  <div key={s.id} className="text-[10px] bg-blue-100 rounded px-1 truncate">
+                  <div key={s.id} className={`text-[10px] rounded px-1 truncate ${chipClass}`}>
                     {timeKR(s.scheduled_at)} @{s.influencers?.handle}
                   </div>
                 ))}
