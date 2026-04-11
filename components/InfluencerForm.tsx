@@ -2,6 +2,8 @@
 import { useState } from 'react';
 import type { Influencer, ChannelType } from '@/types/db';
 import PhoneInput from '@/components/PhoneInput';
+import SubmitButton from '@/components/SubmitButton';
+
 
 
 export default function InfluencerForm({
@@ -183,9 +185,7 @@ export default function InfluencerForm({
         </select>
       </div>
 
-      <button type="submit" className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">
-        저장
-      </button>
+      <SubmitButton>저장</SubmitButton>
     </form>
   );
 }

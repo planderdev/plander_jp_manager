@@ -34,7 +34,11 @@ export default async function PostsPage() {
             {posts?.map((p: any) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">{p.clients?.company_name ?? '-'}</td>
-                <td className="p-3">@{p.influencers?.handle}</td>
+                <td className="p-3">
+                  <Link href={`/influencers/${p.influencer_id}`} className="text-blue-600 hover:underline">
+                    @{p.influencers?.handle}
+                  </Link>
+                </td>
                 <td className="p-3">
                   {p.post_url
                     ? <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">링크</a>

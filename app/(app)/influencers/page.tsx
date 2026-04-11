@@ -26,6 +26,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
             <tr>
               <th className="p-3">채널</th>
               <th className="p-3">아이디</th>
+              <th className="p-3">계정</th>
               <th className="p-3">팔로워</th>
               <th className="p-3">단가</th>
               <th className="p-3">연락상태</th>
@@ -37,15 +38,20 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
               <tr key={i.id} className="border-t">
                 <td className="p-3">{i.channel}</td>
                 <td className="p-3 font-medium">
-                  {i.account_url
-                    ? <a href={i.account_url} target="_blank" className="text-blue-600 hover:underline">@{i.handle}</a>
-                    : `@${i.handle}`}
+                  <Link href={`/influencers/${i.id}`} className="text-blue-600 hover:underline">@{i.handle}</Link>
+                </td>
+                <td className="p-3">
+                  {i.account_url && (
+                    <a href={i.account_url} target="_blank" className="text-xs bg-blue-50 border border-blue-300 rounded px-2 py-1 text-blue-700 hover:bg-blue-100">
+                      계정 ↗
+                    </a>
+                  )}
                 </td>
                 <td className="p-3">{i.followers?.toLocaleString()} 명</td>
                 <td className="p-3">{i.unit_price != null ? `JPY ${i.unit_price.toLocaleString()}` : '-'}</td>
                 <td className="p-3">{i.contact_status}</td>
                 <td className="p-3 space-x-2">
-                  <Link href={`/influencers/${i.id}`} className="text-blue-600">수정</Link>
+                  <Link href={`/influencers/${i.id}/edit`} className="text-blue-600">수정</Link>
                   <form action={async () => { 'use server'; await deleteInfluencerAction(i.id); }} className="inline">
                     <button className="text-red-500">삭제</button>
                   </form>

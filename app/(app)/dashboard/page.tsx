@@ -75,7 +75,11 @@ export default async function DashboardPage() {
                   return (
                     <tr key={s.id} className="border-t">
                       <td className="p-2">{`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`}</td>
-                      <td className="p-2">@{s.influencers?.handle}</td>
+                      <td className="p-2">
+                        <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
+                          @{s.influencers?.handle}
+                        </Link>
+                      </td>
                       <td className="p-2">{s.clients?.company_name}</td>
                     </tr>
                   );

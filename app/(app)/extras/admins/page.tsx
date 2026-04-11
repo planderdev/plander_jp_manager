@@ -25,7 +25,7 @@ export default async function AdminsPage() {
             <F name="email" label="이메일 (아이디) *" type="email" required />
             <F name="password" label="비밀번호 (6자 이상) *" type="password" required />
           </div>
-          <SubmitButton>등록/SubmitButton>
+          <SubmitButton>등록</SubmitButton>
         </form>
       </section>
 

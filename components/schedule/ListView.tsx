@@ -2,6 +2,7 @@ import DeleteButton from './DeleteButton';
 import Link from 'next/link';
 import { deleteScheduleAction } from '@/actions/schedules';
 import type { Schedule } from '@/types/db';
+import Link from 'next/link';
 
 export default function ListView({ schedules }: { schedules: Schedule[] }) {
   return (
@@ -24,7 +25,11 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
               <tr key={s.id} className="border-t">
                 <td className="p-3 font-medium">{dateStr}</td>
                 <td className="p-3">{s.clients?.company_name ?? '-'}</td>
-                <td className="p-3">@{s.influencers?.handle}</td>
+                <td className="p-3">
+                  <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
+                    @{s.influencers?.handle}
+                  </Link>
+                </td>
                 <td className="p-3">
                   {s.influencers?.account_url && (
                     <a href={s.influencers.account_url} target="_blank" className="text-blue-600 hover:underline">
