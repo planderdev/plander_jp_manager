@@ -40,9 +40,6 @@ export default function ListView({ schedules }: { schedules: Schedule[] }) {
                   <Link href={`/campaigns/schedules/${s.id}`} className="text-blue-600">수정</Link>
                   <DeleteButton id={s.id} />
                 </td>
-                <td className="p-3">
-                  <DeleteButton id={s.id} />
-                </td>
                 
               </tr>
             );
