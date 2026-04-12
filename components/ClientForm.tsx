@@ -3,6 +3,7 @@ import SubmitButton from '@/components/SubmitButton';
 import PhoneInput from '@/components/PhoneInput';
 import AddressSearch from '@/components/AddressSearch';
 import ChipSelect from '@/components/ChipSelect';
+import NumberInput from '@/components/NumberInput';
 
 type OptionItem = { id: number; value: string };
 type Admin = { id: string; name: string };
@@ -40,7 +41,7 @@ export default function ClientForm({
         </div>
 
         <ChipSelect name="category" label="카테고리" kind="category"
-          options={options.categories} defaultValue={client?.category ?? ''} />
+          options={options.categories} defaultValue={client?.category ?? ''} multiple />
 
         <ChipSelect name="sales_region" label="지역" kind="sales_region"
           options={options.regions} defaultValue={client?.sales_region ?? ''} />
@@ -96,11 +97,11 @@ export default function ClientForm({
         </div>
 
         <ChipSelect name="contract_product" label="계약상품" kind="product"
-          options={options.products} defaultValue={client?.contract_product ?? ''} />
+          options={options.products} defaultValue={client?.contract_product ?? ''} multiple />
 
         <div>
           <label className="text-sm block mb-1 font-medium">계약금액</label>
-          <input type="number" name="contract_amount"
+          <NumberInput name="contract_amount"
             defaultValue={client?.contract_amount ?? ''}
             className="w-full border border-gray-400 rounded p-2 max-w-xs" />
         </div>

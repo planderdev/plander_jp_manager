@@ -14,9 +14,10 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', borderBottom: 1, borderColor: '#eee', paddingVertical: 6 },
   head: { backgroundColor: '#eee', fontWeight: 'bold' as any },
   cName: { width: '18%' },
-  cDate: { width: '16%' },
-  cStatus: { width: '12%' },
-  cLink: { width: '24%' },
+  cDate: { width: '14%' },
+  cUpload: { width: '14%' },
+  cChannel: { width: '14%' },
+  cStatus: { width: '10%' },
   cNum: { width: '10%', textAlign: 'right' as any },
 });
 
@@ -44,16 +45,12 @@ export function ReportDoc({ client, month, schedules }: any) {
         <Text style={s.h1}>{client.company_name} - {month} 월간 리포트</Text>
         <Text style={s.sub}>담당자: {client.contact_person ?? '-'} · 연락처: {client.phone ?? '-'}</Text>
 
-        <View style={s.box}>
-          <Text>전체 스케줄: {schedules.length}건   업로드: {uploadedSchedules.length}건</Text>
-          <Text>총 조회수: {totalViews.toLocaleString()}   총 좋아요: {totalLikes.toLocaleString()}   총 댓글: {totalComments.toLocaleString()}</Text>
-        </View>
-
         <View style={[s.row, s.head]}>
           <Text style={s.cName}>인플루언서</Text>
+          <Text style={s.cChannel}>채널</Text>
           <Text style={s.cDate}>촬영일</Text>
+          <Text style={s.cUpload}>업로드일</Text>
           <Text style={s.cStatus}>업로드</Text>
-          <Text style={s.cLink}>게시물 링크</Text>
           <Text style={s.cNum}>조회</Text>
           <Text style={s.cNum}>좋아요</Text>
           <Text style={s.cNum}>댓글</Text>
@@ -63,12 +60,19 @@ export function ReportDoc({ client, month, schedules }: any) {
           const uploaded = !!p;
           const d = new Date(s2.scheduled_at);
           const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
+          const uploadStr = p?.created_at
+            ? (() => {
+                const ud = new Date(p.created_at);
+                return `${ud.getFullYear()}/${String(ud.getMonth()+1).padStart(2,'0')}/${String(ud.getDate()).padStart(2,'0')}`;
+              })()
+            : '-';
           return (
             <View key={s2.id} style={s.row}>
               <Text style={s.cName}>@{s2.influencers?.handle}</Text>
+              <Text style={s.cChannel}>{s2.influencers?.channel ?? '-'}</Text>
               <Text style={s.cDate}>{dateStr}</Text>
+              <Text style={s.cUpload}>{uploadStr}</Text>
               <Text style={s.cStatus}>{uploaded ? 'O' : 'X'}</Text>
-              <Text style={s.cLink}>{p?.post_url ?? '-'}</Text>
               <Text style={s.cNum}>{(p?.views ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(p?.likes ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(p?.comments ?? 0).toLocaleString()}</Text>

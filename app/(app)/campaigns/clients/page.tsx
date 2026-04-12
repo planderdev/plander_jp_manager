@@ -42,7 +42,7 @@ export default async function ClientsPage() {
                 <td className="p-3">{c.phone ?? '-'}</td>
                 <td className="p-3">{clientStatusLabel(c.status)}</td>
                 <td className="p-3">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
-                <td className="p-3">{c.contract_amount?.toLocaleString() ?? '-'}</td>
+                <td className="p-3">{c.contract_amount != null ? c.contract_amount.toLocaleString() + '원' : '-'}</td>
               </tr>
             ))}
             {!clients?.length && (

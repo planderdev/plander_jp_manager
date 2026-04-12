@@ -25,6 +25,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
     <div className="p-4 md:p-8 space-y-6 max-w-3xl">
       <div className="flex items-center gap-3 flex-wrap">
         <h1 className="text-2xl font-bold">{c.company_name}</h1>
+        {c.sales_region && (
+          <span className="text-sm text-gray-600">({c.sales_region})</span>
+        )}
         <span className={`inline-block px-2 py-1 rounded text-xs ${clientStatusClass(c.status)}`}>
           {clientStatusLabel(c.status)}
         </span>

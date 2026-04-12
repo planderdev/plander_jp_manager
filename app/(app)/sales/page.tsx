@@ -159,7 +159,7 @@ export default async function SalesPage({
                       {clientStatusLabel(c.status)}
                     </span>
                   </td>
-                  <td className="p-3">{c.contract_amount?.toLocaleString() ?? '-'}</td>
+                  <td className="p-3">{c.contract_amount != null ? c.contract_amount.toLocaleString() + '원' : '-'}</td>
                   <td className="p-3">{c.contract_start ?? '-'}</td>
                   <td className="p-3">{c.owner?.name ?? '-'}</td>
                 </tr>

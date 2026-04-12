@@ -7,12 +7,12 @@ export async function syncAllPosts() {
     process.env.SUPABASE_SERVICE_ROLE_KEY!
   );
 
-  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
   const { data: posts, error } = await sb.from('posts')
-    .select('id, post_url, created_at')
-    .not('post_url', 'is', null)
-    .neq('settlement_status', 'done')
-    .gte('created_at', thirtyDaysAgo);
+    .select('id, post_url, client_id, clients(status)')
+    .not('post_url', 'is', null);
+
+  // 필터
+  const targets = (posts ?? []).filter((p: any) => p.clients?.status !== 'ended');
 
   if (error) throw new Error(error.message);
   if (!posts || posts.length === 0) {
@@ -26,7 +26,7 @@ export async function syncAllPosts() {
   const metricsByUrl = new Map(metrics.map(m => [normalize(m.url), m]));
 
   let updated = 0;
-  for (const post of posts) {
+  for (const post of targets) {
     const m = metricsByUrl.get(normalize(post.post_url!));
     if (!m) continue;
 
