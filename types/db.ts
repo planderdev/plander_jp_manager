@@ -16,6 +16,11 @@ export interface Client {
   manager_id: string | null;
   manager_name: string | null;
   contract_file_path: string | null;
+  postal_code: string | null;
+  region: string | null;
+  district: string | null;
+  road_address: string | null;
+  building_detail: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -69,11 +74,6 @@ export interface Post {
   settlement_status: SettlementStatus;
   settled_on: string | null;
   payment_proof_path: string | null;
-  postal_code: string | null;
-  region: string | null;
-  district: string | null;
-  road_address: string | null;
-  building_detail: string | null;
   created_at: string;
   updated_at: string;
   clients?: { company_name: string };
