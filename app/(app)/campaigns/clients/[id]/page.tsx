@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { clientStatusLabel } from '@/lib/labels';
 import { deleteClientAction } from '@/actions/clients';
+import DeleteButton from '@/components/client/DeleteButton';
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -39,15 +40,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <Link href={`/campaigns/clients/${c.id}/edit`}
           className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">수정</Link>
         <BackButton />
-        <form action={async () => {
-          'use server';
-          await deleteClientAction(c.id);
-        }} className="ml-auto">
-          <button className="border border-red-500 text-red-500 px-6 py-2 rounded hover:bg-red-50"
-            onClick={(e) => { /* 확인창 원하면 DeleteButton 컴포넌트 분리 */ }}>
-            삭제
-          </button>
-        </form>
+        <div className="ml-auto">
+          <DeleteButton id={c.id} />
+        </div>
       </div>
     </div>
   );
