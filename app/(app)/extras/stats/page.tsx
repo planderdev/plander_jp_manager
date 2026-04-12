@@ -1,4 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
+import Link from 'next/link';
+
 
 function parseYmd(s?: string) {
   if (!s) return null;
@@ -32,7 +34,7 @@ export default async function StatsPage({
   let posts: any[] = [];
   if (!rangeError) {
     let q = sb.from('posts')
-      .select('client_id, influencer_id, post_url, views, likes, comments, created_at');
+      .select('client_id, influencer_id, post_url, views, likes, comments, created_at, settlement_status, influencers(unit_price)');
     if (client) q = q.eq('client_id', Number(client));
     if (influencer) q = q.eq('influencer_id', Number(influencer));
     if (fromDate) q = q.gte('created_at', `${fromDate}T00:00:00+09:00`);
@@ -62,14 +64,24 @@ export default async function StatsPage({
   const totalViews = posts.reduce((a, p) => a + (p.views ?? 0), 0);
   const totalLikes = posts.reduce((a, p) => a + (p.likes ?? 0), 0);
   const totalComments = posts.reduce((a, p) => a + (p.comments ?? 0), 0);
+  const paidTotal = posts
+    .filter((p: any) => p.settlement_status === 'done')
+    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0);
+  const unpaidTotal = posts
+    .filter((p: any) => p.settlement_status !== 'done')
+    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0);
+  const grandTotal = paidTotal + unpaidTotal;
 
-  const metrics = [
+  const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [
     { label: '업체 수', value: totalClients },
     { label: '인플루언서 수', value: totalInfluencers },
     { label: '업로드 게시물 수', value: uploaded },
     { label: '총 좋아요', value: totalLikes },
     { label: '총 댓글', value: totalComments },
     { label: '총 조회수', value: totalViews },
+    { label: '정산 완료 금액', value: paidTotal, suffix: '원', href: '/influencers/posts' },
+    { label: '미정산 금액', value: unpaidTotal, suffix: '원', href: '/influencers/posts' },
+    { label: '총 지출 금액', value: grandTotal, suffix: '원', href: '/influencers/posts' },
   ];
 
   return (
@@ -105,12 +117,26 @@ export default async function StatsPage({
       {rangeError && <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">{rangeError}</div>}
 
       <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-        {metrics.map((m) => (
-          <div key={m.label} className="bg-white rounded-lg shadow p-5">
-            <div className="text-sm text-gray-600">{m.label}</div>
-            <div className="text-3xl font-bold mt-1">{m.value.toLocaleString()}</div>
-          </div>
-        ))}
+        {metrics.map((m) => {
+          const inner = (
+            <>
+              <div className="text-sm text-gray-600">{m.label}</div>
+              <div className="text-2xl md:text-3xl font-bold mt-1">
+                {m.value.toLocaleString()}{m.suffix ?? ''}
+              </div>
+            </>
+          );
+          return m.href ? (
+            <Link key={m.label} href={m.href}
+              className="bg-white rounded-lg shadow p-5 hover:shadow-md transition">
+              {inner}
+            </Link>
+          ) : (
+            <div key={m.label} className="bg-white rounded-lg shadow p-5">
+              {inner}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
