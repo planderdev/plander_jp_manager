@@ -26,6 +26,11 @@ export async function createClientAction(formData: FormData) {
     memo: String(formData.get('memo') || '') || null,
     manager_id: user.id,
     manager_name: admin?.name ?? null,
+    postal_code: String(formData.get('postal_code') || '') || null,
+    region: String(formData.get('region') || '') || null,
+    district: String(formData.get('district') || '') || null,
+    road_address: String(formData.get('road_address') || '') || null,
+    building_detail: String(formData.get('building_detail') || '') || null,
   };
 
   const { data: inserted, error } = await sb.from('clients').insert(payload).select().single();
@@ -61,6 +66,11 @@ export async function updateClientAction(formData: FormData) {
     contract_end: String(formData.get('contract_end') || '') || null,
     contract_amount: Number(formData.get('contract_amount')) || null,
     memo: String(formData.get('memo') || '') || null,
+    postal_code: String(formData.get('postal_code') || '') || null,
+    region: String(formData.get('region') || '') || null,
+    district: String(formData.get('district') || '') || null,
+    road_address: String(formData.get('road_address') || '') || null,
+    building_detail: String(formData.get('building_detail') || '') || null,
   };
 
   const { error } = await sb.from('clients').update(payload).eq('id', id);
@@ -82,10 +92,5 @@ export async function deleteClientAction(id: number) {
   const { error } = await sb.from('clients').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/campaigns/clients');
-}
 
-postal_code: String(formData.get('postal_code') || '') || null,
-region: String(formData.get('region') || '') || null,
-district: String(formData.get('district') || '') || null,
-road_address: String(formData.get('road_address') || '') || null,
-building_detail: String(formData.get('building_detail') || '') || null,
+}
