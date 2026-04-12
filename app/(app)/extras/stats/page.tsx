@@ -66,10 +66,10 @@ export default async function StatsPage({
   const totalComments = posts.reduce((a, p) => a + (p.comments ?? 0), 0);
   const paidTotal = posts
     .filter((p: any) => p.settlement_status === 'done')
-    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0);
+    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
   const unpaidTotal = posts
     .filter((p: any) => p.settlement_status !== 'done')
-    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0);
+    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
   const grandTotal = paidTotal + unpaidTotal;
 
   const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [
