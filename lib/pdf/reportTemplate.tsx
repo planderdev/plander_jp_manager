@@ -14,15 +14,29 @@ const s = StyleSheet.create({
   row: { flexDirection: 'row', borderBottom: 1, borderColor: '#eee', paddingVertical: 6 },
   head: { backgroundColor: '#eee', fontWeight: 'bold' as any },
   cName: { width: '18%' },
-  cDate: { width: '14%' },
-  cLink: { width: '36%' },
-  cNum: { width: '10.66%', textAlign: 'right' as any },
+  cDate: { width: '16%' },
+  cStatus: { width: '12%' },
+  cLink: { width: '24%' },
+  cNum: { width: '10%', textAlign: 'right' as any },
 });
 
-export function ReportDoc({ client, month, posts }: any) {
-  const totalViews = posts.reduce((a: number, p: any) => a + (p.views || 0), 0);
-  const totalLikes = posts.reduce((a: number, p: any) => a + (p.likes || 0), 0);
-  const totalComments = posts.reduce((a: number, p: any) => a + (p.comments || 0), 0);
+export function ReportDoc({ client, month, schedules }: any) {
+  const uploadedSchedules = schedules.filter((s: any) =>
+    s.posts?.some((p: any) => p.post_url)
+  );
+
+  const totalViews = uploadedSchedules.reduce((a: number, s: any) => {
+    const p = s.posts?.find((p: any) => p.post_url);
+    return a + (p?.views || 0);
+  }, 0);
+  const totalLikes = uploadedSchedules.reduce((a: number, s: any) => {
+    const p = s.posts?.find((p: any) => p.post_url);
+    return a + (p?.likes || 0);
+  }, 0);
+  const totalComments = uploadedSchedules.reduce((a: number, s: any) => {
+    const p = s.posts?.find((p: any) => p.post_url);
+    return a + (p?.comments || 0);
+  }, 0);
 
   return (
     <Document>
@@ -31,29 +45,33 @@ export function ReportDoc({ client, month, posts }: any) {
         <Text style={s.sub}>담당자: {client.contact_person ?? '-'} · 연락처: {client.phone ?? '-'}</Text>
 
         <View style={s.box}>
-          <Text>총 게시물: {posts.length}건   총 조회수: {totalViews.toLocaleString()}</Text>
-          <Text>총 좋아요: {totalLikes.toLocaleString()}   총 댓글: {totalComments.toLocaleString()}</Text>
+          <Text>전체 스케줄: {schedules.length}건   업로드: {uploadedSchedules.length}건</Text>
+          <Text>총 조회수: {totalViews.toLocaleString()}   총 좋아요: {totalLikes.toLocaleString()}   총 댓글: {totalComments.toLocaleString()}</Text>
         </View>
 
         <View style={[s.row, s.head]}>
           <Text style={s.cName}>인플루언서</Text>
-          <Text style={s.cDate}>업로드일</Text>
+          <Text style={s.cDate}>촬영일</Text>
+          <Text style={s.cStatus}>업로드</Text>
           <Text style={s.cLink}>게시물 링크</Text>
           <Text style={s.cNum}>조회</Text>
           <Text style={s.cNum}>좋아요</Text>
           <Text style={s.cNum}>댓글</Text>
         </View>
-        {posts.map((p: any) => {
-          const d = new Date(p.created_at);
+        {schedules.map((s2: any) => {
+          const p = s2.posts?.find((p: any) => p.post_url);
+          const uploaded = !!p;
+          const d = new Date(s2.scheduled_at);
           const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
           return (
-            <View key={p.id} style={s.row}>
-              <Text style={s.cName}>@{p.influencers?.handle}</Text>
+            <View key={s2.id} style={s.row}>
+              <Text style={s.cName}>@{s2.influencers?.handle}</Text>
               <Text style={s.cDate}>{dateStr}</Text>
-              <Text style={s.cLink}>{p.post_url ?? '-'}</Text>
-              <Text style={s.cNum}>{(p.views ?? 0).toLocaleString()}</Text>
-              <Text style={s.cNum}>{(p.likes ?? 0).toLocaleString()}</Text>
-              <Text style={s.cNum}>{(p.comments ?? 0).toLocaleString()}</Text>
+              <Text style={s.cStatus}>{uploaded ? 'O' : 'X'}</Text>
+              <Text style={s.cLink}>{p?.post_url ?? '-'}</Text>
+              <Text style={s.cNum}>{(p?.views ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(p?.likes ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(p?.comments ?? 0).toLocaleString()}</Text>
             </View>
           );
         })}

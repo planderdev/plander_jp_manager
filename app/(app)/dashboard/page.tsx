@@ -2,64 +2,54 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { shortKR } from '@/lib/datetime';
 import { clientStatusLabel } from '@/lib/labels';
+import { getScheduleStatus } from '@/lib/schedule-status';
 
 export default async function DashboardPage() {
   const sb = await createClient();
-  const now = new Date().toISOString();
 
   const [
-    { count: pendingCount },
-    { count: upcomingCount },
     { count: influencerCount },
     { count: clientCount },
-    { data: pastSchedules },
-    { data: completedPosts },
+    { data: allSchedules },
     { data: clients },
   ] = await Promise.all([
-    sb.from('posts').select('id', { count: 'exact', head: true })
-      .eq('settlement_status', 'pending').not('post_url', 'is', null),
-    sb.from('schedules').select('id', { count: 'exact', head: true })
-      .gte('scheduled_at', now),
     sb.from('influencers').select('id', { count: 'exact', head: true }),
     sb.from('clients').select('id', { count: 'exact', head: true }),
     sb.from('schedules')
-      .select('*, clients(company_name), influencers(handle)')
-      .lt('scheduled_at', now)
+      .select('*, clients(company_name), influencers(id, handle), posts(post_url, settlement_status)')
       .order('scheduled_at', { ascending: true }),
-    sb.from('posts')
-      .select('client_id, influencer_id, schedule_id, post_url')
-      .not('post_url', 'is', null),
     sb.from('clients')
       .select('id, company_name, contact_person, phone, status, contract_start, contract_end')
       .order('company_name'),
   ]);
 
-  const completedScheduleIds = new Set<number>();
-  const completedPairs = new Set<string>();
-  for (const p of completedPosts ?? []) {
-    if (p.schedule_id) completedScheduleIds.add(p.schedule_id);
-    completedPairs.add(`${p.client_id}-${p.influencer_id}`);
-  }
+  // 상태별 카운트
+  let reserved = 0, uploadPending = 0, settlementPending = 0, done = 0;
+  const uploadPendingList: any[] = [];
+  const settlementPendingList: any[] = [];
 
-  const waiting = (pastSchedules ?? []).filter((s: any) => {
-    if (completedScheduleIds.has(s.id)) return false;
-    if (completedPairs.has(`${s.client_id}-${s.influencer_id}`)) return false;
-    return true;
-  }).slice(0, 10);
+  for (const s of allSchedules ?? []) {
+    const st = getScheduleStatus(s.scheduled_at, s.posts);
+    if (st === 'reserved') reserved++;
+    else if (st === 'upload_pending') { uploadPending++; uploadPendingList.push(s); }
+    else if (st === 'settlement_pending') { settlementPending++; settlementPendingList.push(s); }
+    else if (st === 'done') done++;
+  }
 
   const cards = [
     { label: '총 클라이언트', value: clientCount ?? 0, href: '/campaigns/clients', color: 'bg-purple-600' },
     { label: '총 인플루언서', value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
-    { label: '방문 예정', value: upcomingCount ?? 0, href: '/campaigns/schedules', color: 'bg-blue-500' },
-    { label: '업로드 대기', value: waiting.length, href: '/campaigns/schedules', color: 'bg-red-500' },
-    { label: '정산 대기', value: pendingCount ?? 0, href: '/influencers/posts', color: 'bg-orange-500' },
+    { label: '예약', value: reserved, href: '/campaigns/schedules', color: 'bg-orange-500' },
+    { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules', color: 'bg-red-500' },
+    { label: '정산 대기', value: settlementPending, href: '/influencers/posts', color: 'bg-red-500' },
+    { label: '완료', value: done, href: '/campaigns/completed', color: 'bg-green-600' },
   ];
 
   return (
     <div className="p-4 md:p-8">
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
 
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
         {cards.map((c) => (
           <Link key={c.label} href={c.href}
             className="bg-white rounded-lg shadow p-5 hover:shadow-md transition">
@@ -70,38 +60,65 @@ export default async function DashboardPage() {
         ))}
       </div>
 
-      <div className="bg-white rounded-lg shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">업로드 대기</h2>
-        {waiting.length === 0 ? (
-          <p className="text-gray-400 text-sm">대기중인 항목이 없습니다</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm min-w-[500px]">
-              <thead className="bg-gray-100 text-left">
-                <tr>
-                  <th className="p-2">촬영일</th>
-                  <th className="p-2">인플루언서</th>
-                  <th className="p-2">업체명</th>
-                </tr>
-              </thead>
-              <tbody>
-                {waiting.map((s: any) => (
-                  <tr key={s.id} className="border-t">
-                    <td className="p-2">{shortKR(s.scheduled_at)}</td>
-                    <td className="p-2">
-                      <Link href={`/influencers/${s.influencer_id}`} className="text-blue-600 hover:underline">
-                        @{s.influencers?.handle}
-                      </Link>
-                    </td>
-                    <td className="p-2">{s.clients?.company_name}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+      <div className="grid md:grid-cols-2 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow p-5">
+          <h2 className="text-lg font-semibold mb-4">업로드 대기 (최대 10건)</h2>
+          {uploadPendingList.length === 0 ? (
+            <p className="text-gray-400 text-sm">없음</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 text-left">
+                  <tr><th className="p-2">촬영일</th><th className="p-2">인플루언서</th><th className="p-2">업체명</th></tr>
+                </thead>
+                <tbody>
+                  {uploadPendingList.slice(0, 10).map((s: any) => (
+                    <tr key={s.id} className="border-t">
+                      <td className="p-2">{shortKR(s.scheduled_at)}</td>
+                      <td className="p-2">
+                        <Link href={`/influencers/${s.influencers?.id}`} className="text-blue-600 hover:underline">
+                          @{s.influencers?.handle}
+                        </Link>
+                      </td>
+                      <td className="p-2">{s.clients?.company_name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        <div className="bg-white rounded-lg shadow p-5">
+          <h2 className="text-lg font-semibold mb-4">정산 대기 (최대 10건)</h2>
+          {settlementPendingList.length === 0 ? (
+            <p className="text-gray-400 text-sm">없음</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-100 text-left">
+                  <tr><th className="p-2">촬영일</th><th className="p-2">인플루언서</th><th className="p-2">업체명</th></tr>
+                </thead>
+                <tbody>
+                  {settlementPendingList.slice(0, 10).map((s: any) => (
+                    <tr key={s.id} className="border-t">
+                      <td className="p-2">{shortKR(s.scheduled_at)}</td>
+                      <td className="p-2">
+                        <Link href={`/influencers/${s.influencers?.id}`} className="text-blue-600 hover:underline">
+                          @{s.influencers?.handle}
+                        </Link>
+                      </td>
+                      <td className="p-2">{s.clients?.company_name}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
-      <div className="bg-white rounded-lg shadow p-5 mt-6">
+
+      <div className="bg-white rounded-lg shadow p-5">
         <h2 className="text-lg font-semibold mb-4">클라이언트 목록</h2>
         {(clients ?? []).length === 0 ? (
           <p className="text-gray-400 text-sm">등록된 클라이언트가 없습니다</p>

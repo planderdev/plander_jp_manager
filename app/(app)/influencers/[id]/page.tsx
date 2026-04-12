@@ -5,6 +5,7 @@ import BackButton from '@/components/BackButton';
 import { fullKR } from '@/lib/datetime';
 import { contactStatusLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
+import { getScheduleStatus, statusLabel, statusColor } from '@/lib/schedule-status';
 
 export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -14,7 +15,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
 
   // 이 인플루언서의 스케줄도 같이
   const { data: schedules } = await sb.from('schedules')
-    .select('*, clients(company_name), posts(post_url)')
+    .select('*, clients(company_name), posts(post_url, settlement_status)')
     .eq('influencer_id', Number(id))
     .order('scheduled_at', { ascending: false });
 
@@ -55,15 +56,13 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
             </thead>
             <tbody>
               {schedules.map((s: any) => {
-                const done = s.posts?.some((p: any) => p.post_url);
+                const st = getScheduleStatus(s.scheduled_at, s.posts);
                 return (
                   <tr key={s.id} className="border-t">
                     <td className="py-2">{fullKR(s.scheduled_at)}</td>
                     <td className="py-2">{s.clients?.company_name}</td>
                     <td className="py-2">
-                      <span className={done ? 'text-green-600' : 'text-orange-500'}>
-                        {done ? '완료' : '대기'}
-                      </span>
+                      <span className={statusColor(st)}>{statusLabel(st)}</span>
                     </td>
                   </tr>
                 );

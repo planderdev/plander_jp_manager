@@ -17,14 +17,14 @@ export async function generateReportAction(fd: FormData) {
   const nextMonth = new Date(y, m, 1);  // m이 0-based 다음달이라 그대로 OK
   const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}-01T00:00:00+09:00`;
 
-  const { data: posts } = await sb.from('posts')
-    .select('*, influencers(handle), created_at')
+  const { data: schedules } = await sb.from('schedules')
+    .select('id, scheduled_at, influencers(handle), posts(post_url, views, likes, comments)')
     .eq('client_id', clientId)
-    .gte('created_at', start)
-    .lt('created_at', endStr)
-    .not('post_url', 'is', null);
+    .gte('scheduled_at', start)
+    .lt('scheduled_at', endStr)
+    .order('scheduled_at', { ascending: true });
 
-  const pdfBuffer = await generateReportPdf({ client, month: yearMonth, posts: posts ?? [] });
+  const pdfBuffer = await generateReportPdf({ client, month: yearMonth, schedules: schedules ?? [] });
 
   const fileName = `${client.company_name}_${yearMonth}.pdf`;
   const filePath = `${clientId}/${yearMonth}.pdf`;

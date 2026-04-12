@@ -1,6 +1,6 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
-
+import { getScheduleStatus } from '@/lib/schedule-status';
 
 function parseYmd(s?: string) {
   if (!s) return null;
@@ -41,6 +41,23 @@ export default async function StatsPage({
     if (toDate) q = q.lte('created_at', `${toDate}T23:59:59+09:00`);
     const { data } = await q;
     posts = data ?? [];
+
+    let sq = sb.from('schedules')
+      .select('*, posts(post_url, settlement_status)');
+    if (client) sq = sq.eq('client_id', Number(client));
+    if (influencer) sq = sq.eq('influencer_id', Number(influencer));
+    if (fromDate) sq = sq.gte('scheduled_at', `${fromDate}T00:00:00+09:00`);
+    if (toDate) sq = sq.lte('scheduled_at', `${toDate}T23:59:59+09:00`);
+    const { data: schedulesData } = await sq;
+    
+    let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
+    for (const s of schedulesData ?? []) {
+      const st = getScheduleStatus(s.scheduled_at, s.posts);
+      if (st === 'reserved') reserved++;
+      else if (st === 'upload_pending') uploadPending++;
+      else if (st === 'settlement_pending') settlementPending++;
+      else if (st === 'done') scheduleDone++;
+    }
   }
 
   // 필터 적용된 카운트
@@ -82,6 +99,10 @@ export default async function StatsPage({
     { label: '정산 완료 금액', value: paidTotal, suffix: '원', href: '/influencers/posts' },
     { label: '미정산 금액', value: unpaidTotal, suffix: '원', href: '/influencers/posts' },
     { label: '총 지출 금액', value: grandTotal, suffix: '원', href: '/influencers/posts' },
+    { label: '예약', value: reserved, href: '/campaigns/schedules' },
+    { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
+    { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
+    { label: '완료', value: scheduleDone, href: '/campaigns/completed' },
   ];
 
   return (
