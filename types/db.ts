@@ -1,4 +1,11 @@
-export type ClientStatus = 'active' | 'paused' | 'ended';
+export type ClientStatus =
+  | 'contacted'
+  | 'proposed'
+  | 'negotiating'
+  | 'active'
+  | 'paused'
+  | 'ended';
+
 export type ChannelType = 'instagram' | 'tiktok' | 'youtube' | 'other';
 
 export interface Client {
@@ -11,7 +18,6 @@ export interface Client {
   contract_start: string | null;
   contract_end: string | null;
   contract_amount: number | null;
-  channels: ChannelType[];
   memo: string | null;
   manager_id: string | null;
   manager_name: string | null;
@@ -21,6 +27,10 @@ export interface Client {
   district: string | null;
   road_address: string | null;
   building_detail: string | null;
+  category: string | null;
+  first_contact_date: string | null;
+  contract_product: string | null;
+  owner_id: string | null;
   created_at: string;
   updated_at: string;
 }
