@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { deleteInfluencerAction } from '@/actions/influencers';
 import { contactStatusLabel } from '@/lib/labels';
+import ChannelIcon from '@/components/ChannelIcon';
+
 
 export default async function InfluencersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
@@ -37,7 +39,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
           <tbody>
             {list?.map((i) => (
               <tr key={i.id} className="border-t">
-                <td className="p-3">{i.channel}</td>
+                <td className="p-3"><ChannelIcon channel={i.channel} /></td>
                 <td className="p-3 font-medium">
                   <Link href={`/influencers/${i.id}`} className="text-blue-600 hover:underline">@{i.handle}</Link>
                 </td>

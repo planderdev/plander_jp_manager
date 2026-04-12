@@ -1,6 +1,7 @@
 import type { Client } from '@/types/db';
 import PhoneInput from '@/components/PhoneInput';
 import SubmitButton from '@/components/SubmitButton';
+import AddressSearch from '@/components/AddressSearch';
 
 
 export default function ClientForm({ client, action }: { client?: Client; action: (fd: FormData) => void }) {
@@ -17,6 +18,16 @@ export default function ClientForm({ client, action }: { client?: Client; action
       </div>
       <Field name="email" label="이메일" type="email" defaultValue={client?.email ?? ''} />
       <div>
+        <label className="text-sm block mb-2 font-medium">주소</label>
+        <AddressSearch
+          defaultPostal={client?.postal_code ?? ''}
+          defaultRegion={client?.region ?? ''}
+          defaultDistrict={client?.district ?? ''}
+          defaultRoad={client?.road_address ?? ''}
+          defaultDetail={client?.building_detail ?? ''}
+        />
+      </div>
+      <div>
         <label className="text-sm block mb-1">상태</label>
         <select name="status" defaultValue={client?.status ?? 'active'} className="w-full border rounded p-2">
           <option value="active">진행중</option>
@@ -24,6 +35,7 @@ export default function ClientForm({ client, action }: { client?: Client; action
           <option value="ended">종료</option>
         </select>
       </div>
+      
       <div className="grid grid-cols-2 gap-4">
         <Field name="contract_start" label="계약일" type="date" defaultValue={client?.contract_start ?? ''} />
         <Field name="contract_end" label="종료일" type="date" defaultValue={client?.contract_end ?? ''} />

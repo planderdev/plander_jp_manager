@@ -74,3 +74,9 @@ export interface Post {
   clients?: { company_name: string };
   influencers?: { handle: string; account_url: string | null; unit_price: number | null; name_en: string | null; bank_name: string | null; branch_name: string | null; account_number: string | null; phone: string | null; prefecture: string | null; city: string | null; street: string | null };
 }
+
+postal_code: string | null;
+region: string | null;
+district: string | null;
+road_address: string | null;
+building_detail: string | null;

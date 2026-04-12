@@ -83,3 +83,9 @@ export async function deleteClientAction(id: number) {
   if (error) throw new Error(error.message);
   revalidatePath('/campaigns/clients');
 }
+
+postal_code: String(formData.get('postal_code') || '') || null,
+region: String(formData.get('region') || '') || null,
+district: String(formData.get('district') || '') || null,
+road_address: String(formData.get('road_address') || '') || null,
+building_detail: String(formData.get('building_detail') || '') || null,

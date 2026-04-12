@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { fullKR } from '@/lib/datetime';
 import { contactStatusLabel } from '@/lib/labels';
+import ChannelIcon from '@/components/ChannelIcon';
 
 export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,7 +24,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
 
       <section className="bg-white rounded-lg shadow p-6 space-y-4">
         <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">기본 정보</h2>
-        <Row label="채널" value={i.channel} />
+        <Row label="채널" value={<ChannelIcon channel={i.channel} size={22} />} />
         <Row label="아이디" value={`@${i.handle}`} />
         <Row label="팔로워" value={`${i.followers?.toLocaleString() ?? 0}명`} />
         <Row label="단가" value={i.unit_price != null ? `¥${i.unit_price.toLocaleString()}` : '-'} />

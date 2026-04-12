@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { shortKR } from '@/lib/datetime';
+import { clientStatusLabel } from '@/lib/labels';
 
 export default async function DashboardPage() {
   const sb = await createClient();
@@ -13,6 +14,8 @@ export default async function DashboardPage() {
     { data: pastSchedules },
     { data: completedPosts },
   ] = await Promise.all([
+    sb.from('clients').select('id, company_name, contact_person, phone, status, contract_start, contract_end')
+      .order('company_name'),
     sb.from('posts').select('id', { count: 'exact', head: true })
       .eq('settlement_status', 'pending').not('post_url', 'is', null),
     sb.from('schedules').select('id', { count: 'exact', head: true })
@@ -25,6 +28,7 @@ export default async function DashboardPage() {
     sb.from('posts')
       .select('client_id, influencer_id, schedule_id, post_url')
       .not('post_url', 'is', null),
+      
   ]);
 
   const completedScheduleIds = new Set<number>();
@@ -86,6 +90,41 @@ export default async function DashboardPage() {
                       </Link>
                     </td>
                     <td className="p-2">{s.clients?.company_name}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+      <div className="bg-white rounded-lg shadow p-5 mt-6">
+        <h2 className="text-lg font-semibold mb-4">클라이언트 목록</h2>
+        {(clients ?? []).length === 0 ? (
+          <p className="text-gray-400 text-sm">등록된 클라이언트가 없습니다</p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm min-w-[600px]">
+              <thead className="bg-gray-100 text-left">
+                <tr>
+                  <th className="p-2">업체명</th>
+                  <th className="p-2">담당자</th>
+                  <th className="p-2">연락처</th>
+                  <th className="p-2">상태</th>
+                  <th className="p-2">계약기간</th>
+                </tr>
+              </thead>
+              <tbody>
+                {clients?.map((c: any) => (
+                  <tr key={c.id} className="border-t">
+                    <td className="p-2 font-medium">
+                      <Link href={`/campaigns/clients/${c.id}`} className="text-blue-600 hover:underline">
+                        {c.company_name}
+                      </Link>
+                    </td>
+                    <td className="p-2">{c.contact_person ?? '-'}</td>
+                    <td className="p-2">{c.phone ?? '-'}</td>
+                    <td className="p-2">{clientStatusLabel(c.status)}</td>
+                    <td className="p-2">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
                   </tr>
                 ))}
               </tbody>

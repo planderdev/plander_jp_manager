@@ -32,14 +32,18 @@ export default async function ClientsPage() {
           <tbody>
             {clients?.map((c) => (
               <tr key={c.id} className="border-t">
-                <td className="p-3 font-medium">{c.company_name}</td>
+                <td className="p-3 font-medium">
+                  <Link href={`/campaigns/clients/${c.id}`} className="text-blue-600 hover:underline">
+                    {c.company_name}
+                  </Link>
+                </td>
                 <td className="p-3">{c.contact_person ?? '-'}</td>
                 <td className="p-3">{c.phone ?? '-'}</td>
                 <td className="p-3">{clientStatusLabel(c.status)}</td>
                 <td className="p-3">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
                 <td className="p-3">{c.contract_amount?.toLocaleString() ?? '-'}</td>
                 <td className="p-3 space-x-2">
-                  <Link href={`/campaigns/clients/${c.id}`} className="text-blue-600">수정</Link>
+                  <Link href={`/campaigns/clients/${c.id}/edit`} className="text-blue-600">수정</Link>
                   <form action={async () => { 'use server'; await deleteClientAction(c.id); }} className="inline">
                     <button className="text-red-500">삭제</button>
                   </form>
