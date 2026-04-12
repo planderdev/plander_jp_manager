@@ -71,7 +71,7 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bg-white rounded-lg shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">업로드 대기 (최대 10건)</h2>
+        <h2 className="text-lg font-semibold mb-4">업로드 대기</h2>
         {waiting.length === 0 ? (
           <p className="text-gray-400 text-sm">대기중인 항목이 없습니다</p>
         ) : (
