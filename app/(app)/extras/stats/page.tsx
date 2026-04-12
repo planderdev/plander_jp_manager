@@ -32,6 +32,8 @@ export default async function StatsPage({
   }
 
   let posts: any[] = [];
+  let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
+
   if (!rangeError) {
     let q = sb.from('posts')
       .select('client_id, influencer_id, post_url, views, likes, comments, created_at, settlement_status, influencers(unit_price)');
@@ -39,8 +41,7 @@ export default async function StatsPage({
     if (influencer) q = q.eq('influencer_id', Number(influencer));
     if (fromDate) q = q.gte('created_at', `${fromDate}T00:00:00+09:00`);
     if (toDate) q = q.lte('created_at', `${toDate}T23:59:59+09:00`);
-    const { data } = await q;
-    posts = data ?? [];
+    const { data } = await q; posts = data ?? [];
 
     let sq = sb.from('schedules')
       .select('*, posts(post_url, settlement_status)');
@@ -50,7 +51,6 @@ export default async function StatsPage({
     if (toDate) sq = sq.lte('scheduled_at', `${toDate}T23:59:59+09:00`);
     const { data: schedulesData } = await sq;
     
-    let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
     for (const s of schedulesData ?? []) {
       const st = getScheduleStatus(s.scheduled_at, s.posts);
       if (st === 'reserved') reserved++;
