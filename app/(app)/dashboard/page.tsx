@@ -13,9 +13,8 @@ export default async function DashboardPage() {
     { count: influencerCount },
     { data: pastSchedules },
     { data: completedPosts },
+    { data: clients },
   ] = await Promise.all([
-    sb.from('clients').select('id, company_name, contact_person, phone, status, contract_start, contract_end')
-      .order('company_name'),
     sb.from('posts').select('id', { count: 'exact', head: true })
       .eq('settlement_status', 'pending').not('post_url', 'is', null),
     sb.from('schedules').select('id', { count: 'exact', head: true })
@@ -28,7 +27,9 @@ export default async function DashboardPage() {
     sb.from('posts')
       .select('client_id, influencer_id, schedule_id, post_url')
       .not('post_url', 'is', null),
-      
+    sb.from('clients')
+      .select('id, company_name, contact_person, phone, status, contract_start, contract_end')
+      .order('company_name'),
   ]);
 
   const completedScheduleIds = new Set<number>();
