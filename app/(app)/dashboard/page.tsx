@@ -11,6 +11,7 @@ export default async function DashboardPage() {
     { count: pendingCount },
     { count: upcomingCount },
     { count: influencerCount },
+    { count: clientCount },
     { data: pastSchedules },
     { data: completedPosts },
     { data: clients },
@@ -46,17 +47,18 @@ export default async function DashboardPage() {
   }).slice(0, 10);
 
   const cards = [
-    { label: '정산 대기', value: pendingCount ?? 0, href: '/influencers/posts', color: 'bg-orange-500' },
+    { label: '총 클라이언트', value: clientCount ?? 0, href: '/campaigns/clients', color: 'bg-purple-600' },
+    { label: '총 인플루언서', value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
     { label: '방문 예정', value: upcomingCount ?? 0, href: '/campaigns/schedules', color: 'bg-blue-500' },
     { label: '업로드 대기', value: waiting.length, href: '/campaigns/schedules', color: 'bg-red-500' },
-    { label: '총 인플루언서', value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
+    { label: '정산 대기', value: pendingCount ?? 0, href: '/influencers/posts', color: 'bg-orange-500' },
   ];
 
   return (
     <div className="p-4 md:p-8">
       <h1 className="text-2xl font-bold mb-6">대시보드</h1>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
         {cards.map((c) => (
           <Link key={c.label} href={c.href}
             className="bg-white rounded-lg shadow p-5 hover:shadow-md transition">
