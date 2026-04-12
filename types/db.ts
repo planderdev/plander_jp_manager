@@ -24,6 +24,7 @@ export interface Client {
   contract_file_path: string | null;
   postal_code: string | null;
   region: string | null;
+  sales_region: string | null;
   district: string | null;
   road_address: string | null;
   building_detail: string | null;
