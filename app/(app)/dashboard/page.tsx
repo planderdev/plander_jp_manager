@@ -21,6 +21,7 @@ export default async function DashboardPage() {
     sb.from('schedules').select('id', { count: 'exact', head: true })
       .gte('scheduled_at', now),
     sb.from('influencers').select('id', { count: 'exact', head: true }),
+    sb.from('clients').select('id', { count: 'exact', head: true }),
     sb.from('schedules')
       .select('*, clients(company_name), influencers(handle)')
       .lt('scheduled_at', now)
