@@ -45,6 +45,8 @@ export default function Sidebar({
 
         <nav className="space-y-1 text-sm flex-1 overflow-y-auto">
           <NavLink href="/dashboard" pathname={pathname} onClick={close}>대시보드</NavLink>
+          <Section>영업</Section>
+          <NavLink href="/sales" pathname={pathname} onClick={close}>영업 관리</NavLink>
           <Section>캠페인</Section>
           <NavLink href="/campaigns/clients" pathname={pathname} onClick={close}>클라이언트 정보</NavLink>
           <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>스케줄 관리</NavLink>

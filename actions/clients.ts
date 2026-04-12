@@ -67,7 +67,7 @@ export async function createClientAction(formData: FormData) {
 
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
-  redirect('/sales');
+  redirect(`/campaigns/clients/${inserted.id}`);
 }
 
 export async function updateClientAction(formData: FormData) {
@@ -99,7 +99,7 @@ export async function updateClientAction(formData: FormData) {
 
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
-  redirect('/sales');
+  redirect(`/campaigns/clients/${id}`);
 }
 
 export async function deleteClientAction(id: number) {

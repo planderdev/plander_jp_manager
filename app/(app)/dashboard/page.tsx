@@ -20,6 +20,7 @@ export default async function DashboardPage() {
       .order('scheduled_at', { ascending: true }),
     sb.from('clients')
       .select('id, company_name, contact_person, phone, status, contract_start, contract_end')
+      .eq('status', 'active')
       .order('company_name'),
   ]);
 
