@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { generateReportPdf } from '@/lib/pdf/reportTemplate';
 
-export async function generateReportAction(formData: FormData) {
+eexport async function generateReportAction(formData: FormData) {
   try {
     const sb = await createClient();
     const clientId = Number(formData.get('client_id'));
@@ -16,10 +16,8 @@ export async function generateReportAction(formData: FormData) {
     const prevDate = new Date(yr, mo - 2, 1);
     const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
 
-    console.log('[REPORT] start', { clientId, yearMonth, start, endStr });
-
     const { data: client, error: ce } = await sb.from('clients').select('*').eq('id', clientId).single();
-    if (ce) { console.error('[REPORT] client error', ce); throw new Error('client: ' + ce.message); }
+    if (ce) throw new Error('client: ' + ce.message);
     if (!client) throw new Error('클라이언트 없음');
 
     const { data: schedules, error: se } = await sb.from('schedules')
@@ -28,11 +26,9 @@ export async function generateReportAction(formData: FormData) {
       .gte('scheduled_at', start)
       .lt('scheduled_at', endStr)
       .order('scheduled_at', { ascending: true });
-    if (se) { console.error('[REPORT] schedules error', se); throw new Error('schedules: ' + se.message); }
-    console.log('[REPORT] schedules count', schedules?.length);
+    if (se) throw new Error('schedules: ' + se.message);
 
     const postIds = (schedules ?? []).flatMap((s: any) => s.posts?.map((p: any) => p.id) ?? []);
-    console.log('[REPORT] postIds', postIds);
 
     let thisHist: any[] = [];
     let prevHist: any[] = [];
@@ -41,24 +37,21 @@ export async function generateReportAction(formData: FormData) {
         sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', yearMonth),
         sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', prevMonth),
       ]);
-      if (a.error) { console.error('[REPORT] thisHist error', a.error); throw new Error('thisHist: ' + a.error.message); }
-      if (b.error) { console.error('[REPORT] prevHist error', b.error); throw new Error('prevHist: ' + b.error.message); }
+      if (a.error) throw new Error('thisHist: ' + a.error.message);
+      if (b.error) throw new Error('prevHist: ' + b.error.message);
       thisHist = a.data ?? [];
       prevHist = b.data ?? [];
     }
 
-    console.log('[REPORT] generating PDF');
     const pdfBuffer = await generateReportPdf({
       client, month: yearMonth, schedules: schedules ?? [],
       thisHist, prevHist, prevMonth,
     });
-    console.log('[REPORT] PDF size', pdfBuffer.length);
 
     const filePath = `${clientId}/${yearMonth}.pdf`;
     const { error: upErr } = await sb.storage.from('reports')
       .upload(filePath, pdfBuffer, { contentType: 'application/pdf', upsert: true });
-    if (upErr) { console.error('[REPORT] upload error', upErr); throw new Error('upload: ' + upErr.message); }
-    console.log('[REPORT] uploaded');
+    if (upErr) throw new Error('upload: ' + upErr.message);
 
     const { error: dbErr } = await sb.from('reports').upsert({
       client_id: clientId,
@@ -66,8 +59,7 @@ export async function generateReportAction(formData: FormData) {
       file_path: filePath,
       file_name: `${yearMonth}.pdf`,
     }, { onConflict: 'client_id,year_month' });
-    if (dbErr) { console.error('[REPORT] db error', dbErr); throw new Error('db: ' + dbErr.message); }
-    console.log('[REPORT] done');
+    if (dbErr) throw new Error('db: ' + dbErr.message);
 
     revalidatePath('/extras/reports');
   } catch (e: any) {
