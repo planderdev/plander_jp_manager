@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { generateReportPdf } from '@/lib/pdf/reportTemplate';
 
-eexport async function generateReportAction(formData: FormData) {
+export async function generateReportAction(formData: FormData) {
   try {
     const sb = await createClient();
     const clientId = Number(formData.get('client_id'));
