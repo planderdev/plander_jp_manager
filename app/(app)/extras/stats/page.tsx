@@ -33,6 +33,7 @@ export default async function StatsPage({
 
   let posts: any[] = [];
   let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
+  let involvedInfluencers = 0;  // ← 추가
 
   if (!rangeError) {
     let q = sb.from('posts')
@@ -58,12 +59,25 @@ export default async function StatsPage({
       else if (st === 'settlement_pending') settlementPending++;
       else if (st === 'done') scheduleDone++;
     }
+    // 참여 인플루언서: 해당 기간 schedules에 들어간 unique influencer
+    const involvedSet = new Set<number>();
+    for (const s of schedulesData ?? []) {
+      if (s.influencer_id) involvedSet.add(s.influencer_id);
+    }
+    involvedInfluencers = involvedSet.size;
   }
 
   // 전월 대비 (필터 무관)
   const now = new Date();
-  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const isLastDay = now.getDate() === new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+
+  // 말일이면 이번달, 아니면 전월 기준
+  const baseDate = isLastDay
+    ? now
+    : new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  
+  const thisMonth = `${baseDate.getFullYear()}-${String(baseDate.getMonth() + 1).padStart(2, '0')}`;
+  const prevDate = new Date(baseDate.getFullYear(), baseDate.getMonth() - 1, 1);
   const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
   
   const { data: thisHist } = await sb.from('post_metrics_history').select('*').eq('month', thisMonth);
@@ -118,6 +132,7 @@ export default async function StatsPage({
   const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [
     { label: '업체 수', value: totalClients },
     { label: '인플루언서 수', value: totalInfluencers },
+    { label: '참여 인플루언서', value: involvedInfluencers },
     { label: '업로드 게시물 수', value: uploaded },
     { label: '총 좋아요', value: totalLikes },
     { label: '총 댓글', value: totalComments },
@@ -125,7 +140,7 @@ export default async function StatsPage({
     { label: '정산 완료 금액', value: paidTotal, suffix: '원', href: '/influencers/posts' },
     { label: '미정산 금액', value: unpaidTotal, suffix: '원', href: '/influencers/posts' },
     { label: '총 지출 금액', value: grandTotal, suffix: '원', href: '/influencers/posts' },
-    { label: '예약', value: reserved, href: '/campaigns/schedules' },
+    { label: '방문예정', value: reserved, href: '/campaigns/schedules' },
     { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
     { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
     { label: '완료', value: scheduleDone, href: '/campaigns/completed' },

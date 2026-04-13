@@ -50,11 +50,10 @@ export default function Sidebar({
           <Section>캠페인</Section>
           <NavLink href="/campaigns/clients" pathname={pathname} onClick={close}>클라이언트 정보</NavLink>
           <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>스케줄 관리</NavLink>
-          <NavLink href="/campaigns/completed" pathname={pathname} onClick={close}>완료 게시물</NavLink>
-          <NavLink href="/campaigns/insights" pathname={pathname} onClick={close}>인사이트</NavLink>
           <Section>인플루언서</Section>
           <NavLink href="/influencers" pathname={pathname} onClick={close}>인플루언서 목록</NavLink>
           <NavLink href="/influencers/posts" pathname={pathname} onClick={close}>게시물/정산관리</NavLink>
+          <NavLink href="/campaigns/completed" pathname={pathname} onClick={close}>완료 게시물</NavLink>
           <Section>부가기능</Section>
           <NavLink href="/extras/stats" pathname={pathname} onClick={close}>리포트</NavLink>
           <NavLink href="/extras/reports" pathname={pathname} onClick={close}>보고서 추출</NavLink>

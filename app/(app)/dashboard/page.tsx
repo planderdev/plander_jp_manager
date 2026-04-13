@@ -43,7 +43,7 @@ export default async function DashboardPage() {
   const cards = [
     { label: '총 클라이언트', value: clientCount ?? 0, href: '/campaigns/clients', color: 'bg-purple-600' },
     { label: '총 인플루언서', value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
-    { label: '예약', value: reserved, href: '/campaigns/schedules', color: 'bg-orange-500' },
+    { label: '방문예정', value: reserved, href: '/campaigns/schedules', color: 'bg-orange-500' },
     { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules', color: 'bg-red-500' },
     { label: '정산 대기', value: settlementPending, href: '/influencers/posts', color: 'bg-red-500' },
     { label: '완료', value: done, href: '/campaigns/completed', color: 'bg-green-600' },

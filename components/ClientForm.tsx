@@ -18,7 +18,7 @@ export default function ClientForm({
   currentUserId: string;
 }) {
   const statusOptions: { value: ClientStatus; label: string }[] = [
-    { value: 'contacted', label: '접촉완료' },
+    { value: 'contacted', label: '최초컨택' },
     { value: 'proposed', label: '제안/미팅' },
     { value: 'negotiating', label: '협상중' },
     { value: 'active', label: '진행중' },

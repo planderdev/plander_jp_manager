@@ -45,7 +45,7 @@ export default async function SalesPage({
   for (const c of allForCount ?? []) counts[c.status] = (counts[c.status] ?? 0) + 1;
 
   const summaryCards = [
-    { label: '접촉완료', key: 'contacted', color: 'bg-blue-500' },
+    { label: '최초컨택', key: 'contacted', color: 'bg-blue-500' },
     { label: '제안/미팅', key: 'proposed', color: 'bg-purple-500' },
     { label: '협상중', key: 'negotiating', color: 'bg-amber-500' },
     { label: '진행중', key: 'active', color: 'bg-red-500' },
@@ -78,7 +78,7 @@ export default async function SalesPage({
           <label className="text-sm block mb-1 font-medium">상태</label>
           <select name="status" defaultValue={status ?? ''} className="border border-gray-400 rounded p-2 text-sm">
             <option value="">진행 중인 영업만</option>
-            <option value="contacted">접촉완료</option>
+            <option value="contacted">최초컨택</option>
             <option value="proposed">제안/미팅</option>
             <option value="negotiating">협상중</option>
             <option value="active">진행중</option>

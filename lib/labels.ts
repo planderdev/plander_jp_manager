@@ -1,6 +1,6 @@
 export function clientStatusLabel(s: string): string {
   switch (s) {
-    case 'contacted': return '접촉완료';
+    case 'contacted': return '최초컨택';
     case 'proposed': return '제안/미팅';
     case 'negotiating': return '협상중';
     case 'active': return '진행중';

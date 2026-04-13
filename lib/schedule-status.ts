@@ -18,7 +18,7 @@ export function getScheduleStatus(
 
 export function statusLabel(s: ScheduleStatus): string {
   switch (s) {
-    case 'reserved': return '예약';
+    case 'reserved': return '방문예정';
     case 'upload_pending': return '업로드 대기';
     case 'settlement_pending': return '정산 대기';
     case 'done': return '완료';
