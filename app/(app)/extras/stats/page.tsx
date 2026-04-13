@@ -177,7 +177,7 @@ export default async function StatsPage({
           <label className="text-sm block mb-1 font-medium">종료일</label>
           <input type="date" name="to" defaultValue={toDate ?? ''} className="border border-gray-400 rounded p-2 text-sm" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회수</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
       </form>
 
       {rangeError && <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">{rangeError}</div>}

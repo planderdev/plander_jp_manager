@@ -118,7 +118,7 @@ export default async function SalesPage({
           <input type="text" name="q" defaultValue={q ?? ''} placeholder="검색..."
             className="border border-gray-400 rounded p-2 text-sm w-full" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회수</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
       </form>
 
       {/* 리스트 */}
@@ -166,7 +166,7 @@ export default async function SalesPage({
               );
             })}
             {!clients.length && (
-              <tr><td colSpan={10} className="p-8 text-center text-gray-400">조회수된 항목이 없습니다</td></tr>
+              <tr><td colSpan={10} className="p-8 text-center text-gray-400">조회된 항목이 없습니다</td></tr>
             )}
           </tbody>
         </table>

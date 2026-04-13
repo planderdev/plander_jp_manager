@@ -35,7 +35,7 @@ export default async function MetricsPage({
           <input type="month" name="month" defaultValue={month}
             className="border border-gray-400 rounded p-2" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회수</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
       </form>
 
       {posts.length === 0 ? (
