@@ -182,53 +182,100 @@ export default async function StatsPage({
 
       {rangeError && <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">{rangeError}</div>}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {metrics.map((m) => {
-          const inner = (
-            <>
-              <div className="text-sm text-gray-600">{m.label}</div>
-              <div className="text-2xl md:text-3xl font-bold mt-1">
-                {m.value.toLocaleString()}{m.suffix ?? ''}
-              </div>
-            </>
-          );
-          return m.href ? (
-            <Link key={m.label} href={m.href}
-              className="bg-white rounded-lg shadow p-5 hover:shadow-md transition">
-              {inner}
-            </Link>
-          ) : (
-            <div key={m.label} className="bg-white rounded-lg shadow p-5">
-              {inner}
-            </div>
-          );
-        })}
-      </div>
+      {/* 그룹 1: 기본 카운트 */}
+      <Group title="기본">
+        <MetricCard label="업체수" value={totalClients} href="/campaigns/clients" />
+        <MetricCard label="인플루언서수" value={totalInfluencers} href="/influencers" />
+        <MetricCard label="참여 인플루언서" value={involvedInfluencers} href="/campaigns/schedules" />
+        <MetricCard label="방문 예정" value={reserved} href="/campaigns/schedules" />
+      </Group>
+      
+      {/* 그룹 2: 금액 */}
+      <Group title="지출">
+        <MetricCard label="정산완료 금액" value={paidTotal} suffix="원" href="/influencers/posts" />
+        <MetricCard label="미정산 금액" value={unpaidTotal} suffix="원" href="/influencers/posts" />
+        <MetricCard label="총 지출 금액" value={grandTotal} suffix="원" href="/influencers/posts" />
+      </Group>
+      
+      {/* 그룹 3: 진행 상태 */}
+      <Group title="상태">
+        <MetricCard label="업로드 대기" value={uploadPending} href="/influencers/posts" />
+        <MetricCard label="정산 대기" value={settlementPending} href="/influencers/posts" />
+        <MetricCard label="완료" value={scheduleDone} href="/campaigns/completed" />
+      </Group>
+      
+      {/* 그룹 4: 누적 메트릭 */}
+      <Group title="누적 실적">
+        <MetricCard label="업로드 게시물수" value={uploaded} href="/campaigns/completed" />
+        <MetricCard label="총 좋아요수" value={totalLikes} />
+        <MetricCard label="총 댓글수" value={totalComments} />
+        <MetricCard label="총 조회수" value={totalViews} />
+      </Group>
+      
+      {/* 그룹 5: 해당 월 메트릭 */}
+      <Group title={`${thisMonth} 실적`}>
+        <MetricCard label="조회수" value={tv} />
+        <MetricCard label="좋아요수" value={tl} />
+        <MetricCard label="댓글수" value={tc} />
+        <MetricCard label="공유수" value={ts} />
+      </Group>
+      
+      {/* 전월 대비 */}
       <div className="bg-white rounded-lg shadow p-5">
         <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div>
-            <div className="text-sm text-gray-600">조회수</div>
-            <div className="text-2xl font-bold">{tv.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">{delta(tv, pv)}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600">좋아요수</div>
-            <div className="text-2xl font-bold">{tl.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">{delta(tl, pl)}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600">댓글수</div>
-            <div className="text-2xl font-bold">{tc.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">{delta(tc, pc)}</div>
-          </div>
-          <div>
-            <div className="text-sm text-gray-600">공유수</div>
-            <div className="text-2xl font-bold">{ts.toLocaleString()}</div>
-            <div className="text-xs text-gray-500">{delta(ts, ps)}</div>
-          </div>
+          <DeltaCard label="조회수" cur={tv} prev={pv} />
+          <DeltaCard label="좋아요" cur={tl} prev={pl} />
+          <DeltaCard label="댓글" cur={tc} prev={pc} />
+          <DeltaCard label="공유" cur={ts} prev={ps} />
         </div>
       </div>
+    </div>
+  );
+}
+
+function Group({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="bg-white rounded-lg shadow p-5">
+      <h2 className="text-lg font-semibold mb-4">{title}</h2>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function MetricCard({ label, value, href, suffix }: {
+  label: string; value: number; href?: string; suffix?: string;
+}) {
+  const inner = (
+    <>
+      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-2xl md:text-3xl font-bold mt-1">
+        {value.toLocaleString()}{suffix ?? ''}
+      </div>
+    </>
+  );
+  return href ? (
+    <Link href={href} className="bg-gray-50 rounded-lg p-4 hover:bg-gray-100 transition block">
+      {inner}
+    </Link>
+  ) : (
+    <div className="bg-gray-50 rounded-lg p-4">{inner}</div>
+  );
+}
+
+function DeltaCard({ label, cur, prev }: { label: string; cur: number; prev: number }) {
+  const diff = cur - prev;
+  const pct = prev === 0 ? null : ((diff / prev) * 100).toFixed(1);
+  const deltaStr = prev === 0
+    ? (cur > 0 ? '+신규' : '-')
+    : `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
+  return (
+    <div>
+      <div className="text-sm text-gray-600">{label}</div>
+      <div className="text-2xl font-bold">{cur.toLocaleString()}</div>
+      <div className={`text-xs ${diff >= 0 ? 'text-green-600' : 'text-red-600'}`}>{deltaStr}</div>
     </div>
   );
 }
