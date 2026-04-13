@@ -24,9 +24,6 @@ export default async function PostsPage() {
               <th className="p-3">인플루언서</th>
               <th className="p-3">게시물</th>
               <th className="p-3">업로드일</th>
-              <th className="p-3">조회수</th>
-              <th className="p-3">좋아요</th>
-              <th className="p-3">댓글</th>
               <th className="p-3">정산</th>
               <th className="p-3">정산일</th>
               <th className="p-3">관리</th>
@@ -46,12 +43,7 @@ export default async function PostsPage() {
                     ? <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">링크</a>
                     : <span className="text-gray-400">미업로드</span>}
                 </td>
-                <td className="p-3">
-                  {p.created_at ? new Date(p.created_at).toLocaleDateString('ko-KR') : '-'}
-                </td>
-                <td className="p-3">{p.views?.toLocaleString()}</td>
-                <td className="p-3">{p.likes?.toLocaleString()}</td>
-                <td className="p-3">{p.comments?.toLocaleString()}</td>
+                <td className="p-3">{p.uploaded_on ?? '-'}</td>
                 <td className="p-3">
                   <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
                     {p.settlement_status === 'done' ? '정산완료' : '미정산'}

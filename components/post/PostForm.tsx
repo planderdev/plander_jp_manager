@@ -122,11 +122,7 @@ export default function PostForm({
 
           <Field name="post_url" label="게시물 링크" defaultValue={post?.post_url ?? ''} />
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <Field name="views" label="조회수" type="number" defaultValue={post?.views ?? 0} />
-            <Field name="likes" label="좋아요" type="number" defaultValue={post?.likes ?? 0} />
-            <Field name="comments" label="댓글수" type="number" defaultValue={post?.comments ?? 0} />
-          </div>
+          <Field name="uploaded_on" label="업로드일" type="date" defaultValue={post?.uploaded_on ?? ''} />
 
           <div>
             <label className="text-sm block mb-1 font-medium">정산상태</label>

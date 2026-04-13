@@ -3,6 +3,15 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
+import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
+
+export default async function PostsPage() {
+  await autoCreatePostsFromPastSchedules();  // ← 페이지 진입 시 자동 변환
+
+  const sb = await createClient();
+  // ... 기존 코드
+}
+
 function parseYmd(s: string | null): string | null {
   if (!s) return null;
   const clean = s.replace(/\D/g, '');
@@ -19,9 +28,7 @@ export async function upsertPostAction(fd: FormData) {
     influencer_id: Number(fd.get('influencer_id')),
     schedule_id: fd.get('schedule_id') ? Number(fd.get('schedule_id')) : null,
     post_url: String(fd.get('post_url') || '') || null,
-    views: Number(fd.get('views')) || 0,
-    likes: Number(fd.get('likes')) || 0,
-    comments: Number(fd.get('comments')) || 0,
+    uploaded_on: String(fd.get('uploaded_on') || '') || null,
     settlement_status: String(fd.get('settlement_status') || 'pending') as any,
     settled_on: parseYmd(String(fd.get('settled_on') || '') || null),
   };
@@ -55,4 +62,33 @@ export async function deletePostAction(id: number) {
   const { error } = await sb.from('posts').delete().eq('id', id);
   if (error) throw new Error(error.message);
   revalidatePath('/influencers/posts');
+}
+
+export async function autoCreatePostsFromPastSchedules() {
+  const sb = await createClient();
+  const now = new Date().toISOString();
+
+  // 지나간 스케줄 중 posts 연결 없는 것
+  const { data: schedules } = await sb.from('schedules')
+    .select('id, client_id, influencer_id, posts(id)')
+    .lt('scheduled_at', now);
+
+  if (!schedules) return { created: 0 };
+
+  const targets = schedules.filter((s: any) => !s.posts || s.posts.length === 0);
+  if (targets.length === 0) return { created: 0 };
+
+  const payload = targets.map((s: any) => ({
+    schedule_id: s.id,
+    client_id: s.client_id,
+    influencer_id: s.influencer_id,
+    post_url: null,
+    uploaded_on: null,
+    settlement_status: 'pending' as const,
+  }));
+
+  const { error } = await sb.from('posts').insert(payload);
+  if (error) console.error('Auto-create posts error:', error.message);
+
+  return { created: targets.length };
 }
