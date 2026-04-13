@@ -41,7 +41,7 @@ export default async function DashboardPage() {
   }
 
   const cards = [
-    { label: '총 클라이언트', value: clientCount ?? 0, href: '/campaigns/clients', color: 'bg-purple-600' },
+    { label: '총 클라이언트', value: clientCount ?? 0, href: '/sales', color: 'bg-purple-600' },
     { label: '총 인플루언서', value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
     { label: '방문예정', value: reserved, href: '/campaigns/schedules', color: 'bg-orange-500' },
     { label: '업로드 대기', value: uploadPending, href: '/influencers/posts', color: 'bg-red-500' },
@@ -127,7 +127,9 @@ export default async function DashboardPage() {
       </div>
 
       <div className="bg-white rounded-lg shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">클라이언트 목록</h2>
+        <Link href="/campaigns/clients" className="text-lg font-semibold mb-4 block hover:text-blue-600">
+          클라이언트 목록 →
+        </Link>
         {(clients ?? []).length === 0 ? (
           <p className="text-gray-400 text-sm">등록된 클라이언트가 없습니다</p>
         ) : (
