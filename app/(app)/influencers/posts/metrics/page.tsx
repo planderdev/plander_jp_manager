@@ -35,7 +35,7 @@ export default async function MetricsPage({
           <input type="month" name="month" defaultValue={month}
             className="border border-gray-400 rounded p-2" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회수</button>
       </form>
 
       {posts.length === 0 ? (
@@ -54,10 +54,10 @@ export default async function MetricsPage({
                   <th className="p-3">인플루언서</th>
                   <th className="p-3">업체명</th>
                   <th className="p-3">링크</th>
-                  <th className="p-3">조회수</th>
-                  <th className="p-3">좋아요</th>
-                  <th className="p-3">댓글</th>
-                  <th className="p-3">공유</th>
+                  <th className="p-3">조회수수</th>
+                  <th className="p-3">좋아요수</th>
+                  <th className="p-3">댓글수</th>
+                  <th className="p-3">공유수</th>
                   <th className="p-3">최종 입력</th>
                 </tr>
               </thead>

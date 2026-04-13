@@ -81,7 +81,7 @@ export default async function AdminsPage() {
         <h2 className="text-lg font-semibold mb-3">Apify API 설정</h2>
         <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
           <div className="text-sm text-gray-700">
-            <p>인스타그램 게시물 메트릭(좋아요/조회수/댓글) 자동 수집용 Apify 토큰입니다.</p>
+            <p>인스타그램 게시물 메트릭(좋아요수/조회수/댓글수) 자동 수집용 Apify 토큰입니다.</p>
             <p className="text-xs text-gray-500 mt-1">
               apify.com → Settings → Integrations → API tokens 에서 발급
             </p>

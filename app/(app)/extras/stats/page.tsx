@@ -27,7 +27,7 @@ export default async function StatsPage({
   let rangeError = '';
   if (fromDate && toDate) {
     const diff = (new Date(toDate).getTime() - new Date(fromDate).getTime()) / (1000*60*60*24);
-    if (diff > 366) rangeError = '조회 기간은 최대 1년까지 가능합니다';
+    if (diff > 366) rangeError = '조회수 기간은 최대 1년까지 가능합니다';
     if (diff < 0) rangeError = '종료일이 시작일보다 빠릅니다';
   }
 
@@ -134,8 +134,8 @@ export default async function StatsPage({
     { label: '인플루언서 수', value: totalInfluencers },
     { label: '참여 인플루언서', value: involvedInfluencers },
     { label: '업로드 게시물 수', value: uploaded },
-    { label: '총 좋아요', value: totalLikes },
-    { label: '총 댓글', value: totalComments },
+    { label: '총 좋아요수', value: totalLikes },
+    { label: '총 댓글수', value: totalComments },
     { label: '총 조회수', value: totalViews },
     { label: '정산 완료 금액', value: paidTotal, suffix: '원', href: '/influencers/posts' },
     { label: '미정산 금액', value: unpaidTotal, suffix: '원', href: '/influencers/posts' },
@@ -144,10 +144,10 @@ export default async function StatsPage({
     { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
     { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
     { label: '완료', value: scheduleDone, href: '/campaigns/completed' },
-    { label: `${thisMonth} 조회수`, value: tv },
-    { label: `${thisMonth} 좋아요`, value: tl },
-    { label: `${thisMonth} 댓글`, value: tc },
-    { label: `${thisMonth} 공유`, value: ts },
+    { label: `${thisMonth} 조회수수`, value: tv },
+    { label: `${thisMonth} 좋아요수`, value: tl },
+    { label: `${thisMonth} 댓글수`, value: tc },
+    { label: `${thisMonth} 공유수`, value: ts },
   ];
 
   return (
@@ -177,7 +177,7 @@ export default async function StatsPage({
           <label className="text-sm block mb-1 font-medium">종료일</label>
           <input type="date" name="to" defaultValue={toDate ?? ''} className="border border-gray-400 rounded p-2 text-sm" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회수</button>
       </form>
 
       {rangeError && <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">{rangeError}</div>}
@@ -208,22 +208,22 @@ export default async function StatsPage({
         <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <div className="text-sm text-gray-600">조회수</div>
+            <div className="text-sm text-gray-600">조회수수</div>
             <div className="text-2xl font-bold">{tv.toLocaleString()}</div>
             <div className="text-xs text-gray-500">{delta(tv, pv)}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600">좋아요</div>
+            <div className="text-sm text-gray-600">좋아요수</div>
             <div className="text-2xl font-bold">{tl.toLocaleString()}</div>
             <div className="text-xs text-gray-500">{delta(tl, pl)}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600">댓글</div>
+            <div className="text-sm text-gray-600">댓글수</div>
             <div className="text-2xl font-bold">{tc.toLocaleString()}</div>
             <div className="text-xs text-gray-500">{delta(tc, pc)}</div>
           </div>
           <div>
-            <div className="text-sm text-gray-600">공유</div>
+            <div className="text-sm text-gray-600">공유수</div>
             <div className="text-2xl font-bold">{ts.toLocaleString()}</div>
             <div className="text-xs text-gray-500">{delta(ts, ps)}</div>
           </div>

@@ -39,9 +39,10 @@ export default async function CompletedPage({
               <th className="p-3">인플루언서</th>
               <th className="p-3">계정링크</th>
               <th className="p-3">게시물</th>
-              <th className="p-3">조회</th>
-              <th className="p-3">좋아요</th>
-              <th className="p-3">댓글</th>
+              <th className="p-3">조회수</th>
+              <th className="p-3">좋아요수</th>
+              <th className="p-3">댓글수</th>
+              <th className="p-3">공유수</th>
               <th className="p-3">단가</th>
               <th className="p-3">정산</th>
               <th className="p-3">정산일</th>

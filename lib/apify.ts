@@ -5,6 +5,7 @@ export type ScrapedMetrics = {
   likes: number | null;
   comments: number | null;
   views: number | null;
+  shares: number | null;
 };
 
 const ACTOR_ID = 'apify~instagram-post-scraper';
@@ -26,7 +27,7 @@ export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetri
   // 토큰 없으면 Mock 모드 (덮어쓰기 안 함)
   if (!token) {
     console.log(`[apify mock] ${urls.length}개 URL — 토큰 없음, mock 응답`);
-    return urls.map((url) => ({ url, likes: null, comments: null, views: null }));
+    return urls.map((url) => ({ url, likes: null, comments: null, views: null, shares: null }));
   }
 
   // 실제 Apify 호출
@@ -48,7 +49,7 @@ export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetri
     if (!res.ok) {
       const text = await res.text();
       console.error(`Apify error: ${res.status} ${text.slice(0, 200)}`);
-      return urls.map((url) => ({ url, likes: null, comments: null, views: null }));
+      return urls.map((url) => ({ url, likes: null, comments: null, views: null, shares: null }));
     }
 
     const data = await res.json() as any[];
@@ -60,6 +61,6 @@ export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetri
     }));
   } catch (e: any) {
     console.error('Apify call failed:', e.message);
-    return urls.map((url) => ({ url, likes: null, comments: null, views: null }));
+    return urls.map((url) => ({ url, likes: null, comments: null, views: null, shares: null }));
   }
 }

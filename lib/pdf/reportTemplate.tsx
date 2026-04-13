@@ -50,8 +50,8 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
 
         <View style={s.box}>
           <Text>전체 스케줄: {schedules.length}건</Text>
-          <Text>총 조회: {tv.toLocaleString()}   총 좋아요: {tl.toLocaleString()}   총 댓글: {tc.toLocaleString()}   총 공유: {ts.toLocaleString()}</Text>
-          <Text>전월({prevMonth}) 대비 — 조회 {fmt(tv, pv)}   좋아요 {fmt(tl, pl)}</Text>
+          <Text>총 조회수: {tv.toLocaleString()}   총 좋아요수: {tl.toLocaleString()}   총 댓글수: {tc.toLocaleString()}   총 공유수: {ts.toLocaleString()}</Text>
+          <Text>전월({prevMonth}) 대비 — 조회수 {fmt(tv, pv)}   좋아요수 {fmt(tl, pl)}</Text>
         </View>
 
         <View style={[s.row, s.head]}>
@@ -60,10 +60,10 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
           <Text style={s.cDate}>촬영일</Text>
           <Text style={s.cUpload}>업로드일</Text>
           <Text style={s.cStatus}>업로드</Text>
-          <Text style={s.cNum}>조회</Text>
-          <Text style={s.cNum}>좋아요</Text>
-          <Text style={s.cNum}>댓글</Text>
-          <Text style={s.cNum}>공유</Text>
+          <Text style={s.cNum}>조회수</Text>
+          <Text style={s.cNum}>좋아요수</Text>
+          <Text style={s.cNum}>댓글수</Text>
+          <Text style={s.cNum}>공유수</Text>
         </View>
         {schedules.map((s2: any) => {
           const p = s2.posts?.find((p: any) => p.post_url);
