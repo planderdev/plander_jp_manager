@@ -38,7 +38,7 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
   const ps = sumKey(prevHist, 'shares');
 
   const fmt = (cur: number, prev: number) => {
-    if (prev === 0) return cur > 0 ? `+${cur.toLocaleString()} (신규)` : '-';
+    if (prev === 0) return cur > 0 ? `(전월대비 ${cur.toLocaleString()}증가)` : '-';
     const diff = cur - prev;
     const pct = ((diff / prev) * 100).toFixed(1);
     return `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
