@@ -4,67 +4,75 @@ import { revalidatePath } from 'next/cache';
 import { generateReportPdf } from '@/lib/pdf/reportTemplate';
 
 export async function generateReportAction(formData: FormData) {
-  const sb = await createClient();
-  const clientId = Number(formData.get('client_id'));
-  const yearMonth = String(formData.get('year_month'));
+  try {
+    const sb = await createClient();
+    const clientId = Number(formData.get('client_id'));
+    const yearMonth = String(formData.get('year_month'));
 
-  // 1. 기간 계산 (해당 월 1일 ~ 다음 달 1일)
-  const [yr, mo] = yearMonth.split('-').map(Number);
-  const start = `${yearMonth}-01T00:00:00+09:00`;
-  const nextMonth = new Date(yr, mo, 1);
-  const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01T00:00:00+09:00`;
-  const prevDate = new Date(yr, mo - 2, 1);
-  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+    const [yr, mo] = yearMonth.split('-').map(Number);
+    const start = `${yearMonth}-01T00:00:00+09:00`;
+    const nextMonth = new Date(yr, mo, 1);
+    const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth() + 1).padStart(2, '0')}-01T00:00:00+09:00`;
+    const prevDate = new Date(yr, mo - 2, 1);
+    const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
 
-  // 2. 클라이언트 정보
-  const { data: client } = await sb.from('clients').select('*').eq('id', clientId).single();
-  if (!client) throw new Error('클라이언트를 찾을 수 없습니다');
+    console.log('[REPORT] start', { clientId, yearMonth, start, endStr });
 
-  // 3. 스케줄 + 게시물
-  const { data: schedules } = await sb.from('schedules')
-    .select('id, scheduled_at, influencers(handle, channel), posts(id, post_url, uploaded_on)')
-    .eq('client_id', clientId)
-    .gte('scheduled_at', start)
-    .lt('scheduled_at', endStr)
-    .order('scheduled_at', { ascending: true });
+    const { data: client, error: ce } = await sb.from('clients').select('*').eq('id', clientId).single();
+    if (ce) { console.error('[REPORT] client error', ce); throw new Error('client: ' + ce.message); }
+    if (!client) throw new Error('클라이언트 없음');
 
-  // 4. 메트릭 히스토리 (이번 달 + 전월)
-  const postIds = (schedules ?? []).flatMap((s: any) => s.posts?.map((p: any) => p.id) ?? []);
-  const [thisHistRes, prevHistRes] = await Promise.all([
-    postIds.length
-      ? sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', yearMonth)
-      : Promise.resolve({ data: [] as any[] }),
-    postIds.length
-      ? sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', prevMonth)
-      : Promise.resolve({ data: [] as any[] }),
-  ]);
-  const thisHist = thisHistRes.data ?? [];
-  const prevHist = prevHistRes.data ?? [];
+    const { data: schedules, error: se } = await sb.from('schedules')
+      .select('id, scheduled_at, influencers(handle, channel), posts(id, post_url, uploaded_on)')
+      .eq('client_id', clientId)
+      .gte('scheduled_at', start)
+      .lt('scheduled_at', endStr)
+      .order('scheduled_at', { ascending: true });
+    if (se) { console.error('[REPORT] schedules error', se); throw new Error('schedules: ' + se.message); }
+    console.log('[REPORT] schedules count', schedules?.length);
 
-  // 5. PDF 생성
-  const pdfBuffer = await generateReportPdf({
-    client,
-    month: yearMonth,
-    schedules: schedules ?? [],
-    thisHist,
-    prevHist,
-    prevMonth,
-  });
+    const postIds = (schedules ?? []).flatMap((s: any) => s.posts?.map((p: any) => p.id) ?? []);
+    console.log('[REPORT] postIds', postIds);
 
-  // 6. Storage 업로드
-  const filePath = `${clientId}/${yearMonth}.pdf`;
-  const { error: upErr } = await sb.storage.from('reports')
-    .upload(filePath, pdfBuffer, { contentType: 'application/pdf', upsert: true });
-  if (upErr) throw new Error(upErr.message);
+    let thisHist: any[] = [];
+    let prevHist: any[] = [];
+    if (postIds.length) {
+      const [a, b] = await Promise.all([
+        sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', yearMonth),
+        sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', prevMonth),
+      ]);
+      if (a.error) { console.error('[REPORT] thisHist error', a.error); throw new Error('thisHist: ' + a.error.message); }
+      if (b.error) { console.error('[REPORT] prevHist error', b.error); throw new Error('prevHist: ' + b.error.message); }
+      thisHist = a.data ?? [];
+      prevHist = b.data ?? [];
+    }
 
-  // 7. DB 기록
-  await sb.from('reports').upsert({
-    client_id: clientId,
-    year_month: yearMonth,
-    file_path: filePath,
-  }, { onConflict: 'client_id,year_month' });
+    console.log('[REPORT] generating PDF');
+    const pdfBuffer = await generateReportPdf({
+      client, month: yearMonth, schedules: schedules ?? [],
+      thisHist, prevHist, prevMonth,
+    });
+    console.log('[REPORT] PDF size', pdfBuffer.length);
 
-  revalidatePath('/extras/reports');
+    const filePath = `${clientId}/${yearMonth}.pdf`;
+    const { error: upErr } = await sb.storage.from('reports')
+      .upload(filePath, pdfBuffer, { contentType: 'application/pdf', upsert: true });
+    if (upErr) { console.error('[REPORT] upload error', upErr); throw new Error('upload: ' + upErr.message); }
+    console.log('[REPORT] uploaded');
+
+    const { error: dbErr } = await sb.from('reports').upsert({
+      client_id: clientId,
+      year_month: yearMonth,
+      file_path: filePath,
+    }, { onConflict: 'client_id,year_month' });
+    if (dbErr) { console.error('[REPORT] db error', dbErr); throw new Error('db: ' + dbErr.message); }
+    console.log('[REPORT] done');
+
+    revalidatePath('/extras/reports');
+  } catch (e: any) {
+    console.error('[REPORT] FATAL', e);
+    throw new Error('보고서 생성 실패: ' + (e?.message ?? 'unknown'));
+  }
 }
 
 export async function deleteReportAction(id: number) {
