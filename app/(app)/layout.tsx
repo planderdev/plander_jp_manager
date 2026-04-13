@@ -18,8 +18,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect('/login');
 
-  const { data: admin } = await sb.from('admins').select('name, role').eq('id', user.id).single();
-  const userName = admin?.role ? `${admin.role} ${admin.name}` : (admin?.name ?? user.email ?? '');
+  const { data: admin } = await sb.from('admins').select('name, title').eq('id', user.id).single();
+  const userName = admin?.title ? `${admin.title} ${admin.name}` : (admin?.name ?? user.email ?? '');
 
   return (
     <div className="min-h-screen md:flex">
