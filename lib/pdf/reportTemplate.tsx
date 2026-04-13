@@ -34,6 +34,8 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
   const ts = sumKey(thisHist, 'shares');
   const pv = sumKey(prevHist, 'views');
   const pl = sumKey(prevHist, 'likes');
+  const pc = sumKey(prevHist, 'comments');
+  const ps = sumKey(prevHist, 'shares');
 
   const fmt = (cur: number, prev: number) => {
     if (prev === 0) return cur > 0 ? `+${cur.toLocaleString()} (신규)` : '-';
@@ -88,6 +90,25 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
             </View>
           );
         })}
+        {/* ... 기존 테이블 행들 ... */}
+
+        {/* 하단 통계 */}
+        <View style={[s.box, { marginTop: 16 }]}>
+          <Text style={{ fontSize: 12, fontWeight: 'bold' as any, marginBottom: 6 }}>
+            {month} 월간 통계
+          </Text>
+          <Text>방문 인플루언서: {schedules.length}건</Text>
+          <Text>업로드 완료: {schedules.filter((s: any) => s.posts?.some((p: any) => p.post_url)).length}건</Text>
+          <Text>총 조회수: {tv.toLocaleString()} {fmt(tv, pv)}</Text>
+          <Text>총 좋아요: {tl.toLocaleString()} {fmt(tl, pl)}</Text>
+          <Text>총 댓글: {tc.toLocaleString()} {fmt(tc, pc)}</Text>
+          <Text>총 공유: {ts.toLocaleString()} {fmt(ts, ps)}</Text>
+        </View>
+
+        {/* 생성일 */}
+        <Text style={{ fontSize: 9, color: '#888', textAlign: 'right' as any, marginTop: 12 }}>
+          생성일: {new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' })}
+        </Text>
       </Page>
     </Document>
   );

@@ -10,7 +10,16 @@ export default async function PostsPage() {
   const { data: posts } = await sb
     .from('posts')
     .select('*, clients(company_name), influencers(handle)')
+    .order('settlement_status', { ascending: true })  // pending 먼저, done 뒤
     .order('updated_at', { ascending: false });
+    
+  // 정산완료는 뒤로
+  const sortedPosts = (posts ?? []).sort((a: any, b: any) => {
+    const aDone = a.settlement_status === 'done' ? 1 : 0;
+    const bDone = b.settlement_status === 'done' ? 1 : 0;
+    if (aDone !== bDone) return aDone - bDone;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
 
   return (
     <div className="p-4 md:p-8">
@@ -39,7 +48,7 @@ export default async function PostsPage() {
             </tr>
           </thead>
           <tbody>
-            {posts?.map((p: any) => (
+            {sortedPosts.map((p: any) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">{p.clients?.company_name ?? '-'}</td>
                 <td className="p-3">

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { getScheduleStatus } from '@/lib/schedule-status';
+import CollapsibleGroup from '@/components/stats/CollapsibleGroup';
 
 function parseYmd(s?: string) {
   if (!s) return null;
@@ -191,11 +192,11 @@ export default async function StatsPage({
       </Group>
       
       {/* 그룹 2: 금액 */}
-      <Group title="지출">
+      <CollapsibleGroup title="지출" defaultOpen={false}>
         <MetricCard label="정산완료 금액" value={paidTotal} suffix="원" href="/influencers/posts" />
         <MetricCard label="미정산 금액" value={unpaidTotal} suffix="원" href="/influencers/posts" />
         <MetricCard label="총 지출 금액" value={grandTotal} suffix="원" href="/influencers/posts" />
-      </Group>
+      </CollapsibleGroup>
       
       {/* 그룹 3: 진행 상태 */}
       <Group title="상태">
@@ -210,14 +211,6 @@ export default async function StatsPage({
         <MetricCard label="총 좋아요수" value={totalLikes} />
         <MetricCard label="총 댓글수" value={totalComments} />
         <MetricCard label="총 조회수" value={totalViews} />
-      </Group>
-      
-      {/* 그룹 5: 해당 월 메트릭 */}
-      <Group title={`${thisMonth} 실적`}>
-        <MetricCard label="조회수" value={tv} />
-        <MetricCard label="좋아요수" value={tl} />
-        <MetricCard label="댓글수" value={tc} />
-        <MetricCard label="공유수" value={ts} />
       </Group>
       
       {/* 전월 대비 */}
