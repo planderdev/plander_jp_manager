@@ -58,6 +58,7 @@ export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetri
       likes: item.likesCount ?? null,
       comments: item.commentsCount ?? null,
       views: item.videoViewCount ?? item.videoPlayCount ?? null,
+      shares: item.reshareCount ?? item.shareCount ?? null,  // ← 추가
     }));
   } catch (e: any) {
     console.error('Apify call failed:', e.message);

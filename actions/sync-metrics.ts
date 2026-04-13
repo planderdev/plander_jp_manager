@@ -37,6 +37,7 @@ export async function syncAllPosts() {
     if (m.likes !== null) updatePayload.likes = m.likes;
     if (m.comments !== null) updatePayload.comments = m.comments;
     if (m.views !== null && m.views > 0) updatePayload.views = m.views;
+    if (m.shares !== null && m.shares !== undefined) updatePayload.shares = m.shares;  // ← 추가
 
     await sb.from('posts').update(updatePayload).eq('id', post.id);
 
@@ -47,6 +48,7 @@ export async function syncAllPosts() {
       views: m.views ?? 0,
       likes: m.likes ?? 0,
       comments: m.comments ?? 0,
+      shares: m.shares ?? 0,  // ← 추가
       collected_at: today,
     }, { onConflict: 'post_id,collected_at' });
 
