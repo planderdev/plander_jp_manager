@@ -122,6 +122,7 @@ export default async function StatsPage({
   const totalViews = posts.reduce((a, p) => a + (p.views ?? 0), 0);
   const totalLikes = posts.reduce((a, p) => a + (p.likes ?? 0), 0);
   const totalComments = posts.reduce((a, p) => a + (p.comments ?? 0), 0);
+  const totalShares = posts.reduce((a, p) => a + (p.shares ?? 0), 0);
   const paidTotal = posts
     .filter((p: any) => p.settlement_status === 'done')
     .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
@@ -200,6 +201,7 @@ export default async function StatsPage({
       
       {/* 그룹 3: 진행 상태 */}
       <Group title="상태">
+        <MetricCard label="업로드 게시물수" value={uploaded} href="/campaigns/completed" />
         <MetricCard label="업로드 대기" value={uploadPending} href="/influencers/posts" />
         <MetricCard label="정산 대기" value={settlementPending} href="/influencers/posts" />
         <MetricCard label="완료" value={scheduleDone} href="/campaigns/completed" />
@@ -207,10 +209,10 @@ export default async function StatsPage({
       
       {/* 그룹 4: 누적 메트릭 */}
       <Group title="누적 실적">
-        <MetricCard label="업로드 게시물수" value={uploaded} href="/campaigns/completed" />
         <MetricCard label="총 좋아요수" value={totalLikes} />
         <MetricCard label="총 댓글수" value={totalComments} />
         <MetricCard label="총 조회수" value={totalViews} />
+        <MetricCard label="총 공유수" value={totalShares} />
       </Group>
       
       {/* 전월 대비 */}
@@ -218,9 +220,9 @@ export default async function StatsPage({
         <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <DeltaCard label="조회수" cur={tv} prev={pv} />
-          <DeltaCard label="좋아요" cur={tl} prev={pl} />
-          <DeltaCard label="댓글" cur={tc} prev={pc} />
-          <DeltaCard label="공유" cur={ts} prev={ps} />
+          <DeltaCard label="좋아요수" cur={tl} prev={pl} />
+          <DeltaCard label="댓글수" cur={tc} prev={pc} />
+          <DeltaCard label="공유수" cur={ts} prev={ps} />
         </div>
       </div>
     </div>

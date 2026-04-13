@@ -12,11 +12,12 @@ export default function CollapsibleGroup({
 
   return (
     <div className="bg-white rounded-lg shadow">
+      <h2 className="text-lg font-semibold">{title}</h2>
       <button type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-5 text-left">
-        <h2 className="text-lg font-semibold">{title}</h2>
-        <span className="text-gray-500 text-sm">{open ? '▼ 접기' : '▶ 펴기'}</span>
+        
+        <span className="text-gray-500 text-sm">{open ? '▼' : '▶'}</span>
       </button>
       {open && (
         <div className="px-5 pb-5">
