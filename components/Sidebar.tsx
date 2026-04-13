@@ -61,8 +61,6 @@ export default function Sidebar({
           <NavLink href="/extras/stats" pathname={pathname} onClick={close}>리포트</NavLink>
           <NavLink href="/extras/reports" pathname={pathname} onClick={close}>보고서 추출</NavLink>
         </nav>
-
-        <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
           <button
             type="button"
             onClick={toggle}
@@ -71,6 +69,7 @@ export default function Sidebar({
             }`}>
             {presenting ? '🔒 프레젠테이션 ON' : '👁 프레젠테이션 OFF'}
           </button>
+        <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
           <div className="px-3 mb-2">{userName}</div>
           <NavLink href="/extras/admins" pathname={pathname} onClick={close}>관리자 페이지</NavLink>
           <form action={signOutAction}>
