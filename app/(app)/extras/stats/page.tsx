@@ -144,7 +144,7 @@ export default async function StatsPage({
     { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
     { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
     { label: '완료', value: scheduleDone, href: '/campaigns/completed' },
-    { label: `${thisMonth} 조회수수`, value: tv },
+    { label: `${thisMonth} 조회수`, value: tv },
     { label: `${thisMonth} 좋아요수`, value: tl },
     { label: `${thisMonth} 댓글수`, value: tc },
     { label: `${thisMonth} 공유수`, value: ts },
@@ -208,7 +208,7 @@ export default async function StatsPage({
         <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <div className="text-sm text-gray-600">조회수수</div>
+            <div className="text-sm text-gray-600">조회수</div>
             <div className="text-2xl font-bold">{tv.toLocaleString()}</div>
             <div className="text-xs text-gray-500">{delta(tv, pv)}</div>
           </div>

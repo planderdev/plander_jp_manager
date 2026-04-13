@@ -54,7 +54,7 @@ export default async function MetricsPage({
                   <th className="p-3">인플루언서</th>
                   <th className="p-3">업체명</th>
                   <th className="p-3">링크</th>
-                  <th className="p-3">조회수수</th>
+                  <th className="p-3">조회수</th>
                   <th className="p-3">좋아요수</th>
                   <th className="p-3">댓글수</th>
                   <th className="p-3">공유수</th>
