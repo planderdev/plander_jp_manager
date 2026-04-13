@@ -78,5 +78,4 @@ export async function saveMetricsForMonth(fd: FormData) {
 
   revalidatePath('/influencers/posts/metrics');
   revalidatePath('/influencers/posts');
-  return { saved: entries.length };
 }
