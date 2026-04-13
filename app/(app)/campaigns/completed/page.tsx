@@ -69,7 +69,7 @@ export default async function CompletedPage({
                 <td className="p-3">{p.likes?.toLocaleString()}</td>
                 <td className="p-3">{p.comments?.toLocaleString()}</td>
                 <td className="p-3">{p.shares?.toLocaleString()}</td>
-                <td className="p-3">{p.influencers?.unit_price != null ? `¥${p.influencers.unit_price.toLocaleString()}` : '-'}</td>
+                <td className="p-3"><MoneyText value={i.unit_price} suffix="JPY" /></td>
                 <td className="p-3">
                   <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
                     {p.settlement_status === 'done' ? '완료' : '미정산'}

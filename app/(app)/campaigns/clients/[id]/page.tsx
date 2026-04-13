@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import DeleteButton from '@/components/client/DeleteButton';
 import { clientStatusLabel, clientStatusClass } from '@/lib/labels';
+import MoneyText from '@/components/MoneyText';
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -47,7 +48,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">영업 정보</h2>
         <Row label="최초접촉일" value={c.first_contact_date ?? '-'} />
         <Row label="계약상품" value={c.contract_product ?? '-'} />
-        <Row label="계약금액" value={c.contract_amount != null ? c.contract_amount.toLocaleString() + '원' : '-'} />
+        <Row label="계약금액" value={<MoneyText value={c.contract_amount} />} />
         <Row label="계약기간" value={`${c.contract_start ?? '-'} ~ ${c.contract_end ?? '-'}`} />
         <Row label="담당자(관리자)" value={ownerAdmin?.name ?? '미지정'} />
       </section>

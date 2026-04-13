@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import { getScheduleStatus } from '@/lib/schedule-status';
 import CollapsibleGroup from '@/components/stats/CollapsibleGroup';
+import HideOnPresentation from '@/components/HideOnPresentation';
 
 function parseYmd(s?: string) {
   if (!s) return null;
@@ -193,11 +194,13 @@ export default async function StatsPage({
       </Group>
       
       {/* 그룹 2: 금액 */}
+      <HideOnPresentation>
       <CollapsibleGroup title="지출" defaultOpen={false}>
         <MetricCard label="정산완료 금액" value={paidTotal} suffix="원" href="/influencers/posts" />
         <MetricCard label="미정산 금액" value={unpaidTotal} suffix="원" href="/influencers/posts" />
         <MetricCard label="총 지출 금액" value={grandTotal} suffix="원" href="/influencers/posts" />
       </CollapsibleGroup>
+      </HideOnPresentation>
       
       {/* 그룹 3: 진행 상태 */}
       <Group title="상태">

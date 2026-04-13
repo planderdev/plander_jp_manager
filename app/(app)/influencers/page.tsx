@@ -51,7 +51,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
                   )}
                 </td>
                 <td className="p-3">{i.followers?.toLocaleString()} 명</td>
-                <td className="p-3">{i.unit_price != null ? `JPY ${i.unit_price.toLocaleString()}` : '-'}</td>
+                <MoneyText value={i.unit_price} suffix="JPY" />
                 <td className="p-3">{contactStatusLabel(i.contact_status)}</td>
                 <td className="p-3 space-x-2">
                   <Link href={`/influencers/${i.id}/edit`} className="text-blue-600">수정</Link>

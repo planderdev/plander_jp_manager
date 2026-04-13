@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import Logo from '@/components/Logo';
+import { usePresentation } from '@/lib/presentation-context';
 
 export default function Sidebar({
   userName, signOutAction,
@@ -12,6 +13,8 @@ export default function Sidebar({
 
   // 페이지 이동하면 자동으로 모바일 메뉴 닫기
   const close = () => setOpen(false);
+
+  const { presenting, toggle } = usePresentation();
 
   return (
     <>
@@ -60,6 +63,14 @@ export default function Sidebar({
         </nav>
 
         <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
+          <button
+            type="button"
+            onClick={toggle}
+            className={`w-full text-left px-3 py-2 rounded text-sm ${
+              presenting ? 'bg-yellow-200 text-black' : 'hover:bg-gray-700'
+            }`}>
+            {presenting ? '🔒 프레젠테이션 ON' : '👁 프레젠테이션 OFF'}
+          </button>
           <div className="px-3 mb-2">{userName}</div>
           <NavLink href="/extras/admins" pathname={pathname} onClick={close}>관리자 페이지</NavLink>
           <form action={signOutAction}>

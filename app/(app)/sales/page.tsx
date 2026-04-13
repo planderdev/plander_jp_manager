@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { clientStatusLabel, clientStatusClass, isInactiveClient, isActivePipeline } from '@/lib/labels';
+import MoneyText from '@/components/MoneyText';
 
 export default async function SalesPage({
   searchParams,
@@ -159,7 +160,7 @@ export default async function SalesPage({
                       {clientStatusLabel(c.status)}
                     </span>
                   </td>
-                  <td className="p-3">{c.contract_amount != null ? c.contract_amount.toLocaleString() + '원' : '-'}</td>
+                  <td className="p-3"><MoneyText value={c.contract_amount} /></td>
                   <td className="p-3">{c.contract_start ?? '-'}</td>
                   <td className="p-3">{c.owner?.name ?? '-'}</td>
                 </tr>

@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { clientStatusLabel } from '@/lib/labels';
+import MoneyText from '@/components/MoneyText';
 
 export default async function ClientsPage() {
   const sb = await createClient();
@@ -42,7 +43,7 @@ export default async function ClientsPage() {
                 <td className="p-3">{c.phone ?? '-'}</td>
                 <td className="p-3">{clientStatusLabel(c.status)}</td>
                 <td className="p-3">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
-                <td className="p-3">{c.contract_amount != null ? c.contract_amount.toLocaleString() + '원' : '-'}</td>
+                <td className="p-3"><MoneyText value={c.contract_amount} /></td>
               </tr>
             ))}
             {!clients?.length && (
