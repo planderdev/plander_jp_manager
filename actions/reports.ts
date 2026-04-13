@@ -64,6 +64,7 @@ export async function generateReportAction(formData: FormData) {
       client_id: clientId,
       year_month: yearMonth,
       file_path: filePath,
+      file_name: `${yearMonth}.pdf`,
     }, { onConflict: 'client_id,year_month' });
     if (dbErr) { console.error('[REPORT] db error', dbErr); throw new Error('db: ' + dbErr.message); }
     console.log('[REPORT] done');
