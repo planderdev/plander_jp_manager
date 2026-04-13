@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { deleteInfluencerAction } from '@/actions/influencers';
 import { contactStatusLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
+import MoneyText from '@/components/MoneyText';
 
 
 export default async function InfluencersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
