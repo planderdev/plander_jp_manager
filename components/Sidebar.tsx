@@ -65,7 +65,7 @@ export default function Sidebar({
             type="button"
             onClick={toggle}
             className={`w-full text-left px-3 py-2 rounded text-sm ${
-              presenting ? 'bg-yellow-200 text-black' : 'hover:bg-gray-700'
+              presenting ? 'bg-red-700 text-black' : 'hover:bg-gray-700'
             }`}>
             {presenting ? '🔒 프레젠테이션 ON' : '👁 프레젠테이션 OFF'}
           </button>
