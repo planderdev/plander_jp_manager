@@ -60,6 +60,32 @@ export default async function StatsPage({
     }
   }
 
+  // 전월 대비 (필터 무관)
+  const now = new Date();
+  const thisMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const prevDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+  
+  const { data: thisHist } = await sb.from('post_metrics_history').select('*').eq('month', thisMonth);
+  const { data: prevHist } = await sb.from('post_metrics_history').select('*').eq('month', prevMonth);
+  
+  const sumKey = (arr: any[], k: string) => arr?.reduce((a, r) => a + (r[k] ?? 0), 0) ?? 0;
+  const tv = sumKey(thisHist ?? [], 'views');
+  const pv = sumKey(prevHist ?? [], 'views');
+  const tl = sumKey(thisHist ?? [], 'likes');
+  const pl = sumKey(prevHist ?? [], 'likes');
+  const tc = sumKey(thisHist ?? [], 'comments');
+  const pc = sumKey(prevHist ?? [], 'comments');
+  const ts = sumKey(thisHist ?? [], 'shares');
+  const ps = sumKey(prevHist ?? [], 'shares');
+  
+  function delta(cur: number, prev: number): string {
+    if (prev === 0) return cur > 0 ? '+신규' : '-';
+    const diff = cur - prev;
+    const pct = ((diff / prev) * 100).toFixed(1);
+    return `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
+  }
+
   // 필터 적용된 카운트
   let totalClients: number;
   let totalInfluencers: number;
@@ -103,6 +129,10 @@ export default async function StatsPage({
     { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
     { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
     { label: '완료', value: scheduleDone, href: '/campaigns/completed' },
+    { label: `${thisMonth} 조회수`, value: tv },
+    { label: `${thisMonth} 좋아요`, value: tl },
+    { label: `${thisMonth} 댓글`, value: tc },
+    { label: `${thisMonth} 공유`, value: ts },
   ];
 
   return (
@@ -158,6 +188,31 @@ export default async function StatsPage({
             </div>
           );
         })}
+      </div>
+      <div className="bg-white rounded-lg shadow p-5">
+        <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div>
+            <div className="text-sm text-gray-600">조회수</div>
+            <div className="text-2xl font-bold">{tv.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">{delta(tv, pv)}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600">좋아요</div>
+            <div className="text-2xl font-bold">{tl.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">{delta(tl, pl)}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600">댓글</div>
+            <div className="text-2xl font-bold">{tc.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">{delta(tc, pc)}</div>
+          </div>
+          <div>
+            <div className="text-sm text-gray-600">공유</div>
+            <div className="text-2xl font-bold">{ts.toLocaleString()}</div>
+            <div className="text-xs text-gray-500">{delta(ts, ps)}</div>
+          </div>
+        </div>
       </div>
     </div>
   );

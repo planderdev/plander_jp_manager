@@ -21,29 +21,38 @@ const s = StyleSheet.create({
   cNum: { width: '10%', textAlign: 'right' as any },
 });
 
-export function ReportDoc({ client, month, schedules }: any) {
-  const uploadedSchedules = schedules.filter((s: any) =>
-    s.posts?.some((p: any) => p.post_url)
-  );
+export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMonth }: any) {
+  const histMap = new Map<number, any>();
+  for (const h of thisHist) histMap.set(h.post_id, h);
+  const prevMap = new Map<number, any>();
+  for (const h of prevHist) prevMap.set(h.post_id, h);
 
-  const totalViews = uploadedSchedules.reduce((a: number, s: any) => {
-    const p = s.posts?.find((p: any) => p.post_url);
-    return a + (p?.views || 0);
-  }, 0);
-  const totalLikes = uploadedSchedules.reduce((a: number, s: any) => {
-    const p = s.posts?.find((p: any) => p.post_url);
-    return a + (p?.likes || 0);
-  }, 0);
-  const totalComments = uploadedSchedules.reduce((a: number, s: any) => {
-    const p = s.posts?.find((p: any) => p.post_url);
-    return a + (p?.comments || 0);
-  }, 0);
+  const sumKey = (arr: any[], k: string) => arr.reduce((a, r) => a + (r[k] ?? 0), 0);
+  const tv = sumKey(thisHist, 'views');
+  const tl = sumKey(thisHist, 'likes');
+  const tc = sumKey(thisHist, 'comments');
+  const ts = sumKey(thisHist, 'shares');
+  const pv = sumKey(prevHist, 'views');
+  const pl = sumKey(prevHist, 'likes');
+
+  const fmt = (cur: number, prev: number) => {
+    if (prev === 0) return cur > 0 ? `+${cur.toLocaleString()} (신규)` : '-';
+    const diff = cur - prev;
+    const pct = ((diff / prev) * 100).toFixed(1);
+    return `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
+  };
 
   return (
     <Document>
       <Page size="A4" style={s.page}>
         <Text style={s.h1}>{client.company_name} - {month} 월간 리포트</Text>
         <Text style={s.sub}>담당자: {client.contact_person ?? '-'} · 연락처: {client.phone ?? '-'}</Text>
+
+        <View style={s.box}>
+          <Text>전체 스케줄: {schedules.length}건</Text>
+          <Text>총 조회: {tv.toLocaleString()}   총 좋아요: {tl.toLocaleString()}   총 댓글: {tc.toLocaleString()}   총 공유: {ts.toLocaleString()}</Text>
+          <Text>전월({prevMonth}) 대비 — 조회 {fmt(tv, pv)}   좋아요 {fmt(tl, pl)}</Text>
+        </View>
 
         <View style={[s.row, s.head]}>
           <Text style={s.cName}>인플루언서</Text>
@@ -58,13 +67,11 @@ export function ReportDoc({ client, month, schedules }: any) {
         {schedules.map((s2: any) => {
           const p = s2.posts?.find((p: any) => p.post_url);
           const uploaded = !!p;
+          const h = p ? histMap.get(p.id) : null;
           const d = new Date(s2.scheduled_at);
           const dateStr = `${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;
-          const uploadStr = p?.created_at
-            ? (() => {
-                const ud = new Date(p.created_at);
-                return `${ud.getFullYear()}/${String(ud.getMonth()+1).padStart(2,'0')}/${String(ud.getDate()).padStart(2,'0')}`;
-              })()
+          const uploadStr = p?.uploaded_on
+            ? p.uploaded_on.replaceAll('-','/')
             : '-';
           return (
             <View key={s2.id} style={s.row}>
@@ -73,9 +80,9 @@ export function ReportDoc({ client, month, schedules }: any) {
               <Text style={s.cDate}>{dateStr}</Text>
               <Text style={s.cUpload}>{uploadStr}</Text>
               <Text style={s.cStatus}>{uploaded ? 'O' : 'X'}</Text>
-              <Text style={s.cNum}>{(p?.views ?? 0).toLocaleString()}</Text>
-              <Text style={s.cNum}>{(p?.likes ?? 0).toLocaleString()}</Text>
-              <Text style={s.cNum}>{(p?.comments ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(h?.views ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(h?.likes ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(h?.comments ?? 0).toLocaleString()}</Text>
             </View>
           );
         })}

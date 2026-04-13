@@ -38,6 +38,7 @@ export default async function InsightsPage({
     { label: '총 조회수', value: totalViews },
     { label: '총 좋아요', value: totalLikes },
     { label: '총 댓글', value: totalComments },
+    { label: '총 공유', value: posts?.reduce((s: number, p: any) => s + (p.shares ?? 0), 0) ?? 0 },
     { label: '참여 인플루언서', value: uniqueInfluencers },
   ];
 

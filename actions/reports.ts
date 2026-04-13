@@ -18,7 +18,7 @@ export async function generateReportAction(fd: FormData) {
   const endStr = `${nextMonth.getFullYear()}-${String(nextMonth.getMonth()+1).padStart(2,'0')}-01T00:00:00+09:00`;
 
   const { data: schedules } = await sb.from('schedules')
-    .select('id, scheduled_at, influencers(handle, channel), posts(post_url, views, likes, comments, created_at)')
+    .select('id, scheduled_at, influencers(handle, channel), posts(id, post_url, uploaded_on)')
     .eq('client_id', clientId)
     .gte('scheduled_at', start)
     .lt('scheduled_at', endStr)
@@ -38,6 +38,23 @@ export async function generateReportAction(fd: FormData) {
   }, { onConflict: 'client_id,year_month' });
 
   revalidatePath('/extras/reports');
+
+
+    // 기존 schedules 가져온 후 추가 (25/4/13)
+  const [y, m] = yearMonth.split('-').map(Number);
+  const prevDate = new Date(y, m - 2, 1);
+  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+  
+  const postIds = (schedules ?? []).flatMap((s: any) => ßs.posts?.map((p: any) => p.id) ?? []);
+  const [{ data: thisHist }, { data: prevHist }] = await Promise.all([
+    sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', yearMonth),
+    sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', prevMonth),
+  ]);
+  
+  const pdfBuffer = await generateReportPdf({
+    client, month: yearMonth, schedules: schedules ?? [],
+    thisHist: thisHist ?? [], prevHist: prevHist ?? [], prevMonth,
+  });
 }
 
 export async function deleteReportAction(id: number) {
