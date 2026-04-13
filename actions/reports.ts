@@ -25,7 +25,22 @@ export async function generateReportAction(fd: FormData) {
     .order('scheduled_at', { ascending: true });
 
 //  const pdfBuffer = await generateReportPdf({ client, month: yearMonth, schedules: schedules ?? [] });
-
+    // 기존 schedules 가져온 후 추가 (25/4/13)
+  const [yr, mo] = yearMonth.split('-').map(Number);
+  const prevDate = new Date(y, m - 2, 1);
+  const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
+  
+  const postIds = (schedules ?? []).flatMap((s: any) => ßs.posts?.map((p: any) => p.id) ?? []);
+  const [{ data: thisHist }, { data: prevHist }] = await Promise.all([
+    sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', yearMonth),
+    sb.from('post_metrics_history').select('*').in('post_id', postIds).eq('month', prevMonth),
+  ]);
+  
+  const pdfBuffer = await generateReportPdf({
+    client, month: yearMonth, schedules: schedules ?? [],
+    thisHist: thisHist ?? [], prevHist: prevHist ?? [], prevMonth,
+  });
+  //
   const fileName = `${client.company_name}_${yearMonth}.pdf`;
   const filePath = `${clientId}/${yearMonth}.pdf`;
 
