@@ -12,7 +12,7 @@ export default function CollapsibleGroup({
 
   return (
     <div className="bg-white rounded-lg shadow">
-      <h2 className="text-lg font-semibold">{title}</h2>
+      <h2 className="text-lg flex items-center justify-between p-5 text-left font-semibold">{title}</h2>
       <button type="button"
         onClick={() => setOpen(!open)}
         className="w-full flex items-center justify-between p-5 text-left">
