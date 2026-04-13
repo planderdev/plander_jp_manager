@@ -60,9 +60,6 @@ export default function Sidebar({
         </nav>
 
         <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
-          <div className="text-sm">
-            {admin?.role ? `${admin.role} ` : ''}{admin?.name ?? user.email}
-          </div>
           <div className="px-3 mb-2">{userName}</div>
           <NavLink href="/extras/admins" pathname={pathname} onClick={close}>관리자 페이지</NavLink>
           <form action={signOutAction}>
