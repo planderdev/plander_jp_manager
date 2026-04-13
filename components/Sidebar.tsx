@@ -60,9 +60,8 @@ export default function Sidebar({
         </nav>
 
         <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
-          
-          <NavLink href="/extras/admins" pathname={pathname} onClick={close}>관리자</NavLink>
           <div className="px-3 mb-2">{userName}</div>
+          <NavLink href="/extras/admins" pathname={pathname} onClick={close}>관리자</NavLink>
           <form action={signOutAction}>
             <button className="w-full text-left px-3 py-2 rounded hover:bg-gray-800">로그아웃</button>
           </form>
