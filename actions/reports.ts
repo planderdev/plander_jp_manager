@@ -24,7 +24,7 @@ export async function generateReportAction(fd: FormData) {
     .lt('scheduled_at', endStr)
     .order('scheduled_at', { ascending: true });
 
-  const pdfBuffer = await generateReportPdf({ client, month: yearMonth, schedules: schedules ?? [] });
+//  const pdfBuffer = await generateReportPdf({ client, month: yearMonth, schedules: schedules ?? [] });
 
   const fileName = `${client.company_name}_${yearMonth}.pdf`;
   const filePath = `${clientId}/${yearMonth}.pdf`;
