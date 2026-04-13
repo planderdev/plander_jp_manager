@@ -7,18 +7,18 @@ Font.register({
 });
 
 const s = StyleSheet.create({
-  page: { padding: 36, fontFamily: 'NotoKR', fontSize: 10 },
+  page: { padding: 36, fontFamily: 'NotoKR', fontSize: 9 },  // 한 사이즈 줄임
   h1: { fontSize: 18, marginBottom: 6 },
   sub: { fontSize: 10, color: '#555', marginBottom: 12 },
   box: { border: 1, borderColor: '#ccc', padding: 8, marginBottom: 12 },
   row: { flexDirection: 'row', borderBottom: 1, borderColor: '#eee', paddingVertical: 6 },
   head: { backgroundColor: '#eee', fontWeight: 'bold' as any },
-  cName: { width: '18%' },
-  cDate: { width: '14%' },
-  cUpload: { width: '14%' },
-  cChannel: { width: '14%' },
-  cStatus: { width: '10%' },
-  cNum: { width: '10%', textAlign: 'right' as any },
+  cName: { width: '16%' },
+  cChannel: { width: '10%' },
+  cDate: { width: '12%' },
+  cUpload: { width: '12%' },
+  cStatus: { width: '8%' },
+  cNum: { width: '10.5%', textAlign: 'right' as any },
 });
 
 export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMonth }: any) {
@@ -63,6 +63,7 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
           <Text style={s.cNum}>조회</Text>
           <Text style={s.cNum}>좋아요</Text>
           <Text style={s.cNum}>댓글</Text>
+          <Text style={s.cNum}>공유</Text>
         </View>
         {schedules.map((s2: any) => {
           const p = s2.posts?.find((p: any) => p.post_url);
@@ -83,6 +84,7 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
               <Text style={s.cNum}>{(h?.views ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(h?.likes ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(h?.comments ?? 0).toLocaleString()}</Text>
+              <Text style={s.cNum}>{(h?.shares ?? 0).toLocaleString()}</Text>
             </View>
           );
         })}

@@ -41,7 +41,7 @@ export async function generateReportAction(fd: FormData) {
 
 
     // 기존 schedules 가져온 후 추가 (25/4/13)
-  const [y, m] = yearMonth.split('-').map(Number);
+  const [yr, mo] = yearMonth.split('-').map(Number);
   const prevDate = new Date(y, m - 2, 1);
   const prevMonth = `${prevDate.getFullYear()}-${String(prevDate.getMonth() + 1).padStart(2, '0')}`;
   
