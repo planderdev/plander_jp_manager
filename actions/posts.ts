@@ -3,15 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 
-import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
-
-export default async function PostsPage() {
-  await autoCreatePostsFromPastSchedules();  // ← 페이지 진입 시 자동 변환
-
-  const sb = await createClient();
-  // ... 기존 코드
-}
-
 function parseYmd(s: string | null): string | null {
   if (!s) return null;
   const clean = s.replace(/\D/g, '');

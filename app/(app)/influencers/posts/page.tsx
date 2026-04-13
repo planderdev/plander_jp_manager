@@ -1,8 +1,11 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import DeleteButton from '@/components/post/DeleteButton';
+import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
 
 export default async function PostsPage() {
+  await autoCreatePostsFromPastSchedules();  // ← 페이지 진입 시 자동 변환
+
   const sb = await createClient();
   const { data: posts } = await sb
     .from('posts')

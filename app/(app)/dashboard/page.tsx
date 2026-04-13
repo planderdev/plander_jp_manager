@@ -3,8 +3,11 @@ import { createClient } from '@/lib/supabase/server';
 import { shortKR } from '@/lib/datetime';
 import { clientStatusLabel } from '@/lib/labels';
 import { getScheduleStatus } from '@/lib/schedule-status';
+import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
 
 export default async function DashboardPage() {
+  await autoCreatePostsFromPastSchedules();
+  
   const sb = await createClient();
 
   const [
