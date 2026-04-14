@@ -71,6 +71,12 @@ export default function InfluencerForm({
               className="w-full border border-gray-400 rounded p-2" />
           </div>
           <div>
+            <label className="text-sm block mb-1 font-medium">묶음 ID</label>
+            <input name="bundle_id" defaultValue={influencer?.bundle_id ?? ''}
+              placeholder="같은 사람이 다른 채널 운영 시 같은 값 입력"
+              className="w-full border border-gray-400 rounded p-2" />
+          </div>
+          <div>
             <label className="text-sm block mb-1 font-medium">팔로워수 *</label>
             <input name="followers" type="number" required defaultValue={i?.followers ?? ''}
               className="w-full border border-gray-400 rounded p-2" />

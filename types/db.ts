@@ -58,6 +58,7 @@ export interface Influencer {
   contact_status: ContactStatus;
   created_at: string;
   updated_at: string;
+  bundle_id: string | null;
 }
 
 export interface Schedule {
