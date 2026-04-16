@@ -25,9 +25,6 @@ export default async function EditSchedulePage({ params }: { params: Promise<{ i
         clients={clients ?? []}
         schedule={schedule}
       />
-      <div className="ml-auto">
-  <DeleteButton id={schedule.id} />
-</div>
     </div>
   );
 }
