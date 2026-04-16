@@ -6,6 +6,7 @@ import { fullKR } from '@/lib/datetime';
 import { contactStatusLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
 import { getScheduleStatus, statusLabel, statusColor } from '@/lib/schedule-status';
+import MoneyText from '@/components/MoneyText';
 
 export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -28,7 +29,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
         <Row label="채널" value={<ChannelIcon channel={i.channel} size={22} />} />
         <Row label="아이디" value={`@${i.handle}`} />
         <Row label="팔로워" value={`${i.followers?.toLocaleString() ?? 0}명`} />
-        <Row label="단가" value={i.unit_price != null ? `¥${i.unit_price.toLocaleString()}` : '-'} />
+        <Row label="단가" value={<MoneyText value={i.unit_price} suffix=" JPY" />} />
         <Row label="계정 링크" value={
           i.account_url
             ? <a href={i.account_url} target="_blank" className="inline-block bg-blue-50 border border-blue-300 rounded px-3 py-1 text-blue-700 hover:bg-blue-100">계정 열기 ↗</a>
