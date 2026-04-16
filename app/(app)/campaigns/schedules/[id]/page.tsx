@@ -1,7 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import ScheduleForm from '@/components/schedule/ScheduleForm';
 import { notFound } from 'next/navigation';
-import DeleteButton from '@/components/schedule/DeleteButton';
+
 
 
 
