@@ -107,9 +107,6 @@ export default function ScheduleForm({
       </div>
 
       <SubmitButton>{schedule ? '수정' : '등록'}</SubmitButton>
-      <div className="ml-auto">
-  <DeleteButton id={schedule.id} />
-</div>
     </form>
   );
 }
