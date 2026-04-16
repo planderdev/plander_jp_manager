@@ -1,6 +1,9 @@
 import { createClient } from '@/lib/supabase/server';
 import ScheduleForm from '@/components/schedule/ScheduleForm';
 import { notFound } from 'next/navigation';
+import DeleteButton from '@/components/schedule/DeleteButton';
+
+
 
 export default async function EditSchedulePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -23,5 +26,8 @@ export default async function EditSchedulePage({ params }: { params: Promise<{ i
         schedule={schedule}
       />
     </div>
+    <div className="ml-auto">
+  <DeleteButton id={schedule.id} />
+</div>
   );
 }
