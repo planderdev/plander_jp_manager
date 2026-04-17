@@ -22,7 +22,13 @@ export default async function CompletedPage({
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6">완료 게시물 목록</h1>
+      <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+        <h1 className="text-2xl font-bold">완료 게시물</h1>
+        <Link href="/influencers/posts/metrics"
+          className="border border-gray-400 px-4 py-2 rounded text-sm hover:bg-gray-100">
+          월별 메트릭 입력
+        </Link>
+      </div>
 
       <form className="mb-4 flex flex-wrap gap-2">
         <input name="handle" defaultValue={handle ?? ''} placeholder="인플루언서 아이디"
