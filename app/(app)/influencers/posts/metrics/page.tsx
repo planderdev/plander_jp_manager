@@ -23,8 +23,8 @@ export default async function MetricsPage({
     <div className="p-4 md:p-8 space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-bold">월별 메트릭 입력</h1>
-        <Link href="/influencers/posts" className="text-sm text-blue-600 hover:underline">
-          ← 게시물 목록
+        <Link href="/campaigns/completed" className="text-sm text-blue-600 hover:underline">
+          ← 완료 게시물 목록
         </Link>
       </div>
 
@@ -76,19 +76,19 @@ export default async function MetricsPage({
                         </a>
                       </td>
                       <td className="p-3">
-                        <input type="number" name={`views_${p.id}`} defaultValue={h?.views ?? 0}
+                        <input type="number" name={`views_${p.id}`} defaultValue={h?.views ?? p.views ?? 0}
                           className="border border-gray-400 rounded p-1 w-24 text-right" />
                       </td>
                       <td className="p-3">
-                        <input type="number" name={`likes_${p.id}`} defaultValue={h?.likes ?? 0}
+                        <input type="number" name={`likes_${p.id}`} defaultValue={h?.likes ?? p.likes ?? 0}
                           className="border border-gray-400 rounded p-1 w-24 text-right" />
                       </td>
                       <td className="p-3">
-                        <input type="number" name={`comments_${p.id}`} defaultValue={h?.comments ?? 0}
+                        <input type="number" name={`comments_${p.id}`} defaultValue={h?.comments ?? p.comments ?? 0}
                           className="border border-gray-400 rounded p-1 w-20 text-right" />
                       </td>
                       <td className="p-3">
-                        <input type="number" name={`shares_${p.id}`} defaultValue={h?.shares ?? 0}
+                        <input type="number" name={`shares_${p.id}`} defaultValue={h?.shares ?? p.shares ?? 0}
                           className="border border-gray-400 rounded p-1 w-20 text-right" />
                       </td>
                       <td className="p-3 text-xs text-gray-500">
