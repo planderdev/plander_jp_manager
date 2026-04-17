@@ -12,7 +12,6 @@ export default async function AdminsPage() {
   const sb = await createClient();
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
   const tokenStatus = await getApifyTokenStatus();
-  const tokenStatus = await getApifyTokenStatus();
   const { data: actorRow } = await sb.from('app_settings').select('value').eq('key', 'apify_actor_id').single();
   const actorId = actorRow?.value ?? '';
 
