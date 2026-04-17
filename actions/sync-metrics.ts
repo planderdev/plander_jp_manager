@@ -27,8 +27,7 @@ export async function syncAllPosts() {
     return code.toLowerCase();
   };
 
-  
-  const metricsByUrl = new Map(allMetrics.map(m => [normalize(m.url), m]));
+  const metricsByUrl = new Map(metrics.map(m => [normalize(m.url), m]));
 
   let updated = 0;
   for (const post of targets) {
