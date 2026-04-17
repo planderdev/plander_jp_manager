@@ -8,5 +8,10 @@ export default function SubmitButton({ children = '저장', pendingText = '작�
       className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed">
       {pending ? pendingText : children}
     </button>
-  );
+  );  
+}
+
+const actorId = String(formData.get('apify_actor_id') || '');
+if (actorId) {
+  await sb.from('app_settings').upsert({ key: 'apify_actor_id', value: actorId }, { onConflict: 'key' });
 }

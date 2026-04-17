@@ -8,7 +8,20 @@ export type ScrapedMetrics = {
   shares: number | null;
 };
 
-const ACTOR_ID = 'apify~instagram-post-scraper';
+async function getApifyConfig(): Promise<{ token: string | null; actorId: string }> {
+  const sb = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  );
+  const [{ data: tokenRow }, { data: actorRow }] = await Promise.all([
+    sb.from('app_settings').select('value').eq('key', 'apify_token').single(),
+    sb.from('app_settings').select('value').eq('key', 'apify_actor_id').single(),
+  ]);
+  return {
+    token: tokenRow?.value || null,
+    actorId: actorRow?.value || 'apify~instagram-post-scraper',
+  };
+}
 
 async function getApifyToken(): Promise<string | null> {
   const sb = createClient(
@@ -22,30 +35,23 @@ async function getApifyToken(): Promise<string | null> {
 export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetrics[]> {
   if (urls.length === 0) return [];
 
-  const token = await getApifyToken();
+  const { token, actorId } = await getApifyConfig();
 
-  // 토큰 없으면 Mock 모드 (덮어쓰기 안 함)
   if (!token) {
     console.log(`[apify mock] ${urls.length}개 URL — 토큰 없음, mock 응답`);
     return urls.map((url) => ({ url, likes: null, comments: null, views: null, shares: null }));
   }
 
-  // 실제 Apify 호출
   try {
     const res = await fetch(
-      `https://api.apify.com/v2/acts/${ACTOR_ID}/run-sync-get-dataset-items?token=${token}`,
+      `https://api.apify.com/v2/acts/${actorId}/run-sync-get-dataset-items?token=${token}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          directUrls: urls,
-          resultsType: 'posts',
-          resultsLimit: urls.length,
-          addParentData: false,
-        }),
+        body: JSON.stringify({ directUrls: urls }),
       }
     );
-
+    // ... 나머지 기존 코드 그대로
     if (!res.ok) {
       const text = await res.text();
       console.error(`Apify error: ${res.status} ${text.slice(0, 200)}`);

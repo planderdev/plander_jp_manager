@@ -100,6 +100,12 @@ export default async function AdminsPage() {
                 placeholder={tokenStatus.hasToken ? '비워두고 저장하면 삭제됩니다' : 'apify_api_xxxxxxxx'}
                 className="w-full border border-gray-400 rounded p-2" />
             </div>
+            <div>
+              <label className="text-sm block mb-1 font-medium">Apify Actor ID</label>
+              <input name="apify_actor_id" defaultValue={actorId ?? 'apify~instagram-post-scraper'}
+                placeholder="apify~instagram-post-scraper"
+                className="w-full border border-gray-400 rounded p-2" />
+            </div>
             <SubmitButton>저장</SubmitButton>
           </form>
         </div>
