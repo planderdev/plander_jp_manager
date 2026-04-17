@@ -1,12 +1,14 @@
 'use client';
 import { useState } from 'react';
-import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, isSameDay, addMonths } from 'date-fns';
+import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, format, isSameMonth, addMonths } from 'date-fns';
 import type { Schedule } from '@/types/db';
-import { ymdKR, todayKR, timeKR, compareDayKR } from '@/lib/datetime';
+import { ymdKR, todayKR, timeKR } from '@/lib/datetime';
 import Link from 'next/link';
 import { deleteScheduleAction } from '@/actions/schedules';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
+  const { locale, t } = useI18n();
   const [cursor, setCursor] = useState(new Date());
   const [modalDay, setModalDay] = useState<string | null>(null);
 
@@ -22,16 +24,18 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
   }
 
   const modalItems = modalDay ? byDay.get(modalDay) ?? [] : [];
+  const weekdayLabels = locale === 'ja' ? ['日','月','火','水','木','金','土'] : ['일','월','화','수','목','금','토'];
+  const monthLabel = locale === 'ja' ? format(cursor, 'yyyy年 M月') : format(cursor, 'yyyy년 M월');
 
   return (
     <div className="bg-white rounded-lg shadow p-4">
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => setCursor(addMonths(cursor, -1))} className="px-3 py-1 border border-gray-400 rounded">◀</button>
-        <h2 className="text-lg font-bold">{format(cursor, 'yyyy년 M월')}</h2>
+        <h2 className="text-lg font-bold">{monthLabel}</h2>
         <button onClick={() => setCursor(addMonths(cursor, 1))} className="px-3 py-1 border border-gray-400 rounded">▶</button>
       </div>
       <div className="grid grid-cols-7 gap-px bg-gray-300">
-        {['일','월','화','수','목','금','토'].map((d) => (
+        {weekdayLabels.map((d) => (
           <div key={d} className="bg-gray-100 p-2 text-center text-xs font-semibold">{d}</div>
         ))}
         {days.map((day) => {
@@ -44,7 +48,6 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
           const isToday = cmp === 0;
           const isPast = cmp < 0;
         
-          // 칩 색 결정
           let chipClass = 'bg-purple-100 text-purple-900';   // 미래 = 연보라
           if (isToday) chipClass = 'bg-yellow-200 text-yellow-900';  // 오늘 = 노랑
           else if (isPast) chipClass = 'bg-gray-200 text-gray-700';  // 과거 = 회색
@@ -74,7 +77,7 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[80vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center justify-between p-4 border-b">
-              <h3 className="font-bold">{modalDay} 스케줄</h3>
+              <h3 className="font-bold">{t('calendar.daySchedule', { date: modalDay })}</h3>
               <button onClick={() => setModalDay(null)} className="text-2xl leading-none">✕</button>
             </div>
             <div className="p-4 space-y-2">
@@ -88,12 +91,12 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
                 <div className="flex justify-end mt-2">
                   <button type="button"
                     onClick={async () => {
-                      if (!confirm('이 스케줄을 삭제할까요?')) return;
+                      if (!confirm(t('calendar.deleteConfirm'))) return;
                       await deleteScheduleAction(s.id);
                       setModalDay(null);
                     }}
                     className="text-xs text-red-500 hover:text-red-700">
-                    삭제
+                    {t('common.delete')}
                   </button>
                 </div>
               </div>

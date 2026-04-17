@@ -5,9 +5,11 @@ import BackButton from '@/components/BackButton';
 import DeleteButton from '@/components/client/DeleteButton';
 import { clientStatusLabel, clientStatusClass } from '@/lib/labels';
 import MoneyText from '@/components/MoneyText';
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function ClientDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { locale, t } = await getI18n();
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect('/login');
@@ -30,32 +32,32 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
           <span className="text-sm text-gray-600">({c.sales_region})</span>
         )}
         <span className={`inline-block px-2 py-1 rounded text-xs ${clientStatusClass(c.status)}`}>
-          {clientStatusLabel(c.status)}
+          {clientStatusLabel(c.status, locale)}
         </span>
       </div>
 
       <section className="bg-white rounded-lg shadow p-6 space-y-3">
-        <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">기본 정보</h2>
-        <Row label="카테고리" value={c.category ?? '-'} />
-        <Row label="지역" value={c.sales_region ?? '-'} />
-        <Row label="담당자(업체)" value={c.contact_person ?? '-'} />
-        <Row label="연락처" value={c.phone ?? '-'} />
-        <Row label="이메일" value={c.email ?? '-'} />
-        <Row label="주소" value={`${c.postal_code ? `(${c.postal_code}) ` : ''}${fullAddress || '-'}`} />
+        <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">{t('common.basicInfo')}</h2>
+        <Row label={t('common.category')} value={c.category ?? '-'} />
+        <Row label={t('common.region')} value={c.sales_region ?? '-'} />
+        <Row label={t('clientForm.contactPerson')} value={c.contact_person ?? '-'} />
+        <Row label={t('common.contact')} value={c.phone ?? '-'} />
+        <Row label={t('common.email')} value={c.email ?? '-'} />
+        <Row label={t('common.address')} value={`${c.postal_code ? `(${c.postal_code}) ` : ''}${fullAddress || '-'}`} />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6 space-y-3">
-        <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">영업 정보</h2>
-        <Row label="최초접촉일" value={c.first_contact_date ?? '-'} />
-        <Row label="계약상품" value={c.contract_product ?? '-'} />
-        <Row label="계약금액" value={<MoneyText value={c.contract_amount} />} />
-        <Row label="계약기간" value={`${c.contract_start ?? '-'} ~ ${c.contract_end ?? '-'}`} />
-        <Row label="담당자(관리자)" value={ownerAdmin?.name ?? '미지정'} />
+        <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">{t('common.salesInfo')}</h2>
+        <Row label={t('clientForm.firstContactDate')} value={c.first_contact_date ?? '-'} />
+        <Row label={t('clientForm.contractProduct')} value={c.contract_product ?? '-'} />
+        <Row label={t('clientForm.contractAmount')} value={<MoneyText value={c.contract_amount} />} />
+        <Row label={t('common.contractPeriod')} value={`${c.contract_start ?? '-'} ~ ${c.contract_end ?? '-'}`} />
+        <Row label={t('clientForm.owner')} value={ownerAdmin?.name ?? '-'} />
       </section>
 
       {c.memo && (
         <section className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-sm font-semibold border-b border-gray-300 pb-1 mb-3">메모</h2>
+          <h2 className="text-sm font-semibold border-b border-gray-300 pb-1 mb-3">{t('common.memo')}</h2>
           <p className="whitespace-pre-wrap">{c.memo}</p>
         </section>
       )}
@@ -63,9 +65,9 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
       <div className="flex gap-3 flex-wrap">
         {canEdit ? (
           <Link href={`/campaigns/clients/${c.id}/edit`}
-            className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">수정</Link>
+            className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800">{t('common.edit')}</Link>
         ) : (
-          <span className="text-sm text-gray-500 self-center">담당자 {ownerAdmin?.name} 만 수정 가능</span>
+          <span className="text-sm text-gray-500 self-center">{t('client.ownerOnly', { name: ownerAdmin?.name ?? '-' })}</span>
         )}
         <BackButton />
         {canEdit && (

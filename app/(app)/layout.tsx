@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     default: "Plander",
     template: "%s | Plander",
   },
-  description: "Plander 인플루언서 관리 시스템",
+  description: "Plander Korea and Japan campaign management system",
 };
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {

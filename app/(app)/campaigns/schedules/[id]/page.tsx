@@ -1,12 +1,11 @@
 import { createClient } from '@/lib/supabase/server';
 import ScheduleForm from '@/components/schedule/ScheduleForm';
 import { notFound } from 'next/navigation';
-
-
-
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function EditSchedulePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const { t } = await getI18n();
   const sb = await createClient();
 
   const [{ data: schedule }, { data: influencers }, { data: clients }] = await Promise.all([
@@ -19,7 +18,7 @@ export default async function EditSchedulePage({ params }: { params: Promise<{ i
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6">스케줄 수정</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('schedule.editTitle')}</h1>
       <ScheduleForm
         influencers={influencers ?? []}
         clients={clients ?? []}

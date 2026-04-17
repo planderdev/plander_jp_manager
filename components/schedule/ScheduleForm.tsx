@@ -2,6 +2,7 @@
 import { useState, useMemo } from 'react';
 import { createScheduleAction, updateScheduleAction } from '@/actions/schedules';
 import SubmitButton from '@/components/SubmitButton';
+import { useI18n } from '@/lib/i18n/provider';
 
 type InfOpt = { id: number; handle: string };
 type CliOpt = { id: number; company_name: string };
@@ -9,7 +10,7 @@ type CliOpt = { id: number; company_name: string };
 export default function ScheduleForm({
   influencers, clients, schedule,
 }: { influencers: InfOpt[]; clients: CliOpt[]; schedule?: any }) {
-  // 수정 모드면 기존 값으로 초기화
+  const { t } = useI18n();
   const initInf = schedule ? influencers.find(i => i.id === schedule.influencer_id) ?? null : null;
   const initDate = schedule ? new Date(schedule.scheduled_at) : null;
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -39,17 +40,17 @@ export default function ScheduleForm({
       <input type="hidden" name="client_id" value={selCli} />
 
       <div>
-        <label className="text-sm block mb-1 font-medium">인플루언서 아이디 *</label>
+        <label className="text-sm block mb-1 font-medium">{t('scheduleForm.handle')}</label>
         {selInf ? (
           <div className="flex items-center gap-2">
             <span className="px-3 py-2 bg-blue-50 border border-blue-300 rounded">@{selInf.handle}</span>
             <button type="button" onClick={() => { setSelInf(null); setSelCli(''); }}
-              className="text-sm text-red-500">변경</button>
+              className="text-sm text-red-500">{t('common.change')}</button>
           </div>
         ) : (
           <>
             <input value={query} onChange={(e) => setQuery(e.target.value)}
-              placeholder="아이디 검색..." className="w-full border border-gray-400 rounded p-2" />
+              placeholder={t('postForm.searchHandle')} className="w-full border border-gray-400 rounded p-2" />
             {query && filtered.length > 0 && (
               <div className="border border-gray-300 rounded mt-1 max-h-48 overflow-auto">
                 {filtered.map((i) => (
@@ -63,11 +64,11 @@ export default function ScheduleForm({
       </div>
 
       <div>
-        <label className="text-sm block mb-1 font-medium">업체명 *</label>
+        <label className="text-sm block mb-1 font-medium">{t('scheduleForm.client')}</label>
         <select value={selCli} onChange={(e) => setSelCli(Number(e.target.value) || '')}
           disabled={!selInf}
           className="w-full border border-gray-400 rounded p-2 disabled:bg-gray-100">
-          <option value="">업체 선택</option>
+          <option value="">{t('scheduleForm.selectClient')}</option>
           {clients.map((c) => (
             <option key={c.id} value={c.id}>{c.company_name}</option>
           ))}
@@ -76,36 +77,36 @@ export default function ScheduleForm({
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="text-sm block mb-1 font-medium">날짜 *</label>
+          <label className="text-sm block mb-1 font-medium">{t('scheduleForm.date')}</label>
           <input type="date" value={date} onChange={(e) => setDate(e.target.value)}
             className="w-full border border-gray-400 rounded p-2" />
         </div>
         <div>
-          <label className="text-sm block mb-1 font-medium">시</label>
+          <label className="text-sm block mb-1 font-medium">{t('scheduleForm.hour')}</label>
           <select value={hour} onChange={(e) => setHour(e.target.value)}
             className="w-full border border-gray-400 rounded p-2">
             {Array.from({length:24}, (_,h) => (
-              <option key={h} value={String(h)}>{String(h).padStart(2,'0')}시</option>
+              <option key={h} value={String(h)}>{String(h).padStart(2,'0')}{t('scheduleForm.hourSuffix')}</option>
             ))}
           </select>
         </div>
         <div>
-          <label className="text-sm block mb-1 font-medium">분</label>
+          <label className="text-sm block mb-1 font-medium">{t('scheduleForm.minute')}</label>
           <select value={minute} onChange={(e) => setMinute(e.target.value)}
             className="w-full border border-gray-400 rounded p-2">
-            <option value="00">00분</option>
-            <option value="30">30분</option>
+            <option value="00">{t('scheduleForm.minute00')}</option>
+            <option value="30">{t('scheduleForm.minute30')}</option>
           </select>
         </div>
       </div>
 
       <div>
-        <label className="text-sm block mb-1 font-medium">비고</label>
+        <label className="text-sm block mb-1 font-medium">{t('scheduleForm.note')}</label>
         <textarea name="memo" value={memo} onChange={(e) => setMemo(e.target.value)}
           rows={2} className="w-full border border-gray-400 rounded p-2" />
       </div>
 
-      <SubmitButton>{schedule ? '수정' : '등록'}</SubmitButton>
+      <SubmitButton>{schedule ? t('common.edit') : t('common.create')}</SubmitButton>
     </form>
   );
 }

@@ -1,4 +1,10 @@
 const TZ = 'Asia/Seoul';
+const LOCALE_MAP = {
+  ko: 'ko-KR',
+  ja: 'ja-JP',
+} as const;
+
+type DisplayLocale = keyof typeof LOCALE_MAP;
 
 // "지금" 을 한국시간 기준 컴포넌트(년/월/일/시/분)로 반환
 function partsInTZ(date: Date) {
@@ -34,11 +40,40 @@ export function shortKR(date: Date | string): string {
   return `${p.month}/${p.day} ${String(p.hour).padStart(2,'0')}:${String(p.minute).padStart(2,'0')}`;
 }
 
+export function shortLocalized(date: Date | string, locale: DisplayLocale): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat(LOCALE_MAP[locale], {
+    timeZone: TZ,
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
 // 한국시간 기준 'YYYY/M/D HH:mm'
 export function fullKR(date: Date | string): string {
   const d = typeof date === 'string' ? new Date(date) : date;
   const p = partsInTZ(d);
   return `${p.year}/${p.month}/${p.day} ${String(p.hour).padStart(2,'0')}:${String(p.minute).padStart(2,'0')}`;
+}
+
+export function fullLocalized(date: Date | string, locale: DisplayLocale): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  return new Intl.DateTimeFormat(LOCALE_MAP[locale], {
+    timeZone: TZ,
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(d);
+}
+
+export function dateLocale(locale: DisplayLocale): string {
+  return LOCALE_MAP[locale];
 }
 
 // 한국시간 기준 'HH:mm'

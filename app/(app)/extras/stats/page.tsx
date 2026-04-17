@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { getScheduleStatus } from '@/lib/schedule-status';
 import CollapsibleGroup from '@/components/stats/CollapsibleGroup';
 import HideOnPresentation from '@/components/HideOnPresentation';
+import { getI18n } from '@/lib/i18n/server';
 
 function parseYmd(s?: string) {
   if (!s) return null;
@@ -15,6 +16,7 @@ export default async function StatsPage({
   searchParams,
 }: { searchParams: Promise<{ client?: string; influencer?: string; from?: string; to?: string }> }) {
   const { client, influencer, from, to } = await searchParams;
+  const { t } = await getI18n();
   const sb = await createClient();
 
   const [{ data: clients }, { data: influencers }] = await Promise.all([
@@ -25,17 +27,16 @@ export default async function StatsPage({
   const fromDate = parseYmd(from);
   const toDate = parseYmd(to);
 
-  // 1년 제한
   let rangeError = '';
   if (fromDate && toDate) {
     const diff = (new Date(toDate).getTime() - new Date(fromDate).getTime()) / (1000*60*60*24);
-    if (diff > 366) rangeError = '조회수 기간은 최대 1년까지 가능합니다';
-    if (diff < 0) rangeError = '종료일이 시작일보다 빠릅니다';
+    if (diff > 366) rangeError = t('stats.dateRangeTooLong');
+    if (diff < 0) rangeError = t('stats.invalidDateRange');
   }
 
   let posts: any[] = [];
   let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
-  let involvedInfluencers = 0;  // ← 추가
+  let involvedInfluencers = 0;
 
   if (!rangeError) {
     let q = sb.from('posts')
@@ -61,7 +62,6 @@ export default async function StatsPage({
       else if (st === 'settlement_pending') settlementPending++;
       else if (st === 'done') scheduleDone++;
     }
-    // 참여 인플루언서: 해당 기간 schedules에 들어간 unique influencer
     const involvedSet = new Set<number>();
     for (const s of schedulesData ?? []) {
       if (s.influencer_id) involvedSet.add(s.influencer_id);
@@ -69,11 +69,9 @@ export default async function StatsPage({
     involvedInfluencers = involvedSet.size;
   }
 
-  // 전월 대비 (필터 무관)
   const now = new Date();
   const isLastDay = now.getDate() === new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
 
-  // 말일이면 이번달, 아니면 전월 기준
   const baseDate = isLastDay
     ? now
     : new Date(now.getFullYear(), now.getMonth() - 1, 1);
@@ -96,13 +94,12 @@ export default async function StatsPage({
   const ps = sumKey(prevHist ?? [], 'shares');
   
   function delta(cur: number, prev: number): string {
-    if (prev === 0) return cur > 0 ? '+신규' : '-';
+    if (prev === 0) return cur > 0 ? t('stats.newDelta') : '-';
     const diff = cur - prev;
     const pct = ((diff / prev) * 100).toFixed(1);
     return `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
   }
 
-  // 필터 적용된 카운트
   let totalClients: number;
   let totalInfluencers: number;
 
@@ -133,99 +130,94 @@ export default async function StatsPage({
   const grandTotal = paidTotal + unpaidTotal;
 
   const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [
-    { label: '업체 수', value: totalClients },
-    { label: '인플루언서 수', value: totalInfluencers },
-    { label: '참여 인플루언서', value: involvedInfluencers },
-    { label: '업로드 게시물 수', value: uploaded },
-    { label: '총 좋아요수', value: totalLikes },
-    { label: '총 댓글수', value: totalComments },
-    { label: '총 조회수', value: totalViews },
-    { label: '정산 완료 금액', value: paidTotal, suffix: '원', href: '/influencers/posts' },
-    { label: '미정산 금액', value: unpaidTotal, suffix: '원', href: '/influencers/posts' },
-    { label: '총 지출 금액', value: grandTotal, suffix: '원', href: '/influencers/posts' },
-    { label: '방문예정', value: reserved, href: '/campaigns/schedules' },
-    { label: '업로드 대기', value: uploadPending, href: '/campaigns/schedules' },
-    { label: '정산 대기', value: settlementPending, href: '/influencers/posts' },
-    { label: '완료', value: scheduleDone, href: '/campaigns/completed' },
-    { label: `${thisMonth} 조회수`, value: tv },
-    { label: `${thisMonth} 좋아요수`, value: tl },
-    { label: `${thisMonth} 댓글수`, value: tc },
-    { label: `${thisMonth} 공유수`, value: ts },
+    { label: t('stats.totalClients'), value: totalClients },
+    { label: t('stats.totalInfluencers'), value: totalInfluencers },
+    { label: t('stats.involvedInfluencers'), value: involvedInfluencers },
+    { label: t('stats.uploadedPosts'), value: uploaded },
+    { label: t('common.likes'), value: totalLikes },
+    { label: t('common.comments'), value: totalComments },
+    { label: t('common.views'), value: totalViews },
+    { label: t('stats.totalPaid'), value: paidTotal, suffix: t('money.won'), href: '/influencers/posts' },
+    { label: t('stats.totalUnpaid'), value: unpaidTotal, suffix: t('money.won'), href: '/influencers/posts' },
+    { label: t('stats.totalSpend'), value: grandTotal, suffix: t('money.won'), href: '/influencers/posts' },
+    { label: t('schedule.reserved'), value: reserved, href: '/campaigns/schedules' },
+    { label: t('schedule.upload_pending'), value: uploadPending, href: '/campaigns/schedules' },
+    { label: t('schedule.settlement_pending'), value: settlementPending, href: '/influencers/posts' },
+    { label: t('schedule.done'), value: scheduleDone, href: '/campaigns/completed' },
+    { label: t('stats.monthViews', { month: thisMonth }), value: tv },
+    { label: t('stats.monthLikes', { month: thisMonth }), value: tl },
+    { label: t('stats.monthComments', { month: thisMonth }), value: tc },
+    { label: t('stats.monthShares', { month: thisMonth }), value: ts },
   ];
 
   return (
     <div className="p-4 md:p-8 space-y-6">
-      <h1 className="text-2xl font-bold">리포트 (내부 통계)</h1>
+      <h1 className="text-2xl font-bold">{t('stats.title')}</h1>
 
       <form className="bg-white p-4 rounded-lg shadow flex flex-wrap gap-3 items-end">
         <div>
-          <label className="text-sm block mb-1 font-medium">업체</label>
+          <label className="text-sm block mb-1 font-medium">{t('common.company')}</label>
           <select name="client" defaultValue={client ?? ''} className="border border-gray-400 rounded p-2 text-sm">
-            <option value="">전체</option>
+            <option value="">{t('common.all')}</option>
             {clients?.map((c) => <option key={c.id} value={c.id}>{c.company_name}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-sm block mb-1 font-medium">인플루언서</label>
+          <label className="text-sm block mb-1 font-medium">{t('common.influencer')}</label>
           <select name="influencer" defaultValue={influencer ?? ''} className="border border-gray-400 rounded p-2 text-sm">
-            <option value="">전체</option>
+            <option value="">{t('common.all')}</option>
             {influencers?.map((i) => <option key={i.id} value={i.id}>@{i.handle}</option>)}
           </select>
         </div>
         <div>
-          <label className="text-sm block mb-1 font-medium">시작일</label>
+          <label className="text-sm block mb-1 font-medium">{t('common.startDate')}</label>
           <input type="date" name="from" defaultValue={fromDate ?? ''} className="border border-gray-400 rounded p-2 text-sm" />
         </div>
         <div>
-          <label className="text-sm block mb-1 font-medium">종료일</label>
+          <label className="text-sm block mb-1 font-medium">{t('common.endDate')}</label>
           <input type="date" name="to" defaultValue={toDate ?? ''} className="border border-gray-400 rounded p-2 text-sm" />
         </div>
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">조회</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">{t('common.search')}</button>
       </form>
 
       {rangeError && <div className="bg-red-50 border border-red-300 text-red-700 p-3 rounded text-sm">{rangeError}</div>}
 
-      {/* 그룹 1: 기본 카운트 */}
-      <Group title="기본">
-        <MetricCard label="업체수" value={totalClients} href="/campaigns/clients" />
-        <MetricCard label="인플루언서수" value={totalInfluencers} href="/influencers" />
-        <MetricCard label="참여 인플루언서" value={involvedInfluencers} href="/campaigns/schedules" />
-        <MetricCard label="방문 예정" value={reserved} href="/campaigns/schedules" />
+      <Group title={t('stats.basic')}>
+        <MetricCard label={t('stats.totalClients')} value={totalClients} href="/campaigns/clients" />
+        <MetricCard label={t('stats.totalInfluencers')} value={totalInfluencers} href="/influencers" />
+        <MetricCard label={t('stats.involvedInfluencers')} value={involvedInfluencers} href="/campaigns/schedules" />
+        <MetricCard label={t('schedule.reserved')} value={reserved} href="/campaigns/schedules" />
       </Group>
       
-      {/* 그룹 2: 금액 */}
       <HideOnPresentation>
-      <CollapsibleGroup title="지출" defaultOpen={false}>
-        <MetricCard label="정산완료 금액" value={paidTotal} suffix="원" href="/influencers/posts" />
-        <MetricCard label="미정산 금액" value={unpaidTotal} suffix="원" href="/influencers/posts" />
-        <MetricCard label="총 지출 금액" value={grandTotal} suffix="원" href="/influencers/posts" />
+      <CollapsibleGroup title={t('stats.expense')} defaultOpen={false}>
+        <MetricCard label={t('stats.totalPaid')} value={paidTotal} suffix={t('money.won')} href="/influencers/posts" />
+        <MetricCard label={t('stats.totalUnpaid')} value={unpaidTotal} suffix={t('money.won')} href="/influencers/posts" />
+        <MetricCard label={t('stats.totalSpend')} value={grandTotal} suffix={t('money.won')} href="/influencers/posts" />
       </CollapsibleGroup>
       </HideOnPresentation>
       
-      {/* 그룹 3: 진행 상태 */}
-      <Group title="상태">
-        <MetricCard label="업로드 게시물수" value={uploaded} href="/campaigns/completed" />
-        <MetricCard label="업로드 대기" value={uploadPending} href="/influencers/posts" />
-        <MetricCard label="정산 대기" value={settlementPending} href="/influencers/posts" />
-        <MetricCard label="완료" value={scheduleDone} href="/campaigns/completed" />
+      <Group title={t('stats.status')}>
+        <MetricCard label={t('stats.uploadedPosts')} value={uploaded} href="/campaigns/completed" />
+        <MetricCard label={t('schedule.upload_pending')} value={uploadPending} href="/influencers/posts" />
+        <MetricCard label={t('schedule.settlement_pending')} value={settlementPending} href="/influencers/posts" />
+        <MetricCard label={t('schedule.done')} value={scheduleDone} href="/campaigns/completed" />
       </Group>
       
-      {/* 그룹 4: 누적 메트릭 */}
-      <Group title="누적 실적">
-        <MetricCard label="총 좋아요수" value={totalLikes} />
-        <MetricCard label="총 댓글수" value={totalComments} />
-        <MetricCard label="총 조회수" value={totalViews} />
-        <MetricCard label="총 공유수" value={totalShares} />
+      <Group title={t('stats.performance')}>
+        <MetricCard label={t('common.likes')} value={totalLikes} />
+        <MetricCard label={t('common.comments')} value={totalComments} />
+        <MetricCard label={t('common.views')} value={totalViews} />
+        <MetricCard label={t('common.shares')} value={totalShares} />
       </Group>
       
-      {/* 전월 대비 */}
       <div className="bg-white rounded-lg shadow p-5">
-        <h2 className="text-lg font-semibold mb-4">{thisMonth} (전월 {prevMonth} 대비)</h2>
+        <h2 className="text-lg font-semibold mb-4">{t('stats.compareToPrev', { thisMonth, prevMonth })}</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <DeltaCard label="조회수" cur={tv} prev={pv} />
-          <DeltaCard label="좋아요수" cur={tl} prev={pl} />
-          <DeltaCard label="댓글수" cur={tc} prev={pc} />
-          <DeltaCard label="공유수" cur={ts} prev={ps} />
+          <DeltaCard label={t('common.views')} cur={tv} prev={pv} newLabel={t('stats.newDelta')} />
+          <DeltaCard label={t('common.likes')} cur={tl} prev={pl} newLabel={t('stats.newDelta')} />
+          <DeltaCard label={t('common.comments')} cur={tc} prev={pc} newLabel={t('stats.newDelta')} />
+          <DeltaCard label={t('common.shares')} cur={ts} prev={ps} newLabel={t('stats.newDelta')} />
         </div>
       </div>
     </div>
@@ -263,11 +255,11 @@ function MetricCard({ label, value, href, suffix }: {
   );
 }
 
-function DeltaCard({ label, cur, prev }: { label: string; cur: number; prev: number }) {
+function DeltaCard({ label, cur, prev, newLabel }: { label: string; cur: number; prev: number; newLabel: string }) {
   const diff = cur - prev;
   const pct = prev === 0 ? null : ((diff / prev) * 100).toFixed(1);
   const deltaStr = prev === 0
-    ? (cur > 0 ? '+신규' : '-')
+    ? (cur > 0 ? newLabel : '-')
     : `${diff >= 0 ? '+' : ''}${diff.toLocaleString()} (${pct}%)`;
   return (
     <div>

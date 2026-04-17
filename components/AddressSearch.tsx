@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { useI18n } from '@/lib/i18n/provider';
 
 declare global {
   interface Window { daum: any; }
@@ -17,6 +18,7 @@ export default function AddressSearch({
   defaultPostal = '', defaultRegion = '', defaultDistrict = '',
   defaultRoad = '', defaultDetail = '',
 }: Props) {
+  const { t } = useI18n();
   const [postal, setPostal] = useState(defaultPostal);
   const [region, setRegion] = useState(defaultRegion);
   const [district, setDistrict] = useState(defaultDistrict);
@@ -33,7 +35,7 @@ export default function AddressSearch({
 
   function openSearch() {
     if (!window.daum?.Postcode) {
-      alert('주소 검색 스크립트 로딩 중입니다. 잠시 후 다시 시도하세요.');
+      alert(t('address.loading'));
       return;
     }
     new window.daum.Postcode({
@@ -54,24 +56,24 @@ export default function AddressSearch({
       <input type="hidden" name="road_address" value={road} />
 
       <div className="flex gap-2">
-        <input value={postal} readOnly placeholder="우편번호"
+        <input value={postal} readOnly placeholder={t('address.postal')}
           className="border border-gray-400 rounded p-2 w-32 bg-gray-50" />
         <button type="button" onClick={openSearch}
           className="bg-gray-200 hover:bg-gray-300 px-4 rounded text-sm">
-          주소 검색
+          {t('address.search')}
         </button>
       </div>
       <div className="grid grid-cols-2 gap-2">
-        <input value={region} readOnly placeholder="시/도"
+        <input value={region} readOnly placeholder={t('address.region')}
           className="border border-gray-400 rounded p-2 bg-gray-50" />
-        <input value={district} readOnly placeholder="시/군/구"
+        <input value={district} readOnly placeholder={t('address.district')}
           className="border border-gray-400 rounded p-2 bg-gray-50" />
       </div>
-      <input value={road} readOnly placeholder="도로명 주소"
+      <input value={road} readOnly placeholder={t('address.road')}
         className="w-full border border-gray-400 rounded p-2 bg-gray-50" />
       <input name="building_detail" value={detail}
         onChange={(e) => setDetail(e.target.value)}
-        placeholder="건물명 / 동·호수 (직접 입력)"
+        placeholder={t('address.detail')}
         className="w-full border border-gray-400 rounded p-2" />
     </div>
   );

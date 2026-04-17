@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { clientStatusLabel } from '@/lib/labels';
 import MoneyText from '@/components/MoneyText';
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function ClientsPage() {
+  const { locale, t } = await getI18n();
   const sb = await createClient();
   const { data: clients } = await sb
     .from('clients')
@@ -14,21 +16,23 @@ export default async function ClientsPage() {
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">클라이언트 정보</h1>
+        <h1 className="text-2xl font-bold">{t('client.listTitle')}</h1>
         <div className="text-xs text-gray-500">
-          계약 전 단계는 <Link href="/sales" className="text-blue-600 hover:underline">영업 관리</Link>에서 확인
+          {t('client.preContractPrefix')}
+          <Link href="/sales" className="text-blue-600 hover:underline">{t('sales.title')}</Link>
+          {t('client.preContractSuffix')}
         </div>
       </div>
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm min-w-[900px]">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">업체명</th>
-              <th className="p-3">담당자</th>
-              <th className="p-3">연락처</th>
-              <th className="p-3">상태</th>
-              <th className="p-3">계약기간</th>
-              <th className="p-3">계약금액</th>
+              <th className="p-3">{t('common.companyName')}</th>
+              <th className="p-3">{t('sales.owner')}</th>
+              <th className="p-3">{t('common.contact')}</th>
+              <th className="p-3">{t('common.status')}</th>
+              <th className="p-3">{t('common.contractPeriod')}</th>
+              <th className="p-3">{t('common.contractAmount')}</th>
             </tr>
           </thead>
           <tbody>
@@ -41,13 +45,13 @@ export default async function ClientsPage() {
                 </td>
                 <td className="p-3">{c.contact_person ?? '-'}</td>
                 <td className="p-3">{c.phone ?? '-'}</td>
-                <td className="p-3">{clientStatusLabel(c.status)}</td>
+                <td className="p-3">{clientStatusLabel(c.status, locale)}</td>
                 <td className="p-3">{c.contract_start ?? '-'} ~ {c.contract_end ?? '-'}</td>
                 <td className="p-3"><MoneyText value={c.contract_amount} /></td>
               </tr>
             ))}
             {!clients?.length && (
-              <tr><td colSpan={6} className="p-8 text-center text-gray-400">등록된 클라이언트가 없습니다</td></tr>
+              <tr><td colSpan={6} className="p-8 text-center text-gray-400">{t('client.none')}</td></tr>
             )}
           </tbody>
         </table>

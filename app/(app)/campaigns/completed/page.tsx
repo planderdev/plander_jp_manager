@@ -1,11 +1,13 @@
 import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import MoneyText from '@/components/MoneyText';
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function CompletedPage({
   searchParams,
 }: { searchParams: Promise<{ handle?: string; company?: string }> }) {
   const { handle, company } = await searchParams;
+  const { t } = await getI18n();
   const sb = await createClient();
 
   let q = sb.from('posts')
@@ -16,43 +18,42 @@ export default async function CompletedPage({
   const { data: all } = await q;
   let posts = all ?? [];
 
-  // 클라이언트 사이드 필터 (관계 필터는 조인 필터로 직접 처리)
   if (handle) posts = posts.filter((p: any) => p.influencers?.handle?.toLowerCase().includes(handle.toLowerCase()));
   if (company) posts = posts.filter((p: any) => p.clients?.company_name?.toLowerCase().includes(company.toLowerCase()));
 
   return (
     <div className="p-4 md:p-8">
       <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
-        <h1 className="text-2xl font-bold">완료 게시물</h1>
+        <h1 className="text-2xl font-bold">{t('completed.title')}</h1>
         <Link href="/influencers/posts/metrics"
           className="border border-gray-400 px-4 py-2 rounded text-sm hover:bg-gray-100">
-          월별 메트릭 입력
+          {t('completed.metricsEntry')}
         </Link>
       </div>
 
       <form className="mb-4 flex flex-wrap gap-2">
-        <input name="handle" defaultValue={handle ?? ''} placeholder="인플루언서 아이디"
+        <input name="handle" defaultValue={handle ?? ''} placeholder={t('completed.handlePlaceholder')}
           className="border border-gray-400 rounded p-2 text-sm" />
-        <input name="company" defaultValue={company ?? ''} placeholder="업체명"
+        <input name="company" defaultValue={company ?? ''} placeholder={t('completed.companyPlaceholder')}
           className="border border-gray-400 rounded p-2 text-sm" />
-        <button className="bg-black text-white px-4 py-2 rounded text-sm">검색</button>
+        <button className="bg-black text-white px-4 py-2 rounded text-sm">{t('completed.search')}</button>
       </form>
 
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm min-w-[1000px]">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">업체명</th>
-              <th className="p-3">인플루언서</th>
-              <th className="p-3">계정링크</th>
-              <th className="p-3">게시물</th>
-              <th className="p-3">조회수</th>
-              <th className="p-3">좋아요수</th>
-              <th className="p-3">댓글수</th>
-              <th className="p-3">공유수</th>
-              <th className="p-3">단가</th>
-              <th className="p-3">정산</th>
-              <th className="p-3">정산일</th>
+              <th className="p-3">{t('common.companyName')}</th>
+              <th className="p-3">{t('common.influencer')}</th>
+              <th className="p-3">{t('postForm.accountLink')}</th>
+              <th className="p-3">{t('common.post')}</th>
+              <th className="p-3">{t('common.views')}</th>
+              <th className="p-3">{t('common.likes')}</th>
+              <th className="p-3">{t('common.comments')}</th>
+              <th className="p-3">{t('common.shares')}</th>
+              <th className="p-3">{t('common.unitPrice')}</th>
+              <th className="p-3">{t('postForm.settlementStatus')}</th>
+              <th className="p-3">{t('postForm.settledOn')}</th>
             </tr>
           </thead>
           <tbody>
@@ -66,11 +67,11 @@ export default async function CompletedPage({
                 </td>
                 <td className="p-3">
                   {p.influencers?.account_url && (
-                    <a href={p.influencers.account_url} target="_blank" className="text-blue-600 hover:underline">링크</a>
+                    <a href={p.influencers.account_url} target="_blank" className="text-blue-600 hover:underline">{t('common.link')}</a>
                   )}
                 </td>
                 <td className="p-3">
-                  <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">링크</a>
+                  <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">{t('common.link')}</a>
                 </td>
                 <td className="p-3">{p.views?.toLocaleString()}</td>
                 <td className="p-3">{p.likes?.toLocaleString()}</td>
@@ -79,14 +80,14 @@ export default async function CompletedPage({
                 <td className="p-3"><MoneyText value={p.unit_price} suffix=" JPY" /></td>
                 <td className="p-3">
                   <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
-                    {p.settlement_status === 'done' ? '완료' : '미정산'}
+                    {p.settlement_status === 'done' ? t('schedule.done') : t('postForm.pending')}
                   </span>
                 </td>
                 <td className="p-3">{p.settled_on?.replaceAll('-', '/') ?? '-'}</td>
               </tr>
             ))}
             {!posts.length && (
-              <tr><td colSpan={10} className="p-8 text-center text-gray-400">완료된 게시물이 없습니다</td></tr>
+              <tr><td colSpan={11} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
             )}
           </tbody>
         </table>

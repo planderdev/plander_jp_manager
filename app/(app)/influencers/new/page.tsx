@@ -1,10 +1,12 @@
 import InfluencerForm from '@/components/InfluencerForm';
 import { createInfluencerAction } from '@/actions/influencers';
+import { getI18n } from '@/lib/i18n/server';
 
-export default function NewInfluencerPage() {
+export default async function NewInfluencerPage() {
+  const { t } = await getI18n();
   return (
     <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">인플루언서 신규 등록</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('influencer.newTitle')}</h1>
       <InfluencerForm action={createInfluencerAction} />
     </div>
   );

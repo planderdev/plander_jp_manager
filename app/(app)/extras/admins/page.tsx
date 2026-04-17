@@ -7,8 +7,11 @@ import { syncAllPosts } from '@/actions/sync-metrics';
 import { revalidatePath } from 'next/cache';
 import Link from 'next/link';
 import { deleteAdminAction } from '@/actions/admins';
+import { dateLocale } from '@/lib/datetime';
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function AdminsPage() {
+  const { locale, t } = await getI18n();
   const sb = await createClient();
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
   const tokenStatus = await getApifyTokenStatus();
@@ -17,39 +20,39 @@ export default async function AdminsPage() {
 
   return (
     <div className="p-4 md:p-8 space-y-8">
-      <h1 className="text-2xl font-bold">관리자</h1>
+      <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">신규 등록</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('admin.new')}</h2>
         <form action={createAdminAction} className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <F name="name" label="담당자명 *" required />
-            <F name="company" label="소속" />
-            <F name="title" label="직함" />
+            <F name="name" label={t('admin.name')} required />
+            <F name="company" label={t('admin.company')} />
+            <F name="title" label={t('admin.jobTitle')} />
             <div>
-              <label className="text-sm block mb-1 font-medium">휴대폰번호</label>
+              <label className="text-sm block mb-1 font-medium">{t('common.phone')}</label>
               <PhoneInput name="phone" />
             </div>
-            <F name="email" label="이메일 (아이디) *" type="email" required />
-            <F name="password" label="비밀번호 (6자 이상) *" type="password" required />
+            <F name="email" label={t('admin.emailLogin')} type="email" required />
+            <F name="password" label={t('admin.passwordMin')} type="password" required />
           </div>
-          <SubmitButton>등록</SubmitButton>
+          <SubmitButton>{t('common.create')}</SubmitButton>
         </form>
       </section>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">관리자 목록</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('admin.list')}</h2>
         <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-100 text-left">
               <tr>
-                <th className="p-3">담당자</th>
-                <th className="p-3">소속</th>
-                <th className="p-3">직함</th>
-                <th className="p-3">이메일</th>
-                <th className="p-3">휴대폰</th>
-                <th className="p-3">등록일</th>
-                <th className="p-3">관리</th>
+                <th className="p-3">{t('sales.owner')}</th>
+                <th className="p-3">{t('admin.company')}</th>
+                <th className="p-3">{t('admin.jobTitle')}</th>
+                <th className="p-3">{t('common.email')}</th>
+                <th className="p-3">{t('common.phone')}</th>
+                <th className="p-3">{t('common.createdAt')}</th>
+                <th className="p-3">{t('common.management')}</th>
               </tr>
             </thead>
             <tbody>
@@ -60,16 +63,16 @@ export default async function AdminsPage() {
                   <td className="p-3">{a.title ?? '-'}</td>
                   <td className="p-3">{a.email}</td>
                   <td className="p-3">{a.phone ?? '-'}</td>
-                  <td className="p-3">{new Date(a.created_at).toLocaleDateString('ko-KR')}</td>
+                  <td className="p-3">{new Date(a.created_at).toLocaleDateString(dateLocale(locale))}</td>
                   <td className="p-3 space-x-2">
-                    <Link href={`/extras/admins/${a.id}`} className="text-blue-600">수정</Link>
+                    <Link href={`/extras/admins/${a.id}`} className="text-blue-600">{t('common.edit')}</Link>
                     <form action={async () => {
                       'use server';
                       await deleteAdminAction(a.id);
                     }} className="inline">
                       <button className="text-red-500"
                         formAction={async () => { 'use server'; await deleteAdminAction(a.id); }}>
-                        삭제
+                        {t('common.delete')}
                       </button>
                     </form>
                   </td>
@@ -80,46 +83,46 @@ export default async function AdminsPage() {
         </div>
       </section>
       <section>
-        <h2 className="text-lg font-semibold mb-3">Apify API 설정</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('admin.apifySettings')}</h2>
         <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
           <div className="text-sm text-gray-700">
-            <p>인스타그램 게시물 메트릭(좋아요수/조회수/댓글수) 자동 수집용 Apify 토큰입니다.</p>
+            <p>{t('admin.apifyDescription')}</p>
             <p className="text-xs text-gray-500 mt-1">
-              apify.com → Settings → Integrations → API tokens 에서 발급
+              {t('admin.apifyHelp')}
             </p>
           </div>
       
           <div className="text-sm">
-            현재 상태: {tokenStatus.hasToken
-              ? <span className="text-green-600 font-semibold">연동됨 ({tokenStatus.masked})</span>
-              : <span className="text-orange-600 font-semibold">미연동 (Mock 모드)</span>}
+            {t('common.currentStatus')}: {tokenStatus.hasToken
+              ? <span className="text-green-600 font-semibold">{t('common.connected')} ({tokenStatus.masked})</span>
+              : <span className="text-orange-600 font-semibold">{t('common.notConnected')} ({t('common.mockMode')})</span>}
           </div>
       
           <form action={saveApifyTokenAction} className="space-y-3">
             <div>
               <label className="text-sm block mb-1 font-medium">Apify API Token</label>
               <input type="password" name="apify_token"
-                placeholder={tokenStatus.hasToken ? '비워두고 저장하면 삭제됩니다' : 'apify_api_xxxxxxxx'}
+                placeholder={tokenStatus.hasToken ? t('admin.tokenPlaceholder') : 'apify_api_xxxxxxxx'}
                 className="w-full border border-gray-400 rounded p-2" />
             </div>
             <div>
-              <label className="text-sm block mb-1 font-medium">Apify Actor ID</label>
+              <label className="text-sm block mb-1 font-medium">{t('admin.actorId')}</label>
               <input name="apify_actor_id" defaultValue={actorId ?? 'apify~instagram-post-scraper'}
                 placeholder="apify~instagram-post-scraper"
                 className="w-full border border-gray-400 rounded p-2" />
             </div>
-            <SubmitButton>저장</SubmitButton>
+            <SubmitButton>{t('common.save')}</SubmitButton>
           </form>
         </div>
       </section>
       
       <section>
-        <h2 className="text-lg font-semibold mb-3">게시물 메트릭 동기화</h2>
+        <h2 className="text-lg font-semibold mb-3">{t('admin.metricsSync')}</h2>
         <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
           <div className="text-sm text-gray-700">
-            <p>대상: 업로드 완료된 게시물 (계약 종료 제외)</p>
+            <p>{t('admin.syncTarget')}</p>
             <p className="text-xs text-gray-500 mt-1">
-              토큰이 등록된 경우 실제 데이터 수집, 미등록 시 mock 동작 (DB 변경 없음)
+              {t('admin.syncHelp')}
             </p>
           </div>
           <form action={async () => {
@@ -128,7 +131,7 @@ export default async function AdminsPage() {
             console.log('[sync result]', result);
             revalidatePath('/influencers/posts');
           }}>
-            <SubmitButton>지금 동기화 실행</SubmitButton>
+            <SubmitButton>{t('admin.syncNow')}</SubmitButton>
           </form>
         </div>
       </section>

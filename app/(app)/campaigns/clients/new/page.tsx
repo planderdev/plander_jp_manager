@@ -3,8 +3,10 @@ import { createClientAction } from '@/actions/clients';
 import { getClientOptions } from '@/actions/client-options';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function NewClientPage() {
+  const { t } = await getI18n();
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect('/login');
@@ -16,7 +18,7 @@ export default async function NewClientPage() {
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6">클라이언트 신규 등록</h1>
+      <h1 className="text-2xl font-bold mb-6">{t('client.newTitle')}</h1>
       <ClientForm
         action={createClientAction}
         options={options}

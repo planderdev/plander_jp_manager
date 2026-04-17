@@ -1,12 +1,15 @@
 'use client';
 import { deleteScheduleAction } from '@/actions/schedules';
+import { useI18n } from '@/lib/i18n/provider';
 
 export default function DeleteButton({ id }: { id: number }) {
+  const { t } = useI18n();
+
   return (
     <form action={deleteScheduleAction.bind(null, id)}>
       <button type="submit" className="text-red-500"
-        onClick={(e) => { if (!confirm('삭제할까요?')) e.preventDefault(); }}>
-        삭제
+        onClick={(e) => { if (!confirm(t('delete.confirm'))) e.preventDefault(); }}>
+        {t('common.delete')}
       </button>
     </form>
   );

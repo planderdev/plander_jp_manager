@@ -1,11 +1,14 @@
-export function clientStatusLabel(s: string): string {
+import type { Locale } from '@/lib/i18n/config';
+import { translate } from '@/lib/i18n/config';
+
+export function clientStatusLabel(s: string, locale: Locale = 'ko'): string {
   switch (s) {
-    case 'contacted': return '최초컨택';
-    case 'proposed': return '제안/미팅';
-    case 'negotiating': return '협상중';
-    case 'active': return '진행중';
-    case 'paused': return '보류';
-    case 'ended': return '종료';
+    case 'contacted': return translate(locale, 'sales.status.contacted');
+    case 'proposed': return translate(locale, 'sales.status.proposed');
+    case 'negotiating': return translate(locale, 'sales.status.negotiating');
+    case 'active': return translate(locale, 'sales.status.active');
+    case 'paused': return translate(locale, 'sales.status.paused');
+    case 'ended': return translate(locale, 'sales.status.ended');
     default: return s;
   }
 }
@@ -31,11 +34,21 @@ export function isActivePipeline(s: string): boolean {
   return ['contacted', 'proposed', 'negotiating', 'active'].includes(s);
 }
 
-export function contactStatusLabel(s: string): string {
+export function contactStatusLabel(s: string, locale: Locale = 'ko'): string {
   switch (s) {
-    case 'active': return '연락 가능';
-    case 'inactive': return '연락 불가';
-    case 'blocked': return '탈락';
+    case 'active': return translate(locale, 'contact.active');
+    case 'inactive': return translate(locale, 'contact.inactive');
+    case 'blocked': return translate(locale, 'contact.blocked');
     default: return s;
+  }
+}
+
+export function channelLabel(channel: string, locale: Locale = 'ko'): string {
+  switch (channel) {
+    case 'instagram': return translate(locale, 'channel.instagram');
+    case 'tiktok': return translate(locale, 'channel.tiktok');
+    case 'youtube': return translate(locale, 'channel.youtube');
+    case 'other': return translate(locale, 'channel.other');
+    default: return channel;
   }
 }

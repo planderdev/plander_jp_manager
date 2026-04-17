@@ -4,10 +4,11 @@ import { deleteInfluencerAction } from '@/actions/influencers';
 import { contactStatusLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
 import MoneyText from '@/components/MoneyText';
-
+import { getI18n } from '@/lib/i18n/server';
 
 export default async function InfluencersPage({ searchParams }: { searchParams: Promise<{ q?: string }> }) {
   const { q } = await searchParams;
+  const { locale, t } = await getI18n();
   const sb = await createClient();
   let query = sb.from('influencers').select('*').order('created_at', { ascending: false });
   if (q) query = query.ilike('handle', `%${q}%`);
@@ -16,25 +17,25 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
   return (
     <div className="p-8">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">인플루언서 목록</h1>
-        <Link href="/influencers/new" className="bg-black text-white px-4 py-2 rounded">+ 신규 등록</Link>
+        <h1 className="text-2xl font-bold">{t('influencer.title')}</h1>
+        <Link href="/influencers/new" className="bg-black text-white px-4 py-2 rounded">{t('influencer.new')}</Link>
       </div>
 
       <form className="mb-4">
-        <input name="q" defaultValue={q ?? ''} placeholder="아이디 검색..." className="border rounded p-2 w-64" />
+        <input name="q" defaultValue={q ?? ''} placeholder={t('influencer.searchPlaceholder')} className="border rounded p-2 w-64" />
       </form>
 
       <div className="bg-white rounded-lg shadow overflow-x-auto">
         <table className="w-full text-sm">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">채널</th>
-              <th className="p-3">아이디</th>
-              <th className="p-3">계정</th>
-              <th className="p-3">팔로워</th>
-              <th className="p-3">단가</th>
-              <th className="p-3">연락상태</th>
-              <th className="p-3">관리</th>
+              <th className="p-3">{t('influencerForm.channel')}</th>
+              <th className="p-3">{t('influencer.handle')}</th>
+              <th className="p-3">{t('influencer.account')}</th>
+              <th className="p-3">{t('influencer.followers')}</th>
+              <th className="p-3">{t('common.unitPrice')}</th>
+              <th className="p-3">{t('influencer.contactStatus')}</th>
+              <th className="p-3">{t('common.management')}</th>
             </tr>
           </thead>
           <tbody>
@@ -47,23 +48,23 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
                 <td className="p-3">
                   {i.account_url && (
                     <a href={i.account_url} target="_blank" className="text-xs bg-blue-50 border border-blue-300 rounded px-2 py-1 text-blue-700 hover:bg-blue-100">
-                      계정 ↗
+                      {t('influencer.openAccount')}
                     </a>
                   )}
                 </td>
-                <td className="p-3">{i.followers?.toLocaleString()} 명</td>
+                <td className="p-3">{i.followers?.toLocaleString()} {t('common.people')}</td>
                 <td className="p-3"><MoneyText value={i.unit_price} suffix=" JPY" /></td>
-                <td className="p-3">{contactStatusLabel(i.contact_status)}</td>
+                <td className="p-3">{contactStatusLabel(i.contact_status, locale)}</td>
                 <td className="p-3 space-x-2">
-                  <Link href={`/influencers/${i.id}/edit`} className="text-blue-600">수정</Link>
+                  <Link href={`/influencers/${i.id}/edit`} className="text-blue-600">{t('common.edit')}</Link>
                   <form action={async () => { 'use server'; await deleteInfluencerAction(i.id); }} className="inline">
-                    <button className="text-red-500">삭제</button>
+                    <button className="text-red-500">{t('common.delete')}</button>
                   </form>
                 </td>
               </tr>
             ))}
             {!list?.length && (
-              <tr><td colSpan={6} className="p-8 text-center text-gray-400">등록된 인플루언서가 없습니다</td></tr>
+              <tr><td colSpan={7} className="p-8 text-center text-gray-400">{t('influencer.none')}</td></tr>
             )}
           </tbody>
         </table>
