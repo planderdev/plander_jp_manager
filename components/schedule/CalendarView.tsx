@@ -4,6 +4,7 @@ import { startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, fo
 import type { Schedule } from '@/types/db';
 import { ymdKR, todayKR, timeKR, compareDayKR } from '@/lib/datetime';
 import Link from 'next/link';
+import { deleteScheduleAction } from '@/actions/schedules';
 
 export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
   const [cursor, setCursor] = useState(new Date());
@@ -78,13 +79,25 @@ export default function CalendarView({ schedules }: { schedules: Schedule[] }) {
             </div>
             <div className="p-4 space-y-2">
               {modalItems.map((s) => (
-                <Link key={s.id} href={`/campaigns/schedules/${s.id}`}
-                  className="block border border-gray-200 rounded p-3 text-sm hover:bg-gray-50">
-                  <div className="font-semibold">{timeKR(s.scheduled_at)}</div>
-                  <div>@{s.influencers?.handle}</div>
-                  <div className="text-gray-600">{s.clients?.company_name}</div>
-                </Link>
-              ))}
+                <div key={s.id} className="border border-gray-200 rounded p-3 text-sm">
+                  <Link href={`/campaigns/schedules/${s.id}`} className="block hover:bg-gray-50">
+                    <div className="font-semibold">{timeKR(s.scheduled_at)}</div>
+                    <div>@{s.influencers?.handle}</div>
+                    <div className="text-gray-600">{s.clients?.company_name}</div>
+                  </Link>
+                <div className="flex justify-end mt-2">
+                  <button type="button"
+                    onClick={async () => {
+                      if (!confirm('이 스케줄을 삭제할까요?')) return;
+                      await deleteScheduleAction(s.id);
+                      setModalDay(null);
+                    }}
+                    className="text-xs text-red-500 hover:text-red-700">
+                    삭제
+                  </button>
+                </div>
+              </div>
+            ))}
             </div>
           </div>
         </div>
