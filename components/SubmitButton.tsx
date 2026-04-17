@@ -10,8 +10,3 @@ export default function SubmitButton({ children = '저장', pendingText = '작�
     </button>
   );  
 }
-
-const actorId = String(formData.get('apify_actor_id') || '');
-if (actorId) {
-  await sb.from('app_settings').upsert({ key: 'apify_actor_id', value: actorId }, { onConflict: 'key' });
-}
