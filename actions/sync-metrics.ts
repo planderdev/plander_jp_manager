@@ -26,6 +26,8 @@ export async function syncAllPosts() {
     const code = u.match(/\/(p|reel|reels)\/([A-Za-z0-9_-]+)/)?.[2] ?? '';
     return code.toLowerCase();
   };
+
+  
   const metricsByUrl = new Map(allMetrics.map(m => [normalize(m.url), m]));
 
   let updated = 0;
