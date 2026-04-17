@@ -48,7 +48,10 @@ export async function scrapeInstagramPosts(urls: string[]): Promise<ScrapedMetri
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ directUrls: urls }),
+        body: JSON.stringify({
+  directUrls: urls,
+  username: ["_"],
+}),
       }
     );
     // ... 나머지 기존 코드 그대로
