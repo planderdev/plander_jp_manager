@@ -2,7 +2,6 @@
 import { useState, useMemo } from 'react';
 import { createScheduleAction, updateScheduleAction } from '@/actions/schedules';
 import SubmitButton from '@/components/SubmitButton';
-import DeleteButton from '@/components/schedule/DeleteButton';
 
 type InfOpt = { id: number; handle: string };
 type CliOpt = { id: number; company_name: string };
