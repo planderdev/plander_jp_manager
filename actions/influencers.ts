@@ -21,7 +21,6 @@ function parsePayload(fd: FormData) {
     city: String(fd.get('city') || '') || null,
     street: String(fd.get('street') || '') || null,
     contact_status: String(fd.get('contact_status') || 'active') as any,
-    bundle_id: String(fd.get('bundle_id') || '') || null,
   };
 }
 
