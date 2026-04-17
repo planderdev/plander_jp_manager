@@ -12,6 +12,9 @@ export default async function AdminsPage() {
   const sb = await createClient();
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
   const tokenStatus = await getApifyTokenStatus();
+  const tokenStatus = await getApifyTokenStatus();
+  const { data: actorRow } = await sb.from('app_settings').select('value').eq('key', 'apify_actor_id').single();
+  const actorId = actorRow?.value ?? '';
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -115,7 +118,7 @@ export default async function AdminsPage() {
         <h2 className="text-lg font-semibold mb-3">게시물 메트릭 동기화</h2>
         <div className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
           <div className="text-sm text-gray-700">
-            <p>대상: 정산 미완료 + 30일 이내 게시물</p>
+            <p>대상: 업로드 완료된 게시물 (계약 종료 제외)</p>
             <p className="text-xs text-gray-500 mt-1">
               토큰이 등록된 경우 실제 데이터 수집, 미등록 시 mock 동작 (DB 변경 없음)
             </p>
