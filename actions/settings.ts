@@ -16,7 +16,7 @@ export async function saveApifyTokenAction(fd: FormData) {
     }, { onConflict: 'key' });
   }
 
-  const actorId = String(formData.get('apify_actor_id') || '');
+  const actorId = String(fd.get('apify_actor_id') || '');
   if (actorId) {
     await sb.from('app_settings').upsert({ key: 'apify_actor_id', value: actorId }, { onConflict: 'key' });
   }
