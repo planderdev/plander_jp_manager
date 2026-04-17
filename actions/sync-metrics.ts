@@ -22,8 +22,11 @@ export async function syncAllPosts() {
   const urls = posts.map(p => p.post_url!).filter(Boolean);
   const metrics = await scrapeInstagramPosts(urls);
 
-  const normalize = (u: string) => u.replace(/\/$/, '').toLowerCase();
-  const metricsByUrl = new Map(metrics.map(m => [normalize(m.url), m]));
+  const normalize = (u: string) => {
+    const code = u.match(/\/(p|reel|reels)\/([A-Za-z0-9_-]+)/)?.[2] ?? '';
+    return code.toLowerCase();
+  };
+  const metricsByUrl = new Map(allMetrics.map(m => [normalize(m.url), m]));
 
   let updated = 0;
   for (const post of targets) {
