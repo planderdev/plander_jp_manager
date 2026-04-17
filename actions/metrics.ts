@@ -2,13 +2,25 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 
+
+
+
 // 해당 월에 입력 가능한 게시물 목록 + 기존 입력값
 export async function getMetricsForMonth(month: string) {
+
+  const month = String(fd.get('month'));
+  
+  // 디버그: FormData 키 전체 출력
+  const allKeys: string[] = [];
+  for (const key of fd.keys()) allKeys.push(key);
+  console.log('[METRICS] keys:', allKeys);
+  console.log('[METRICS] month:', month);
+  
   const sb = await createClient();
 
   // 업로드 완료 + 계약 종료 안 된 게시물
   const { data: posts } = await sb.from('posts')
-    .select('id, post_url, uploaded_on, clients(company_name, status), influencers(handle)')
+    .select('id, post_url, uploaded_on, views, likes, comments, shares, clients(company_name, status), influencers(handle)')
     .not('post_url', 'is', null);
 
   const targets = (posts ?? []).filter((p: any) => p.clients?.status !== 'ended');
@@ -24,6 +36,8 @@ export async function getMetricsForMonth(month: string) {
     .eq('month', month);
 
   return { posts: targets, history: history ?? [] };
+
+  
 }
 
 // 월별 메트릭 일괄 저장

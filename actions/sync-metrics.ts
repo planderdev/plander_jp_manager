@@ -47,14 +47,17 @@ export async function syncAllPosts() {
 
     // 히스토리는 그날 받은 값 그대로 (null은 0)
     const today = new Date().toISOString().slice(0, 10) + 'T00:00:00Z';
+    const currentMonth = new Date().toISOString().slice(0, 7);  // '2026-04'
+
     await sb.from('post_metrics_history').upsert({
       post_id: post.id,
+      month: currentMonth,
       views: m.views ?? 0,
       likes: m.likes ?? 0,
       comments: m.comments ?? 0,
-      shares: m.shares ?? 0,  // ← 추가
-      collected_at: today,
-    }, { onConflict: 'post_id,collected_at' });
+      shares: m.shares ?? 0,
+      entered_at: new Date().toISOString(),
+    }, { onConflict: 'post_id,month' });
 
     updated++;
   }
