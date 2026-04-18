@@ -1,9 +1,4 @@
 import ChannelIcon from '@/components/ChannelIcon';
-import {
-  approveInfluencerApplicationAction,
-  rejectInfluencerApplicationAction,
-  restoreInfluencerApplicationAction,
-} from '@/actions/influencer-applications';
 import { channelLabel } from '@/lib/labels';
 import { getI18n } from '@/lib/i18n/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -124,9 +119,9 @@ export default async function InfluencerApplicationsPage() {
           const accountUrl = buildAccountUrl(platform, handle);
           const rejected = application.status === 'rejected';
           const approved = application.status === 'approved';
-          const approveAction = approveInfluencerApplicationAction.bind(null, application.id);
-          const rejectAction = rejectInfluencerApplicationAction.bind(null, application.id);
-          const restoreAction = restoreInfluencerApplicationAction.bind(null, application.id);
+          const approveAction = `/influencers/applications/${application.id}/approve`;
+          const rejectAction = `/influencers/applications/${application.id}/reject`;
+          const restoreAction = `/influencers/applications/${application.id}/restore`;
 
           return (
             <div
@@ -169,7 +164,7 @@ export default async function InfluencerApplicationsPage() {
               ) : null}
 
               <div className="mt-4 flex gap-2">
-                <form action={approveAction} className="flex-1">
+                <form action={approveAction} method="post" className="flex-1">
                     <button
                       type="submit"
                       className={`w-full rounded px-3 py-2 text-sm font-medium ${
@@ -180,7 +175,7 @@ export default async function InfluencerApplicationsPage() {
                   </button>
                 </form>
                 {!approved ? (
-                  <form action={rejected ? restoreAction : rejectAction} className="flex-1">
+                  <form action={rejected ? restoreAction : rejectAction} method="post" className="flex-1">
                     <button
                       type="submit"
                       className={`w-full rounded border px-3 py-2 text-sm font-medium ${
@@ -223,9 +218,9 @@ export default async function InfluencerApplicationsPage() {
               const accountUrl = buildAccountUrl(platform, handle);
               const rejected = application.status === 'rejected';
               const approved = application.status === 'approved';
-              const approveAction = approveInfluencerApplicationAction.bind(null, application.id);
-              const rejectAction = rejectInfluencerApplicationAction.bind(null, application.id);
-              const restoreAction = restoreInfluencerApplicationAction.bind(null, application.id);
+              const approveAction = `/influencers/applications/${application.id}/approve`;
+              const rejectAction = `/influencers/applications/${application.id}/reject`;
+              const restoreAction = `/influencers/applications/${application.id}/restore`;
 
               return (
                 <tr key={application.id} className={`border-t ${rejected ? 'bg-gray-100 text-gray-500' : ''}`}>
@@ -254,7 +249,7 @@ export default async function InfluencerApplicationsPage() {
                   </td>
                   <td className="p-3">
                     <div className="flex items-center gap-2">
-                      <form action={approveAction}>
+                      <form action={approveAction} method="post">
                         <button
                           type="submit"
                           className={`rounded px-3 py-1.5 text-sm font-medium ${
@@ -265,7 +260,7 @@ export default async function InfluencerApplicationsPage() {
                         </button>
                       </form>
                       {!approved ? (
-                        <form action={rejected ? restoreAction : rejectAction}>
+                        <form action={rejected ? restoreAction : rejectAction} method="post">
                           <button
                             type="submit"
                             className={`rounded border px-3 py-1.5 text-sm font-medium ${
