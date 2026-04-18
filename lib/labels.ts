@@ -52,3 +52,12 @@ export function channelLabel(channel: string, locale: Locale = 'ko'): string {
     default: return channel;
   }
 }
+
+export function genderLabel(gender: string | null | undefined, locale: Locale = 'ko'): string {
+  switch (gender) {
+    case 'female': return translate(locale, 'gender.female');
+    case 'male': return translate(locale, 'gender.male');
+    case 'other': return translate(locale, 'gender.other');
+    default: return translate(locale, 'common.none');
+  }
+}

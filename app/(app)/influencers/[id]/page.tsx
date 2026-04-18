@@ -1,9 +1,10 @@
+import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { fullLocalized } from '@/lib/datetime';
-import { channelLabel, contactStatusLabel } from '@/lib/labels';
+import { channelLabel, contactStatusLabel, genderLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
 import { getScheduleStatus, statusLabel, statusColor } from '@/lib/schedule-status';
 import MoneyText from '@/components/MoneyText';
@@ -30,6 +31,8 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
         <Row label={t('influencerForm.channel')} value={<div className="flex items-center gap-2"><ChannelIcon channel={i.channel} size={22} /><span>{channelLabel(i.channel, locale)}</span></div>} />
         <Row label={t('influencer.handle')} value={`@${i.handle}`} />
         <Row label={t('influencer.followers')} value={`${i.followers?.toLocaleString() ?? 0}${t('common.people')}`} />
+        <Row label={t('common.age')} value={i.age ?? '-'} />
+        <Row label={t('common.gender')} value={genderLabel(i.gender, locale)} />
         <Row label={t('common.unitPrice')} value={<MoneyText value={i.unit_price} suffix=" JPY" />} />
         <Row label={t('influencer.accountLink')} value={
           i.account_url
@@ -83,7 +86,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
   );
 }
 
-function Row({ label, value }: { label: string; value: any }) {
+function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4">
       <div className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0">{label}</div>

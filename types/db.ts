@@ -37,6 +37,7 @@ export interface Client {
 }
 
 export type ContactStatus = 'active' | 'inactive' | 'blocked';
+export type Gender = 'female' | 'male' | 'other';
 
 export interface Influencer {
   id: number;
@@ -55,6 +56,8 @@ export interface Influencer {
   prefecture: string | null;
   city: string | null;
   street: string | null;
+  age: number | null;
+  gender: Gender | null;
   contact_status: ContactStatus;
   created_at: string;
   updated_at: string;

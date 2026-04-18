@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import { deleteInfluencerAction } from '@/actions/influencers';
-import { contactStatusLabel } from '@/lib/labels';
+import { contactStatusLabel, genderLabel } from '@/lib/labels';
 import ChannelIcon from '@/components/ChannelIcon';
 import MoneyText from '@/components/MoneyText';
 import { getI18n } from '@/lib/i18n/server';
@@ -33,6 +33,8 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
               <th className="p-3">{t('influencer.handle')}</th>
               <th className="p-3">{t('influencer.account')}</th>
               <th className="p-3">{t('influencer.followers')}</th>
+              <th className="p-3">{t('common.age')}</th>
+              <th className="p-3">{t('common.gender')}</th>
               <th className="p-3">{t('common.unitPrice')}</th>
               <th className="p-3">{t('influencer.contactStatus')}</th>
               <th className="p-3">{t('common.management')}</th>
@@ -53,6 +55,8 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
                   )}
                 </td>
                 <td className="p-3">{i.followers?.toLocaleString()} {t('common.people')}</td>
+                <td className="p-3">{i.age ?? '-'}</td>
+                <td className="p-3">{genderLabel(i.gender, locale)}</td>
                 <td className="p-3"><MoneyText value={i.unit_price} suffix=" JPY" /></td>
                 <td className="p-3">{contactStatusLabel(i.contact_status, locale)}</td>
                 <td className="p-3 space-x-2">
@@ -64,7 +68,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
               </tr>
             ))}
             {!list?.length && (
-              <tr><td colSpan={7} className="p-8 text-center text-gray-400">{t('influencer.none')}</td></tr>
+              <tr><td colSpan={9} className="p-8 text-center text-gray-400">{t('influencer.none')}</td></tr>
             )}
           </tbody>
         </table>

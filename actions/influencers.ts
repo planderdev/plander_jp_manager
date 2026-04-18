@@ -2,10 +2,13 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import type { ChannelType, ContactStatus, Gender } from '@/types/db';
 
 function parsePayload(fd: FormData) {
+  const rawAge = String(fd.get('age') || '').trim();
+  const rawGender = String(fd.get('gender') || '').trim();
   return {
-    channel: String(fd.get('channel') || 'instagram') as any,
+    channel: String(fd.get('channel') || 'instagram') as ChannelType,
     handle: String(fd.get('handle') || ''),
     followers: Number(fd.get('followers')) || 0,
     account_url: String(fd.get('account_url') || '') || null,
@@ -20,7 +23,9 @@ function parsePayload(fd: FormData) {
     prefecture: String(fd.get('prefecture') || '') || null,
     city: String(fd.get('city') || '') || null,
     street: String(fd.get('street') || '') || null,
-    contact_status: String(fd.get('contact_status') || 'active') as any,
+    age: rawAge ? Number(rawAge) || null : null,
+    gender: (rawGender || null) as Gender | null,
+    contact_status: String(fd.get('contact_status') || 'active') as ContactStatus,
   };
 }
 

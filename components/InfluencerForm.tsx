@@ -49,7 +49,7 @@ export default function InfluencerForm({
 
       <div className="space-y-3">
         <h2 className="text-base font-semibold border-b border-gray-300 pb-1">{t('common.basicInfo')}</h2>
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm block mb-1 font-medium">{t('influencerForm.channel')}</label>
             <select name="channel" value={channel}
@@ -76,6 +76,21 @@ export default function InfluencerForm({
             <label className="text-sm block mb-1 font-medium">{t('influencerForm.unitPrice')}</label>
             <input name="unit_price" type="number" required defaultValue={i?.unit_price ?? ''}
               className="w-full border border-gray-400 rounded p-2" />
+          </div>
+          <div>
+            <label className="text-sm block mb-1 font-medium">{t('influencerForm.age')}</label>
+            <input name="age" type="number" min="0" max="120" defaultValue={i?.age ?? ''}
+              className="w-full border border-gray-400 rounded p-2" />
+          </div>
+          <div>
+            <label className="text-sm block mb-1 font-medium">{t('influencerForm.gender')}</label>
+            <select name="gender" defaultValue={i?.gender ?? ''}
+              className="w-full border border-gray-400 rounded p-2">
+              <option value="">{t('common.none')}</option>
+              <option value="female">{t('gender.female')}</option>
+              <option value="male">{t('gender.male')}</option>
+              <option value="other">{t('gender.other')}</option>
+            </select>
           </div>
         </div>
         <div>
@@ -104,7 +119,7 @@ export default function InfluencerForm({
             className="w-full border border-gray-400 rounded p-2" />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm block mb-1 font-medium">{t('influencerForm.bankName')}</label>
             <input name="bank_name" value={bankName}
@@ -148,7 +163,7 @@ export default function InfluencerForm({
                 inputMode="numeric"
                 className="w-full border border-gray-400 rounded p-2" />
             </div>
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm block mb-1 font-medium">{t('influencerForm.prefecture')}</label>
                 <input name="prefecture" defaultValue={i?.prefecture ?? ''}
