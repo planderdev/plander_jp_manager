@@ -37,12 +37,12 @@ function normalizeHandle(rawValue: string, platform: ChannelType) {
     const last = parts.at(-1) ?? '';
 
     if (platform === 'tiktok' && last.startsWith('@')) {
-      return last.slice(1);
+      return last.slice(1).toLowerCase();
     }
 
-    return last.replace(/^@/, '');
+    return last.replace(/^@/, '').toLowerCase();
   } catch {
-    return value.replace(/^@/, '').trim();
+    return value.replace(/^@/, '').trim().toLowerCase();
   }
 }
 
@@ -91,6 +91,40 @@ async function getApplicationOrThrow(id: string) {
   return data;
 }
 
+async function updateExistingInfluencer(handle: string, accountUrl: string | null, age: number | null, gender: Gender | null) {
+  const admin = createAdminClient();
+  const { data: existing, error: existingError } = await admin
+    .from('influencers')
+    .select('id, account_url, age, gender')
+    .eq('handle', handle)
+    .order('id', { ascending: true })
+    .limit(1);
+
+  if (existingError) {
+    throw new Error(existingError.message);
+  }
+
+  if (!existing?.length) {
+    return null;
+  }
+
+  const current = existing[0];
+  const { error: updateError } = await admin
+    .from('influencers')
+    .update({
+      account_url: current.account_url ?? accountUrl,
+      age: current.age ?? age,
+      gender: current.gender ?? gender,
+    })
+    .eq('id', current.id);
+
+  if (updateError) {
+    throw new Error(updateError.message);
+  }
+
+  return current.id;
+}
+
 export async function approveInfluencerApplicationAction(id: string) {
   await requireSignedInUser();
 
@@ -107,33 +141,9 @@ export async function approveInfluencerApplicationAction(id: string) {
   const age = normalizeAge(application.age_group);
   const gender = normalizeGender(application.gender);
 
-  const { data: existing, error: existingError } = await admin
-    .from('influencers')
-    .select('id, account_url, age, gender')
-    .eq('channel', channel)
-    .eq('handle', handle)
-    .order('id', { ascending: true })
-    .limit(1);
+  const existingId = await updateExistingInfluencer(handle, accountUrl, age, gender);
 
-  if (existingError) {
-    throw new Error(existingError.message);
-  }
-
-  if (existing?.length) {
-    const current = existing[0];
-    const { error: updateError } = await admin
-      .from('influencers')
-      .update({
-        account_url: current.account_url ?? accountUrl,
-        age: current.age ?? age,
-        gender: current.gender ?? gender,
-      })
-      .eq('id', current.id);
-
-    if (updateError) {
-      throw new Error(updateError.message);
-    }
-  } else {
+  if (!existingId) {
     const { error: insertError } = await admin.from('influencers').insert({
       channel,
       handle,
@@ -156,7 +166,11 @@ export async function approveInfluencerApplicationAction(id: string) {
     });
 
     if (insertError) {
-      throw new Error(insertError.message);
+      if (insertError.code === '23505') {
+        await updateExistingInfluencer(handle, accountUrl, age, gender);
+      } else {
+        throw new Error(insertError.message);
+      }
     }
   }
 
@@ -180,6 +194,22 @@ export async function rejectInfluencerApplicationAction(id: string) {
   const { error } = await admin
     .from('influencer_applications')
     .update({ status: 'rejected' })
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath('/influencers/applications');
+}
+
+export async function restoreInfluencerApplicationAction(id: string) {
+  await requireSignedInUser();
+
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('influencer_applications')
+    .update({ status: 'pending' })
     .eq('id', id);
 
   if (error) {

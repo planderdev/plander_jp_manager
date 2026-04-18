@@ -2,6 +2,7 @@ import ChannelIcon from '@/components/ChannelIcon';
 import {
   approveInfluencerApplicationAction,
   rejectInfluencerApplicationAction,
+  restoreInfluencerApplicationAction,
 } from '@/actions/influencer-applications';
 import { channelLabel } from '@/lib/labels';
 import { getI18n } from '@/lib/i18n/server';
@@ -172,10 +173,11 @@ export default async function InfluencerApplicationsPage() {
                   }}
                   className="flex-1"
                 >
-                  <button
-                    className={`w-full rounded px-3 py-2 text-sm font-medium ${
-                      approved ? 'bg-blue-100 text-blue-700' : 'bg-black text-white'
-                    }`}
+                    <button
+                      type="submit"
+                      className={`w-full rounded px-3 py-2 text-sm font-medium ${
+                        approved ? 'bg-blue-100 text-blue-700' : 'bg-black text-white'
+                      }`}
                   >
                     {approved ? t('applications.approved') : t('applications.approve')}
                   </button>
@@ -184,16 +186,21 @@ export default async function InfluencerApplicationsPage() {
                   <form
                     action={async () => {
                       'use server';
-                      await rejectInfluencerApplicationAction(application.id);
+                      if (rejected) {
+                        await restoreInfluencerApplicationAction(application.id);
+                      } else {
+                        await rejectInfluencerApplicationAction(application.id);
+                      }
                     }}
                     className="flex-1"
                   >
                     <button
+                      type="submit"
                       className={`w-full rounded border px-3 py-2 text-sm font-medium ${
                         rejected ? 'border-gray-300 bg-gray-200 text-gray-500' : 'border-gray-300 bg-white text-gray-700'
                       }`}
                     >
-                      {rejected ? t('applications.rejected') : t('applications.reject')}
+                      {rejected ? t('applications.rejectUndo') : t('applications.reject')}
                     </button>
                   </form>
                 ) : null}
@@ -264,6 +271,7 @@ export default async function InfluencerApplicationsPage() {
                         }}
                       >
                         <button
+                          type="submit"
                           className={`rounded px-3 py-1.5 text-sm font-medium ${
                             approved ? 'bg-blue-100 text-blue-700' : 'bg-black text-white'
                           }`}
@@ -275,15 +283,20 @@ export default async function InfluencerApplicationsPage() {
                         <form
                           action={async () => {
                             'use server';
-                            await rejectInfluencerApplicationAction(application.id);
+                            if (rejected) {
+                              await restoreInfluencerApplicationAction(application.id);
+                            } else {
+                              await rejectInfluencerApplicationAction(application.id);
+                            }
                           }}
                         >
                           <button
+                            type="submit"
                             className={`rounded border px-3 py-1.5 text-sm font-medium ${
                               rejected ? 'border-gray-300 bg-gray-200 text-gray-500' : 'border-gray-300 bg-white text-gray-700'
                             }`}
                           >
-                            {rejected ? t('applications.rejected') : t('applications.reject')}
+                            {rejected ? t('applications.rejectUndo') : t('applications.reject')}
                           </button>
                         </form>
                       ) : null}
