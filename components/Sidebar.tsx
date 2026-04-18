@@ -67,6 +67,7 @@ export default function Sidebar({
           <Section>{t('nav.extras')}</Section>
           <NavLink href="/extras/stats" pathname={pathname} onClick={close}>{t('nav.report')}</NavLink>
           <NavLink href="/extras/reports" pathname={pathname} onClick={close}>{t('nav.reportExport')}</NavLink>
+          <NavLink href="/extras/report-links" pathname={pathname} onClick={close}>{t('nav.reportCreate')}</NavLink>
         </nav>
         <div className="mt-3 mb-2 w-full rounded border border-gray-700 bg-transparent">
           <div className="flex items-center gap-1 px-2 py-2">
