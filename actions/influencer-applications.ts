@@ -1,7 +1,6 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { ChannelType, Gender, InfluencerApplication } from '@/types/db';
 
@@ -174,7 +173,6 @@ export async function approveInfluencerApplicationAction(id: string) {
 
   revalidatePath('/influencers');
   revalidatePath('/influencers/applications');
-  redirect('/influencers/applications');
 }
 
 export async function rejectInfluencerApplicationAction(id: string) {
@@ -189,7 +187,6 @@ export async function rejectInfluencerApplicationAction(id: string) {
   }
 
   revalidatePath('/influencers/applications');
-  redirect('/influencers/applications');
 }
 
 export async function restoreInfluencerApplicationAction(id: string) {
@@ -204,5 +201,4 @@ export async function restoreInfluencerApplicationAction(id: string) {
   }
 
   revalidatePath('/influencers/applications');
-  redirect('/influencers/applications');
 }
