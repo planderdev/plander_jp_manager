@@ -189,9 +189,15 @@ export default function SharedReportView({
                   <MetricChip label={t('reportMockup.reposts')} value={row.shares} />
                 </div>
                 <div className="mt-4">
-                  <a href={row.postUrl ?? row.accountUrl ?? '#'} target="_blank" className="inline-flex rounded-full border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white">
-                    {t('reportMockup.postLink')}
-                  </a>
+                  {row.postUrl ? (
+                    <a href={row.postUrl} target="_blank" className="inline-flex rounded-full border border-gray-900 px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-900 hover:text-white">
+                      {t('reportMockup.postLink')}
+                    </a>
+                  ) : (
+                    <span className="inline-flex rounded-full border border-gray-300 bg-gray-100 px-3 py-2 text-sm font-medium text-gray-500">
+                      {t('reportMockup.uploadPending')}
+                    </span>
+                  )}
                 </div>
               </div>
             ))}
@@ -223,9 +229,13 @@ export default function SharedReportView({
                     </td>
                     <td className="px-4 py-3">{row.followers.toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      <a href={row.postUrl ?? row.accountUrl ?? '#'} target="_blank" className="text-blue-700 hover:underline">
-                        {t('common.link')}
-                      </a>
+                      {row.postUrl ? (
+                        <a href={row.postUrl} target="_blank" className="text-blue-700 hover:underline">
+                          {t('common.link')}
+                        </a>
+                      ) : (
+                        <span className="text-gray-400">{t('reportMockup.uploadPending')}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3">{row.views.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.likes.toLocaleString()}</td>
