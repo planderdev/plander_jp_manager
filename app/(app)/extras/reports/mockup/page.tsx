@@ -235,28 +235,11 @@ export default async function ReportMockupPage({ searchParams }: { searchParams:
             </div>
           </div>
 
-          <form className="mt-5 grid grid-cols-1 gap-3 rounded-3xl bg-[#f5f6fa] p-3 md:grid-cols-[1fr_180px_auto]">
-            <select
-              name="client"
-              defaultValue={selectedClient?.id ?? ''}
-              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm"
-            >
-              {clients?.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {item.company_name}
-                </option>
-              ))}
-            </select>
-            <input
-              type="month"
-              name="month"
-              defaultValue={currentMonth}
-              className="w-full rounded-2xl border border-gray-300 bg-white px-4 py-3 text-sm"
-            />
-            <button className="rounded-2xl bg-black px-5 py-3 text-sm font-semibold text-white">
-              {t('common.search')}
-            </button>
-          </form>
+          <div className="mt-5 rounded-3xl bg-[#f5f6fa] px-4 py-4 text-sm text-gray-600">
+            <span className="font-semibold text-gray-900">{selectedClient?.company_name ?? 'Plander'}</span>
+            {' · '}
+            <span>{displayMonth(currentMonth, localeCode)}</span>
+          </div>
         </div>
 
         {usingFallback && (
