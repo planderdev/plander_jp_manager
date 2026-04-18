@@ -31,7 +31,7 @@ export async function GET(
   ]);
 
   const infoRows = [
-    row('店舗情報', '매장정보', brief.storeNameJa),
+    row('店舗名', '매장명', brief.storeNameJa),
     row('住所', '', brief.addressJa),
     row('韓国語の住所', '', brief.addressKo),
     row('営業時間', '', brief.businessHours),

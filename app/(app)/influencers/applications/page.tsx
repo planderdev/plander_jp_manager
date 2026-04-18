@@ -1,4 +1,5 @@
 import ChannelIcon from '@/components/ChannelIcon';
+import ConfirmSubmitButton from '@/components/ConfirmSubmitButton';
 import { channelLabel } from '@/lib/labels';
 import { getI18n } from '@/lib/i18n/server';
 import { createAdminClient } from '@/lib/supabase/admin';
@@ -203,12 +204,12 @@ export default async function InfluencerApplicationsPage({
                   </form>
                 ) : null}
                 <form action={deleteAction} method="post" className="flex-1">
-                  <button
-                    type="submit"
+                  <ConfirmSubmitButton
+                    message={t('applications.deleteConfirm')}
                     className="w-full rounded border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600"
                   >
                     {t('applications.deleteHistory')}
-                  </button>
+                  </ConfirmSubmitButton>
                 </form>
               </div>
             </div>
@@ -297,12 +298,12 @@ export default async function InfluencerApplicationsPage({
                         </form>
                       ) : null}
                       <form action={deleteAction} method="post">
-                        <button
-                          type="submit"
+                        <ConfirmSubmitButton
+                          message={t('applications.deleteConfirm')}
                           className="rounded border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600"
                         >
                           {t('applications.deleteHistory')}
-                        </button>
+                        </ConfirmSubmitButton>
                       </form>
                     </div>
                   </td>
