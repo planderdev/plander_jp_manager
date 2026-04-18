@@ -1,6 +1,7 @@
 'use server';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import type { PostMetricsHistory, SelfGrade } from '@/types/db';
 
 // 해당 월에 입력 가능한 게시물 목록 + 기존 입력값
 export async function getMetricsForMonth(month: string) {
@@ -21,7 +22,7 @@ export async function getMetricsForMonth(month: string) {
     .in('post_id', ids)
     .eq('month', month);
 
-  return { posts: targets, history: history ?? [] };
+  return { posts: targets, history: (history ?? []) as PostMetricsHistory[] };
 }
 
 // 월별 메트릭 일괄 저장
@@ -31,11 +32,11 @@ export async function saveMetricsForMonth(fd: FormData) {
 
   const sb = await createClient();
 
-  const entries: { post_id: number; views: number; likes: number; comments: number; shares: number }[] = [];
+  const entries: { post_id: number; views: number; likes: number; comments: number; shares: number; self_grade: SelfGrade }[] = [];
 
   const postIds = new Set<number>();
   for (const key of fd.keys()) {
-    const m = key.match(/^(views|likes|comments|shares)_(\d+)$/);
+    const m = key.match(/^(views|likes|comments|shares|self_grade)_(\d+)$/);
     if (m) postIds.add(Number(m[2]));
   }
 
@@ -46,6 +47,7 @@ export async function saveMetricsForMonth(fd: FormData) {
       likes: Number(fd.get(`likes_${pid}`)) || 0,
       comments: Number(fd.get(`comments_${pid}`)) || 0,
       shares: Number(fd.get(`shares_${pid}`)) || 0,
+      self_grade: (String(fd.get(`self_grade_${pid}`) || 'pending') as SelfGrade),
     });
   }
 
@@ -57,6 +59,7 @@ export async function saveMetricsForMonth(fd: FormData) {
       likes: e.likes,
       comments: e.comments,
       shares: e.shares,
+      self_grade: e.self_grade,
       collected_at: new Date().toISOString(),
       entered_at: new Date().toISOString(),
     }, { onConflict: 'post_id,month' });

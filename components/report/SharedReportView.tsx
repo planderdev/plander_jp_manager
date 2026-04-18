@@ -13,6 +13,23 @@ function diffText(diff: number) {
   return `${diff > 0 ? '+' : ''}${diff.toLocaleString()}`;
 }
 
+function gradeClass(grade: ReportViewData['rows'][number]['grade']) {
+  switch (grade) {
+    case 'S':
+      return 'bg-red-600 text-white';
+    case 'A':
+      return 'bg-black text-white';
+    case 'B':
+      return 'bg-blue-600 text-white';
+    case 'C':
+      return 'bg-emerald-600 text-white';
+    case 'F':
+      return 'bg-gray-700 text-white';
+    default:
+      return 'bg-gray-200 text-gray-600';
+  }
+}
+
 export default function SharedReportView({
   locale,
   t,
@@ -180,7 +197,9 @@ export default function SharedReportView({
                     </a>
                     <p className="mt-1 text-sm text-gray-500">{row.followers.toLocaleString()} {t('common.people')}</p>
                   </div>
-                  <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">{row.grade}</span>
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${gradeClass(row.grade)}`}>
+                    {row.grade === 'pending' ? t('grade.pending') : row.grade}
+                  </span>
                 </div>
                 <div className="mt-4 grid grid-cols-2 gap-3 text-sm">
                   <MetricChip label={t('common.views')} value={row.views} />
@@ -242,7 +261,9 @@ export default function SharedReportView({
                     <td className="px-4 py-3">{row.comments.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.shares.toLocaleString()}</td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-black px-3 py-1 text-xs font-semibold text-white">{row.grade}</span>
+                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${gradeClass(row.grade)}`}>
+                        {row.grade === 'pending' ? t('grade.pending') : row.grade}
+                      </span>
                     </td>
                   </tr>
                 ))}

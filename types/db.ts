@@ -75,6 +75,7 @@ export interface Schedule {
 }
 
 export type SettlementStatus = 'pending' | 'done';
+export type SelfGrade = 'S' | 'A' | 'B' | 'C' | 'F' | 'pending';
 
 export interface Post {
   id: number;
@@ -94,4 +95,17 @@ export interface Post {
   influencers?: { handle: string; account_url: string | null; unit_price: number | null; name_en: string | null; bank_name: string | null; branch_name: string | null; account_number: string | null; phone: string | null; prefecture: string | null; city: string | null; street: string | null };
   uploaded_on: string | null;
   shares: number;
+}
+
+export interface PostMetricsHistory {
+  id: number;
+  post_id: number;
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  month: string | null;
+  collected_at: string | null;
+  entered_at: string | null;
+  self_grade: SelfGrade | null;
 }

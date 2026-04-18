@@ -4,6 +4,7 @@ import SubmitButton from '@/components/SubmitButton';
 import BackButton from '@/components/BackButton';
 import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
+import type { PostMetricsHistory, SelfGrade } from '@/types/db';
 
 function defaultMonth() {
   const d = new Date();
@@ -18,8 +19,10 @@ export default async function MetricsPage({
   const month = m || defaultMonth();
   const { posts, history } = await getMetricsForMonth(month);
 
-  const histMap = new Map<number, any>();
+  const histMap = new Map<number, PostMetricsHistory>();
   for (const h of history) histMap.set(h.post_id, h);
+
+  const gradeOptions: SelfGrade[] = ['S', 'A', 'B', 'C', 'F', 'pending'];
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -59,6 +62,7 @@ export default async function MetricsPage({
                   <th className="p-3">{t('common.likes')}</th>
                   <th className="p-3">{t('common.comments')}</th>
                   <th className="p-3">{t('common.shares')}</th>
+                  <th className="p-3">{t('reportMockup.selfGrade')}</th>
                   <th className="p-3">{t('metrics.lastEntered')}</th>
                 </tr>
               </thead>
@@ -91,6 +95,19 @@ export default async function MetricsPage({
                       <td className="p-3">
                         <input type="number" name={`shares_${p.id}`} defaultValue={h?.shares ?? p.shares ?? 0}
                           className="border border-gray-400 rounded p-1 w-20 text-right" />
+                      </td>
+                      <td className="p-3">
+                        <select
+                          name={`self_grade_${p.id}`}
+                          defaultValue={h?.self_grade ?? 'pending'}
+                          className="border border-gray-400 rounded p-1 w-28"
+                        >
+                          {gradeOptions.map((grade) => (
+                            <option key={grade} value={grade}>
+                              {grade === 'pending' ? t('grade.pending') : grade}
+                            </option>
+                          ))}
+                        </select>
                       </td>
                       <td className="p-3 text-xs text-gray-500">
                         {h?.entered_at ? new Date(h.entered_at).toLocaleDateString(dateLocale(locale)) : '-'}

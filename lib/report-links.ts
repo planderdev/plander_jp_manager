@@ -11,7 +11,7 @@ export type ReportRow = {
   likes: number;
   comments: number;
   shares: number;
-  grade: 'A' | 'B' | 'C';
+  grade: 'S' | 'A' | 'B' | 'C' | 'F' | 'pending';
   channel: string;
 };
 
@@ -119,13 +119,6 @@ function isWithinMonth(value: string | null, month: string) {
   return value.slice(0, 7) === month;
 }
 
-function gradeForRow(views: number, likes: number, comments: number, shares: number): 'A' | 'B' | 'C' {
-  const engagement = likes + comments + shares;
-  if (views >= 10000 || engagement >= 300) return 'A';
-  if (views >= 3000 || engagement >= 120) return 'B';
-  return 'C';
-}
-
 export function sumRows(rows: ReportRow[]) {
   return rows.reduce(
     (acc, row) => ({
@@ -172,10 +165,32 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
   ]);
 
   const allPosts = (postData ?? []) as unknown as PostRecord[];
+  const postIds = allPosts.map((row) => row.id);
+
+  const [thisHistory, prevHistory] = postIds.length
+    ? await Promise.all([
+        sb.from('post_metrics_history').select('post_id, views, likes, comments, shares, self_grade').in('post_id', postIds).eq('month', yearMonth),
+        sb.from('post_metrics_history').select('post_id, views, likes, comments, shares, self_grade').in('post_id', postIds).eq('month', prevMonth),
+      ])
+    : [{ data: [] }, { data: [] }];
+
+  const currentHistoryMap = new Map<number, { views: number | null; likes: number | null; comments: number | null; shares: number | null; self_grade: ReportRow['grade'] | null }>();
+  for (const item of thisHistory.data ?? []) {
+    currentHistoryMap.set(item.post_id, {
+      views: item.views,
+      likes: item.likes,
+      comments: item.comments,
+      shares: item.shares,
+      self_grade: (item.self_grade as ReportRow['grade'] | null) ?? null,
+    });
+  }
+
+  const prevHistoryRows = (prevHistory.data ?? []) as Array<{ views: number | null; likes: number | null; comments: number | null; shares: number | null }>;
   const currentRows = allPosts
     .filter((row) => isWithinMonth(resolveVisitDate(row), yearMonth))
     .map((row) => {
       const influencer = normalizeInfluencer(row.influencers);
+      const history = currentHistoryMap.get(row.id);
       return ({
       id: row.id,
       visitDate: resolveVisitDate(row)?.slice(0, 10) ?? yearMonth,
@@ -183,31 +198,11 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
       accountUrl: influencer?.account_url ?? null,
       followers: influencer?.followers ?? 0,
       postUrl: row.post_url ?? null,
-      views: row.views ?? 0,
-      likes: row.likes ?? 0,
-      comments: row.comments ?? 0,
-      shares: row.shares ?? 0,
-      grade: gradeForRow(row.views ?? 0, row.likes ?? 0, row.comments ?? 0, row.shares ?? 0),
-      channel: influencer?.channel ?? 'instagram',
-    });
-    }) as ReportRow[];
-
-  const prevRows = allPosts
-    .filter((row) => isWithinMonth(resolveVisitDate(row), prevMonth))
-    .map((row) => {
-      const influencer = normalizeInfluencer(row.influencers);
-      return ({
-      id: row.id,
-      visitDate: resolveVisitDate(row)?.slice(0, 10) ?? prevMonth,
-      handle: influencer?.handle ?? 'sample_creator',
-      accountUrl: influencer?.account_url ?? null,
-      followers: influencer?.followers ?? 0,
-      postUrl: row.post_url ?? null,
-      views: row.views ?? 0,
-      likes: row.likes ?? 0,
-      comments: row.comments ?? 0,
-      shares: row.shares ?? 0,
-      grade: gradeForRow(row.views ?? 0, row.likes ?? 0, row.comments ?? 0, row.shares ?? 0),
+      views: history?.views ?? row.views ?? 0,
+      likes: history?.likes ?? row.likes ?? 0,
+      comments: history?.comments ?? row.comments ?? 0,
+      shares: history?.shares ?? row.shares ?? 0,
+      grade: history?.self_grade ?? 'pending',
       channel: influencer?.channel ?? 'instagram',
     });
     }) as ReportRow[];
@@ -234,13 +229,22 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
       followers: item.followers ?? 0,
       postUrl: item.account_url,
       ...seeds[index % seeds.length],
-      grade: gradeForRow(seeds[index % seeds.length].views, seeds[index % seeds.length].likes, seeds[index % seeds.length].comments, seeds[index % seeds.length].shares),
+      grade: 'pending',
       channel: item.channel ?? 'instagram',
     }));
   }
 
   const currentTotals = sumRows(rows);
-  const prevTotals = sumRows(prevRows);
+  const prevTotals = prevHistoryRows.reduce<ReportViewData['prevTotals']>(
+    (acc, row) => ({
+      views: acc.views + (row.views ?? 0),
+      likes: acc.likes + (row.likes ?? 0),
+      comments: acc.comments + (row.comments ?? 0),
+      shares: acc.shares + (row.shares ?? 0),
+      followers: acc.followers,
+    }),
+    { views: 0, likes: 0, comments: 0, shares: 0, followers: 0 }
+  );
   const channelMap = new Map<string, ReportRow[]>();
   rows.forEach((row) => {
     const bucket = channelMap.get(row.channel) ?? [];
