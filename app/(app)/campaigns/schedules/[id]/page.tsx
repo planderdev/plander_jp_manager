@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase/server';
 import ScheduleForm from '@/components/schedule/ScheduleForm';
 import { notFound } from 'next/navigation';
 import { getI18n } from '@/lib/i18n/server';
+import Link from 'next/link';
 
 export default async function EditSchedulePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,7 +21,15 @@ export default async function EditSchedulePage({ params }: { params: Promise<{ i
 
   return (
     <div className="p-4 md:p-8">
-      <h1 className="text-2xl font-bold mb-6">{t('schedule.editTitle')}</h1>
+      <div className="mb-6 flex items-center justify-between gap-3 flex-wrap">
+        <h1 className="text-2xl font-bold">{t('schedule.editTitle')}</h1>
+        <Link
+          href={`/campaigns/schedules/${id}/brief-preview`}
+          className="rounded bg-black px-4 py-2 text-white hover:bg-gray-800"
+        >
+          초대장/가이드 미리보기
+        </Link>
+      </div>
       <ScheduleForm
         influencers={influencers ?? []}
         clients={clients ?? []}
