@@ -67,6 +67,18 @@ export interface Influencer {
   updated_at: string;
 }
 
+export type InfluencerApplicationStatus = 'pending' | 'approved' | 'rejected' | null;
+
+export interface InfluencerApplication {
+  id: string;
+  platform: string;
+  account_id: string;
+  gender: string;
+  age_group: string;
+  status: InfluencerApplicationStatus;
+  created_at: string | null;
+}
+
 export interface Schedule {
   id: number;
   scheduled_at: string;

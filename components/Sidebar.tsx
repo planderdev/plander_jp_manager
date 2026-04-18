@@ -62,6 +62,7 @@ export default function Sidebar({
           <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>{t('nav.scheduleManagement')}</NavLink>
           <Section>{t('nav.influencer')}</Section>
           <NavLink href="/influencers" pathname={pathname} onClick={close}>{t('nav.influencerList')}</NavLink>
+          <NavLink href="/influencers/applications" pathname={pathname} onClick={close}>{t('nav.webApplicants')}</NavLink>
           <NavLink href="/influencers/posts" pathname={pathname} onClick={close}>{t('nav.postSettlement')}</NavLink>
           <NavLink href="/campaigns/completed" pathname={pathname} onClick={close}>{t('nav.completedPosts')}</NavLink>
           <Section>{t('nav.extras')}</Section>
@@ -112,7 +113,10 @@ function NavLink({ href, pathname, onClick, children }: any) {
   const active =
     pathname === href ||
     (href !== '/' && pathname?.startsWith(href + '/') &&
-     !(href === '/influencers' && pathname.startsWith('/influencers/posts')));
+     !(href === '/influencers' && (
+       pathname.startsWith('/influencers/posts') ||
+       pathname.startsWith('/influencers/applications')
+     )));
   return (
     <Link href={href} onClick={onClick}
       className={`block px-3 py-2 rounded ${active ? 'bg-gray-700' : 'hover:bg-gray-800'}`}>

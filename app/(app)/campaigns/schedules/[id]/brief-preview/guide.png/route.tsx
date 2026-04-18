@@ -21,8 +21,15 @@ export async function GET(
   }
 
   const sections = getGuideSections();
-  const fontPath = path.join(process.cwd(), 'public', 'fonts', 'NotoSansKR-Regular.ttf');
-  const fontData = await readFile(fontPath);
+  const home = process.env.HOME ?? '/Users/insung';
+  const regularFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Regular.otf');
+  const mediumFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Medium.otf');
+  const boldFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Bold.otf');
+  const [regularFontData, mediumFontData, boldFontData] = await Promise.all([
+    readFile(regularFontPath),
+    readFile(mediumFontPath),
+    readFile(boldFontPath),
+  ]);
 
   const infoRows = [
     row('店舗情報', '매장정보', brief.storeNameJa),
@@ -41,7 +48,7 @@ export async function GET(
           flexDirection: 'column',
           background: '#ffffff',
           color: '#111111',
-          fontFamily: 'NotoSansKR',
+          fontFamily: 'PretendardJP',
           padding: '28px',
         }}
       >
@@ -107,10 +114,22 @@ export async function GET(
       height: brief.additionalRequests ? 1960 : 1754,
       fonts: [
         {
-          name: 'NotoSansKR',
-          data: fontData,
+          name: 'PretendardJP',
+          data: regularFontData,
           style: 'normal',
           weight: 400,
+        },
+        {
+          name: 'PretendardJP',
+          data: mediumFontData,
+          style: 'normal',
+          weight: 500,
+        },
+        {
+          name: 'PretendardJP',
+          data: boldFontData,
+          style: 'normal',
+          weight: 700,
         },
       ],
     }
