@@ -9,6 +9,7 @@ export async function createScheduleAction(fd: FormData) {
     scheduled_at: String(fd.get('scheduled_at')),
     client_id: Number(fd.get('client_id')),
     influencer_id: Number(fd.get('influencer_id')),
+    provided_menu: String(fd.get('provided_menu') || '') || null,
     memo: String(fd.get('memo') || '') || null,
   };
   const { error } = await sb.from('schedules').insert(payload);
@@ -32,6 +33,7 @@ export async function updateScheduleAction(fd: FormData) {
     scheduled_at: String(fd.get('scheduled_at')),
     client_id: Number(fd.get('client_id')),
     influencer_id: Number(fd.get('influencer_id')),
+    provided_menu: String(fd.get('provided_menu') || '') || null,
     memo: String(fd.get('memo') || '') || null,
   };
   const { error } = await sb.from('schedules').update(payload).eq('id', id);

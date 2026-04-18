@@ -11,7 +11,9 @@ export default async function EditSchedulePage({ params }: { params: Promise<{ i
   const [{ data: schedule }, { data: influencers }, { data: clients }] = await Promise.all([
     sb.from('schedules').select('*').eq('id', Number(id)).single(),
     sb.from('influencers').select('id, handle').order('handle'),
-    sb.from('clients').select('id, company_name').order('company_name'),
+    sb.from('clients')
+      .select('id, company_name, store_name_ja, postal_code, region, district, road_address, building_detail, address_ja, business_hours, provided_menu')
+      .order('company_name'),
   ]);
 
   if (!schedule) notFound();

@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 function parseClientPayload(formData: FormData) {
   return {
     company_name: String(formData.get('company_name') || ''),
+    store_name_ja: String(formData.get('store_name_ja') || '') || null,
     contact_person: String(formData.get('contact_person') || '') || null,
     phone: String(formData.get('phone') || '') || null,
     email: String(formData.get('email') || '') || null,
@@ -19,6 +20,9 @@ function parseClientPayload(formData: FormData) {
     district: String(formData.get('district') || '') || null,
     road_address: String(formData.get('road_address') || '') || null,
     building_detail: String(formData.get('building_detail') || '') || null,
+    address_ja: String(formData.get('address_ja') || '') || null,
+    business_hours: String(formData.get('business_hours') || '') || null,
+    provided_menu: String(formData.get('provided_menu') || '') || null,
     category: String(formData.get('category') || '') || null,
     sales_region: String(formData.get('sales_region') || '') || null,
     first_contact_date: String(formData.get('first_contact_date') || '') || null,

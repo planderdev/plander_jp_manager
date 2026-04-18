@@ -43,6 +43,12 @@ export default function ClientForm({
             className="w-full border border-gray-400 rounded p-2" />
         </div>
 
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.storeNameJa')}</label>
+          <input name="store_name_ja" defaultValue={client?.store_name_ja ?? ''}
+            className="w-full border border-gray-400 rounded p-2" />
+        </div>
+
         <ChipSelect name="category" label={t('common.category')} kind="category"
           options={options.categories} defaultValue={client?.category ?? ''} multiple />
 
@@ -75,6 +81,25 @@ export default function ClientForm({
             defaultRoad={client?.road_address ?? ''}
             defaultDetail={client?.building_detail ?? ''}
           />
+        </div>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.addressJa')}</label>
+          <textarea name="address_ja" defaultValue={client?.address_ja ?? ''} rows={2}
+            className="w-full border border-gray-400 rounded p-2" />
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm block mb-1 font-medium">{t('clientForm.businessHours')}</label>
+            <input name="business_hours" defaultValue={client?.business_hours ?? ''}
+              className="w-full border border-gray-400 rounded p-2" />
+          </div>
+          <div>
+            <label className="text-sm block mb-1 font-medium">{t('clientForm.providedMenu')}</label>
+            <textarea name="provided_menu" defaultValue={client?.provided_menu ?? ''} rows={2}
+              className="w-full border border-gray-400 rounded p-2" />
+          </div>
         </div>
       </div>
 

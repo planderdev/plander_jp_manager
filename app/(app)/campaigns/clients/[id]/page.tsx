@@ -40,10 +40,14 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">{t('common.basicInfo')}</h2>
         <Row label={t('common.category')} value={c.category ?? '-'} />
         <Row label={t('common.region')} value={c.sales_region ?? '-'} />
+        <Row label={t('clientForm.storeNameJa')} value={c.store_name_ja ?? '-'} />
         <Row label={t('clientForm.contactPerson')} value={c.contact_person ?? '-'} />
         <Row label={t('common.contact')} value={c.phone ?? '-'} />
         <Row label={t('common.email')} value={c.email ?? '-'} />
         <Row label={t('common.address')} value={`${c.postal_code ? `(${c.postal_code}) ` : ''}${fullAddress || '-'}`} />
+        <Row label={t('clientForm.addressJa')} value={c.address_ja ?? '-'} />
+        <Row label={t('clientForm.businessHours')} value={c.business_hours ?? '-'} />
+        <Row label={t('clientForm.providedMenu')} value={c.provided_menu ?? '-'} />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6 space-y-3">

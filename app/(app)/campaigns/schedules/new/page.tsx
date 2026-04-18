@@ -7,7 +7,10 @@ export default async function NewSchedulePage() {
   const sb = await createClient();
   const [{ data: influencers }, { data: clients }] = await Promise.all([
     sb.from('influencers').select('id, handle').order('handle'),
-    sb.from('clients').select('id, company_name').in('status', ['active', 'paused']).order('company_name'),
+    sb.from('clients')
+      .select('id, company_name, store_name_ja, postal_code, region, district, road_address, building_detail, address_ja, business_hours, provided_menu')
+      .in('status', ['active', 'paused'])
+      .order('company_name'),
   ]);
 
   return (

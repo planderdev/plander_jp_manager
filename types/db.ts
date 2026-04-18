@@ -11,6 +11,7 @@ export type ChannelType = 'instagram' | 'tiktok' | 'youtube' | 'other';
 export interface Client {
   id: number;
   company_name: string;
+  store_name_ja: string | null;
   contact_person: string | null;
   phone: string | null;
   email: string | null;
@@ -28,6 +29,9 @@ export interface Client {
   district: string | null;
   road_address: string | null;
   building_detail: string | null;
+  address_ja: string | null;
+  business_hours: string | null;
+  provided_menu: string | null;
   category: string | null;
   first_contact_date: string | null;
   contract_product: string | null;
@@ -69,8 +73,20 @@ export interface Schedule {
   client_id: number;
   influencer_id: number;
   memo: string | null;
+  provided_menu: string | null;
   created_at: string;
-  clients?: { company_name: string };
+  clients?: {
+    company_name: string;
+    store_name_ja: string | null;
+    postal_code?: string | null;
+    region?: string | null;
+    district?: string | null;
+    road_address?: string | null;
+    building_detail?: string | null;
+    address_ja?: string | null;
+    business_hours?: string | null;
+    provided_menu?: string | null;
+  };
   influencers?: { handle: string; account_url: string | null };
 }
 

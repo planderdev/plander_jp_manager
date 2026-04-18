@@ -1,11 +1,32 @@
 'use client';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { createScheduleAction, updateScheduleAction } from '@/actions/schedules';
 import SubmitButton from '@/components/SubmitButton';
 import { useI18n } from '@/lib/i18n/provider';
 
 type InfOpt = { id: number; handle: string };
-type CliOpt = { id: number; company_name: string };
+type CliOpt = {
+  id: number;
+  company_name: string;
+  store_name_ja?: string | null;
+  postal_code?: string | null;
+  region?: string | null;
+  district?: string | null;
+  road_address?: string | null;
+  building_detail?: string | null;
+  address_ja?: string | null;
+  business_hours?: string | null;
+  provided_menu?: string | null;
+};
+
+function koreanAddress(client: CliOpt | null) {
+  if (!client) return '';
+  const fullAddress = [client.region, client.district, client.road_address, client.building_detail]
+    .filter(Boolean)
+    .join(' ');
+  if (!fullAddress) return '';
+  return `${client.postal_code ? `(${client.postal_code}) ` : ''}${fullAddress}`;
+}
 
 export default function ScheduleForm({
   influencers, clients, schedule,
@@ -21,6 +42,7 @@ export default function ScheduleForm({
   const [date, setDate] = useState(initDate ? `${initDate.getFullYear()}-${pad(initDate.getMonth()+1)}-${pad(initDate.getDate())}` : '');
   const [hour, setHour] = useState(initDate ? String(initDate.getHours()) : '10');
   const [minute, setMinute] = useState(initDate ? (initDate.getMinutes() >= 30 ? '30' : '00') : '00');
+  const [providedMenu, setProvidedMenu] = useState(schedule?.provided_menu ?? '');
   const [memo, setMemo] = useState(schedule?.memo ?? '');
 
   const filtered = useMemo(() => {
@@ -28,8 +50,27 @@ export default function ScheduleForm({
     return influencers.filter(i => i.handle.toLowerCase().includes(query.toLowerCase())).slice(0, 8);
   }, [query, influencers]);
 
+  const selectedClient = useMemo(
+    () => clients.find((client) => client.id === Number(selCli)) ?? null,
+    [clients, selCli]
+  );
+
   const scheduledAt = date && `${date}T${hour.padStart(2,'0')}:${minute}:00+09:00`;
   const canSubmit = selInf && selCli && date;
+
+  useEffect(() => {
+    if (!selectedClient) {
+      if (!schedule) setProvidedMenu('');
+      return;
+    }
+
+    if (!schedule || Number(schedule.client_id) !== selectedClient.id) {
+      setProvidedMenu(selectedClient.provided_menu ?? '');
+      return;
+    }
+
+    setProvidedMenu(schedule.provided_menu ?? selectedClient.provided_menu ?? '');
+  }, [schedule, selectedClient]);
 
   return (
     <form action={schedule ? updateScheduleAction : createScheduleAction}
@@ -75,6 +116,16 @@ export default function ScheduleForm({
         </select>
       </div>
 
+      {selectedClient && (
+        <div className="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-3">
+          <h2 className="text-sm font-semibold">{t('scheduleForm.clientInfo')}</h2>
+          <InfoRow label={t('clientForm.storeNameJa')} value={selectedClient.store_name_ja || '-'} />
+          <InfoRow label={t('scheduleForm.addressKo')} value={koreanAddress(selectedClient) || '-'} />
+          <InfoRow label={t('scheduleForm.addressJa')} value={selectedClient.address_ja || '-'} />
+          <InfoRow label={t('scheduleForm.businessHours')} value={selectedClient.business_hours || '-'} />
+        </div>
+      )}
+
       <div className="grid grid-cols-3 gap-4">
         <div>
           <label className="text-sm block mb-1 font-medium">{t('scheduleForm.date')}</label>
@@ -101,6 +152,18 @@ export default function ScheduleForm({
       </div>
 
       <div>
+        <label className="text-sm block mb-1 font-medium">{t('scheduleForm.providedMenu')}</label>
+        <textarea
+          name="provided_menu"
+          value={providedMenu}
+          onChange={(e) => setProvidedMenu(e.target.value)}
+          rows={3}
+          placeholder={t('scheduleForm.providedMenuHelp')}
+          className="w-full border border-gray-400 rounded p-2"
+        />
+      </div>
+
+      <div>
         <label className="text-sm block mb-1 font-medium">{t('scheduleForm.note')}</label>
         <textarea name="memo" value={memo} onChange={(e) => setMemo(e.target.value)}
           rows={2} className="w-full border border-gray-400 rounded p-2" />
@@ -108,5 +171,14 @@ export default function ScheduleForm({
 
       <SubmitButton>{schedule ? t('common.edit') : t('common.create')}</SubmitButton>
     </form>
+  );
+}
+
+function InfoRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex flex-col gap-1 sm:flex-row sm:gap-3">
+      <div className="text-xs text-gray-500 sm:w-24 sm:flex-shrink-0">{label}</div>
+      <div className="text-sm font-medium whitespace-pre-wrap">{value}</div>
+    </div>
   );
 }
