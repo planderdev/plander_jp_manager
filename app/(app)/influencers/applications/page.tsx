@@ -88,8 +88,13 @@ function formatApplicationDate(value: string | null) {
   }).format(new Date(value));
 }
 
-export default async function InfluencerApplicationsPage() {
+export default async function InfluencerApplicationsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string }>;
+}) {
   const { locale, t } = await getI18n();
+  const { error } = await searchParams;
   const admin = createAdminClient();
   const { data } = await admin
     .from('influencer_applications')
@@ -111,6 +116,12 @@ export default async function InfluencerApplicationsPage() {
         <h1 className="text-2xl font-bold">{t('applications.title')}</h1>
         <p className="mt-2 text-sm text-gray-500">{t('applications.description')}</p>
       </div>
+
+      {error ? (
+        <div className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          {decodeURIComponent(error)}
+        </div>
+      ) : null}
 
       <div className="space-y-4 lg:hidden">
         {applications.map((application) => {
