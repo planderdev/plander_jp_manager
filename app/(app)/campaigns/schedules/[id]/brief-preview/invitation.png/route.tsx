@@ -55,26 +55,71 @@ export async function GET(
         <div
           style={{
             position: 'absolute',
-            top: 72,
+            top: 52,
             left: 110,
             right: 110,
-            height: 260,
+            height: 300,
             display: 'flex',
-            justifyContent: 'center',
+            flexDirection: 'column',
             alignItems: 'center',
+            justifyContent: 'flex-start',
           }}
         >
           <div
             style={{
+              display: 'flex',
+              alignItems: 'flex-end',
+              justifyContent: 'center',
+              gap: 10,
+              width: '100%',
+              height: 120,
+            }}
+          >
+            {Array.from({ length: 17 }).map((_, index) => {
+              const distance = Math.abs(index - 8);
+              return (
+                <div
+                  key={index}
+                  style={{
+                    width: 16,
+                    height: 48 + (8 - Math.min(distance, 8)) * 10,
+                    borderRadius: 999,
+                    background: index % 2 === 0 ? 'rgba(175,219,255,0.92)' : 'rgba(255,196,223,0.78)',
+                    boxShadow: '0 0 10px rgba(255,255,255,0.16)',
+                  }}
+                />
+              );
+            })}
+          </div>
+
+          <div
+            style={{
+              marginTop: 16,
               width: 620,
-              height: 180,
-              borderTop: '10px solid rgba(177,224,255,0.8)',
-              borderLeft: '10px solid rgba(177,224,255,0.35)',
-              borderRight: '10px solid rgba(255,198,227,0.35)',
-              borderBottom: '14px solid rgba(255,255,255,0.14)',
+              height: 18,
               borderRadius: 999,
-              opacity: 0.75,
-              transform: 'perspective(500px) rotateX(62deg)',
+              background: 'rgba(220,233,255,0.25)',
+              border: '2px solid rgba(210,229,255,0.46)',
+            }}
+          />
+          <div
+            style={{
+              marginTop: 10,
+              width: 540,
+              height: 72,
+              borderRadius: 10,
+              background: 'linear-gradient(180deg, rgba(58,62,74,0.95) 0%, rgba(24,25,31,0.98) 100%)',
+              border: '3px solid rgba(165,197,255,0.35)',
+            }}
+          />
+          <div
+            style={{
+              marginTop: 6,
+              width: 680,
+              height: 18,
+              borderRadius: 999,
+              background: 'rgba(255,255,255,0.09)',
+              border: '1px solid rgba(255,255,255,0.16)',
             }}
           />
         </div>
@@ -98,7 +143,7 @@ export async function GET(
           <div style={{ fontSize: 40, opacity: 0.82 }}>{brief.clientName}</div>
 
           <div style={{ marginTop: 34, fontSize: 34, opacity: 0.9 }}>Instagram ID</div>
-          <div style={{ fontSize: 58, fontWeight: 700 }}>@{brief.influencerHandle}</div>
+          <div style={{ fontSize: 58, fontWeight: 700 }}>{`@${brief.influencerHandle}`}</div>
 
           <div style={{ marginTop: 34, fontSize: 34, opacity: 0.9 }}>来店日 (방문일)</div>
           <div style={{ fontSize: 54, fontWeight: 700 }}>{formatInviteDate(brief.scheduledAt)}</div>
