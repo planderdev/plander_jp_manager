@@ -1,7 +1,7 @@
 import Logo from '@/components/Logo';
 import ChannelIcon from '@/components/ChannelIcon';
 import { channelLabel } from '@/lib/labels';
-import { displayMonth, type ReportClient, type ReportRow, type ReportViewData } from '@/lib/report-links';
+import { displayMonth, type ReportViewData } from '@/lib/report-links';
 
 function diffClass(diff: number) {
   if (diff < 0) return 'text-red-500';
@@ -76,6 +76,24 @@ export default function SharedReportView({
             <InfoCard label={t('reportMockup.manager')} value={data.client?.manager_name ?? '-'} />
             <InfoCard label={t('reportMockup.totalCreators')} value={`${data.rows.length.toLocaleString()}${t('common.people')}`} />
             <InfoCard label={t('reportMockup.totalPosts')} value={data.rows.length.toLocaleString()} />
+          </div>
+        </section>
+
+        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.totalSummary')}</p>
+              <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.totalSummary')}</h2>
+            </div>
+            <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#3b4cca]">
+              {monthLabel}
+            </span>
+          </div>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <SummaryCard label={t('common.views')} value={data.currentTotals.views} diff={data.currentTotals.views - data.prevTotals.views} />
+            <SummaryCard label={t('common.likes')} value={data.currentTotals.likes} diff={data.currentTotals.likes - data.prevTotals.likes} />
+            <SummaryCard label={t('common.comments')} value={data.currentTotals.comments} diff={data.currentTotals.comments - data.prevTotals.comments} />
+            <SummaryCard label={t('reportMockup.reposts')} value={data.currentTotals.shares} diff={data.currentTotals.shares - data.prevTotals.shares} />
           </div>
         </section>
 
@@ -220,24 +238,6 @@ export default function SharedReportView({
                 ))}
               </tbody>
             </table>
-          </div>
-        </section>
-
-        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
-          <div className="mb-4 flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.totalSummary')}</p>
-              <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.totalSummary')}</h2>
-            </div>
-            <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#3b4cca]">
-              {monthLabel}
-            </span>
-          </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <SummaryCard label={t('common.views')} value={data.currentTotals.views} diff={data.currentTotals.views - data.prevTotals.views} />
-            <SummaryCard label={t('common.likes')} value={data.currentTotals.likes} diff={data.currentTotals.likes - data.prevTotals.likes} />
-            <SummaryCard label={t('common.comments')} value={data.currentTotals.comments} diff={data.currentTotals.comments - data.prevTotals.comments} />
-            <SummaryCard label={t('reportMockup.reposts')} value={data.currentTotals.shares} diff={data.currentTotals.shares - data.prevTotals.shares} />
           </div>
         </section>
 

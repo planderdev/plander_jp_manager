@@ -24,15 +24,28 @@ type PostRecord = {
   shares: number | null;
   uploaded_on: string | null;
   created_at: string | null;
-  influencers: Array<{
-    handle: string | null;
-    followers: number | null;
-    account_url: string | null;
-    channel: string | null;
-  }> | null;
-  schedules: Array<{
-    scheduled_at: string | null;
-  }> | null;
+  influencers:
+    | {
+        handle: string | null;
+        followers: number | null;
+        account_url: string | null;
+        channel: string | null;
+      }
+    | Array<{
+        handle: string | null;
+        followers: number | null;
+        account_url: string | null;
+        channel: string | null;
+      }>
+    | null;
+  schedules:
+    | {
+        scheduled_at: string | null;
+      }
+    | Array<{
+        scheduled_at: string | null;
+      }>
+    | null;
 };
 
 export type ReportClient = {
@@ -85,10 +98,20 @@ export function displayMonth(month: string, locale: string) {
 
 function resolveVisitDate(row: {
   uploaded_on?: string | null;
-  schedules?: Array<{ scheduled_at?: string | null }> | null;
+  schedules?: { scheduled_at?: string | null } | Array<{ scheduled_at?: string | null }> | null;
   created_at?: string | null;
 }) {
-  return row.uploaded_on || row.schedules?.[0]?.scheduled_at || row.created_at || null;
+  const schedule = Array.isArray(row.schedules) ? row.schedules[0] : row.schedules;
+  return row.uploaded_on || schedule?.scheduled_at || row.created_at || null;
+}
+
+function normalizeInfluencer(
+  value:
+    | PostRecord['influencers']
+    | null
+) {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
 }
 
 function isWithinMonth(value: string | null, month: string) {
@@ -148,40 +171,46 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
       `).eq('client_id', clientId).order('created_at', { ascending: false }),
   ]);
 
-  const allPosts = (postData ?? []) as PostRecord[];
+  const allPosts = (postData ?? []) as unknown as PostRecord[];
   const currentRows = allPosts
     .filter((row) => isWithinMonth(resolveVisitDate(row), yearMonth))
-    .map((row) => ({
+    .map((row) => {
+      const influencer = normalizeInfluencer(row.influencers);
+      return ({
       id: row.id,
       visitDate: resolveVisitDate(row)?.slice(0, 10) ?? yearMonth,
-      handle: row.influencers?.[0]?.handle ?? 'sample_creator',
-      accountUrl: row.influencers?.[0]?.account_url ?? null,
-      followers: row.influencers?.[0]?.followers ?? 0,
+      handle: influencer?.handle ?? 'sample_creator',
+      accountUrl: influencer?.account_url ?? null,
+      followers: influencer?.followers ?? 0,
       postUrl: row.post_url ?? null,
       views: row.views ?? 0,
       likes: row.likes ?? 0,
       comments: row.comments ?? 0,
       shares: row.shares ?? 0,
       grade: gradeForRow(row.views ?? 0, row.likes ?? 0, row.comments ?? 0, row.shares ?? 0),
-      channel: row.influencers?.[0]?.channel ?? 'instagram',
-    })) as ReportRow[];
+      channel: influencer?.channel ?? 'instagram',
+    });
+    }) as ReportRow[];
 
   const prevRows = allPosts
     .filter((row) => isWithinMonth(resolveVisitDate(row), prevMonth))
-    .map((row) => ({
+    .map((row) => {
+      const influencer = normalizeInfluencer(row.influencers);
+      return ({
       id: row.id,
       visitDate: resolveVisitDate(row)?.slice(0, 10) ?? prevMonth,
-      handle: row.influencers?.[0]?.handle ?? 'sample_creator',
-      accountUrl: row.influencers?.[0]?.account_url ?? null,
-      followers: row.influencers?.[0]?.followers ?? 0,
+      handle: influencer?.handle ?? 'sample_creator',
+      accountUrl: influencer?.account_url ?? null,
+      followers: influencer?.followers ?? 0,
       postUrl: row.post_url ?? null,
       views: row.views ?? 0,
       likes: row.likes ?? 0,
       comments: row.comments ?? 0,
       shares: row.shares ?? 0,
       grade: gradeForRow(row.views ?? 0, row.likes ?? 0, row.comments ?? 0, row.shares ?? 0),
-      channel: row.influencers?.[0]?.channel ?? 'instagram',
-    })) as ReportRow[];
+      channel: influencer?.channel ?? 'instagram',
+    });
+    }) as ReportRow[];
 
   let rows = currentRows;
   let usingFallback = false;
