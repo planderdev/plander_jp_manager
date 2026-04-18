@@ -21,6 +21,10 @@ function normalizePlatform(value: string): ChannelType {
 function normalizeHandle(value: string) {
   const raw = value.trim();
 
+  if (!raw.startsWith('http://') && !raw.startsWith('https://') && !raw.includes('/')) {
+    return raw.replace(/^@/, '');
+  }
+
   try {
     const url = new URL(raw.startsWith('http') ? raw : `https://${raw}`);
     const parts = url.pathname.split('/').filter(Boolean);

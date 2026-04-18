@@ -14,6 +14,11 @@ function normalizePlatform(value: string): ChannelType {
 function normalizeHandle(rawValue: string, platform: ChannelType) {
   const value = rawValue.trim();
 
+  // Plain handles from the recruitment form should stay as-is.
+  if (!value.startsWith('http://') && !value.startsWith('https://') && !value.includes('/')) {
+    return value.replace(/^@/, '').trim().toLowerCase();
+  }
+
   try {
     const url = new URL(value.startsWith('http') ? value : `https://${value}`);
     const parts = url.pathname.split('/').filter(Boolean);
