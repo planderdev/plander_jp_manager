@@ -43,6 +43,7 @@ export default function ScheduleForm({
   const [hour, setHour] = useState(initDate ? String(initDate.getHours()) : '10');
   const [minute, setMinute] = useState(initDate ? (initDate.getMinutes() >= 30 ? '30' : '00') : '00');
   const [providedMenu, setProvidedMenu] = useState(schedule?.provided_menu ?? '');
+  const [additionalRequests, setAdditionalRequests] = useState(schedule?.additional_requests ?? '');
   const [memo, setMemo] = useState(schedule?.memo ?? '');
 
   const filtered = useMemo(() => {
@@ -159,6 +160,18 @@ export default function ScheduleForm({
           onChange={(e) => setProvidedMenu(e.target.value)}
           rows={3}
           placeholder={t('scheduleForm.providedMenuHelp')}
+          className="w-full border border-gray-400 rounded p-2"
+        />
+      </div>
+
+      <div>
+        <label className="text-sm block mb-1 font-medium">{t('scheduleForm.additionalRequests')}</label>
+        <textarea
+          name="additional_requests"
+          value={additionalRequests}
+          onChange={(e) => setAdditionalRequests(e.target.value)}
+          rows={4}
+          placeholder={t('scheduleForm.additionalRequestsHelp')}
           className="w-full border border-gray-400 rounded p-2"
         />
       </div>

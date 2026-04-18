@@ -74,6 +74,7 @@ export interface Schedule {
   influencer_id: number;
   memo: string | null;
   provided_menu: string | null;
+  additional_requests: string | null;
   created_at: string;
   clients?: {
     company_name: string;
