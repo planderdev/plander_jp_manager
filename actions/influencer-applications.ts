@@ -1,22 +1,9 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { redirect } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
-import { createClient } from '@/lib/supabase/server';
 import type { ChannelType, Gender, InfluencerApplication } from '@/types/db';
-
-async function requireSignedInUser() {
-  const sb = await createClient();
-  const {
-    data: { user },
-  } = await sb.auth.getUser();
-
-  if (!user) {
-    throw new Error('로그인이 필요합니다');
-  }
-
-  return user;
-}
 
 function normalizePlatform(value: string): ChannelType {
   const platform = value.trim().toLowerCase();
@@ -126,70 +113,71 @@ async function updateExistingInfluencer(handle: string, accountUrl: string | nul
 }
 
 export async function approveInfluencerApplicationAction(id: string) {
-  await requireSignedInUser();
+  try {
+    const application = await getApplicationOrThrow(id);
+    const admin = createAdminClient();
+    const channel = normalizePlatform(application.platform);
+    const handle = normalizeHandle(application.account_id, channel);
 
-  const application = await getApplicationOrThrow(id);
-  const admin = createAdminClient();
-  const channel = normalizePlatform(application.platform);
-  const handle = normalizeHandle(application.account_id, channel);
+    if (!handle) {
+      throw new Error('신청자 계정 ID가 비어 있습니다');
+    }
 
-  if (!handle) {
-    throw new Error('신청자 계정 ID가 비어 있습니다');
-  }
+    const accountUrl = buildAccountUrl(channel, handle);
+    const age = normalizeAge(application.age_group);
+    const gender = normalizeGender(application.gender);
+    const existingId = await updateExistingInfluencer(handle, accountUrl, age, gender);
 
-  const accountUrl = buildAccountUrl(channel, handle);
-  const age = normalizeAge(application.age_group);
-  const gender = normalizeGender(application.gender);
+    if (!existingId) {
+      const { error: insertError } = await admin.from('influencers').insert({
+        channel,
+        handle,
+        followers: 0,
+        account_url: accountUrl,
+        unit_price: null,
+        memo: null,
+        name_en: null,
+        bank_name: null,
+        branch_name: null,
+        account_number: null,
+        phone: null,
+        postal_code: null,
+        prefecture: null,
+        city: null,
+        street: null,
+        age,
+        gender,
+        contact_status: 'active',
+      });
 
-  const existingId = await updateExistingInfluencer(handle, accountUrl, age, gender);
-
-  if (!existingId) {
-    const { error: insertError } = await admin.from('influencers').insert({
-      channel,
-      handle,
-      followers: 0,
-      account_url: accountUrl,
-      unit_price: null,
-      memo: null,
-      name_en: null,
-      bank_name: null,
-      branch_name: null,
-      account_number: null,
-      phone: null,
-      postal_code: null,
-      prefecture: null,
-      city: null,
-      street: null,
-      age,
-      gender,
-      contact_status: 'active',
-    });
-
-    if (insertError) {
-      if (insertError.code === '23505') {
-        await updateExistingInfluencer(handle, accountUrl, age, gender);
-      } else {
-        throw new Error(insertError.message);
+      if (insertError) {
+        if (insertError.code === '23505') {
+          await updateExistingInfluencer(handle, accountUrl, age, gender);
+        } else {
+          throw new Error(insertError.message);
+        }
       }
     }
-  }
 
-  const { error: applicationError } = await admin
-    .from('influencer_applications')
-    .update({ status: 'approved' })
-    .eq('id', id);
+    const { error: applicationError } = await admin
+      .from('influencer_applications')
+      .update({ status: 'approved' })
+      .eq('id', id);
 
-  if (applicationError) {
-    throw new Error(applicationError.message);
+    if (applicationError) {
+      throw new Error(applicationError.message);
+    }
+  } catch (error) {
+    console.error('approveInfluencerApplicationAction failed', { id, error });
+    throw error;
   }
 
   revalidatePath('/influencers');
   revalidatePath('/influencers/applications');
+  redirect('/influencers/applications');
 }
 
 export async function rejectInfluencerApplicationAction(id: string) {
-  await requireSignedInUser();
-
   const admin = createAdminClient();
   const { error } = await admin
     .from('influencer_applications')
@@ -201,11 +189,10 @@ export async function rejectInfluencerApplicationAction(id: string) {
   }
 
   revalidatePath('/influencers/applications');
+  redirect('/influencers/applications');
 }
 
 export async function restoreInfluencerApplicationAction(id: string) {
-  await requireSignedInUser();
-
   const admin = createAdminClient();
   const { error } = await admin
     .from('influencer_applications')
@@ -217,4 +204,5 @@ export async function restoreInfluencerApplicationAction(id: string) {
   }
 
   revalidatePath('/influencers/applications');
+  redirect('/influencers/applications');
 }
