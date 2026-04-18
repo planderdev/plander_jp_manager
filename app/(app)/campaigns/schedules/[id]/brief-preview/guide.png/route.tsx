@@ -21,10 +21,9 @@ export async function GET(
   }
 
   const sections = getGuideSections();
-  const home = process.env.HOME ?? '/Users/insung';
-  const regularFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Regular.otf');
-  const mediumFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Medium.otf');
-  const boldFontPath = path.join(home, 'Library', 'Fonts', 'PretendardJP-Bold.otf');
+  const regularFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Regular.otf');
+  const mediumFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Medium.otf');
+  const boldFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Bold.otf');
   const [regularFontData, mediumFontData, boldFontData] = await Promise.all([
     readFile(regularFontPath),
     readFile(mediumFontPath),

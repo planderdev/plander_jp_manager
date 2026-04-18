@@ -192,3 +192,15 @@ export async function restoreInfluencerApplication(id: string) {
     throw new Error(error.message);
   }
 }
+
+export async function deleteInfluencerApplication(id: string) {
+  const admin = createAdminClient();
+  const { error } = await admin
+    .from('influencer_applications')
+    .delete()
+    .eq('id', id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}

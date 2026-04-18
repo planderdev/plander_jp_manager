@@ -137,6 +137,7 @@ export default async function InfluencerApplicationsPage({
           const approveAction = `/influencers/applications/${application.id}/approve`;
           const rejectAction = `/influencers/applications/${application.id}/reject`;
           const restoreAction = `/influencers/applications/${application.id}/restore`;
+          const deleteAction = `/influencers/applications/${application.id}/delete`;
 
           return (
             <div
@@ -201,6 +202,14 @@ export default async function InfluencerApplicationsPage({
                     </button>
                   </form>
                 ) : null}
+                <form action={deleteAction} method="post" className="flex-1">
+                  <button
+                    type="submit"
+                    className="w-full rounded border border-red-300 bg-white px-3 py-2 text-sm font-medium text-red-600"
+                  >
+                    {t('applications.deleteHistory')}
+                  </button>
+                </form>
               </div>
             </div>
           );
@@ -236,6 +245,7 @@ export default async function InfluencerApplicationsPage({
               const approveAction = `/influencers/applications/${application.id}/approve`;
               const rejectAction = `/influencers/applications/${application.id}/reject`;
               const restoreAction = `/influencers/applications/${application.id}/restore`;
+              const deleteAction = `/influencers/applications/${application.id}/delete`;
 
               return (
                 <tr key={application.id} className={`border-t ${rejected ? 'bg-gray-100 text-gray-500' : ''}`}>
@@ -286,6 +296,14 @@ export default async function InfluencerApplicationsPage({
                           </button>
                         </form>
                       ) : null}
+                      <form action={deleteAction} method="post">
+                        <button
+                          type="submit"
+                          className="rounded border border-red-300 bg-white px-3 py-1.5 text-sm font-medium text-red-600"
+                        >
+                          {t('applications.deleteHistory')}
+                        </button>
+                      </form>
                     </div>
                   </td>
                 </tr>
