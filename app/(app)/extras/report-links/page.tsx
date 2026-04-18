@@ -94,7 +94,7 @@ export default async function ReportLinksPage({ searchParams }: { searchParams: 
                 <Link href={`/report/${report.share_token}`} target="_blank" className="text-emerald-700 hover:underline">
                   {t('common.link')}
                 </Link>
-                <SharedDeleteButton id={report.id} clientId={report.client_id} yearMonth={selectedMonth} />
+                <SharedDeleteButton id={report.id} clientId={report.client_id} yearMonth={report.year_month} />
               </div>
             </div>
           ))}

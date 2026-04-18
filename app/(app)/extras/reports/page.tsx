@@ -23,8 +23,8 @@ export default async function ReportsPage() {
       <section>
         <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-lg font-semibold">{t('reports.new')}</h2>
-          <Link href="/extras/reports/mockup" className="rounded-full border border-black px-4 py-2 text-sm font-medium text-black transition hover:bg-black hover:text-white">
-            {t('reports.preview')}
+          <Link href="/extras/report-links" className="rounded-full border border-black px-4 py-2 text-sm font-medium text-black transition hover:bg-black hover:text-white">
+            {t('reports.openGenerator')}
           </Link>
         </div>
         <form action={generateReportAction} className="bg-white p-6 rounded-lg shadow flex flex-wrap gap-4 items-end max-w-2xl">
@@ -64,9 +64,6 @@ export default async function ReportsPage() {
                   <td className="p-3">{r.file_name}</td>
                   <td className="p-3">{new Date(r.created_at).toLocaleDateString(dateLocale(locale))}</td>
                   <td className="p-3 space-x-3">
-                    <Link href={`/extras/reports/mockup?client=${r.client_id}&month=${encodeURIComponent(r.year_month)}`} className="text-emerald-700">
-                      {t('reports.preview')}
-                    </Link>
                     <DownloadButton filePath={r.file_path} />
                     <DeleteButton id={r.id} />
                   </td>
