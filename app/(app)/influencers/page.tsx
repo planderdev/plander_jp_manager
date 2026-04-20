@@ -31,6 +31,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
             <tr>
               <th className="p-3">{t('influencerForm.channel')}</th>
               <th className="p-3">{t('influencer.handle')}</th>
+              <th className="p-3">{t('influencer.lineId')}</th>
               <th className="p-3">{t('influencer.account')}</th>
               <th className="p-3">{t('influencer.followers')}</th>
               <th className="p-3">{t('common.age')}</th>
@@ -47,6 +48,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
                 <td className="p-3 font-medium">
                   <Link href={`/influencers/${i.id}`} className="text-blue-600 hover:underline">@{i.handle}</Link>
                 </td>
+                <td className="p-3">{i.line_id ?? '-'}</td>
                 <td className="p-3">
                   {i.account_url && (
                     <a href={i.account_url} target="_blank" className="text-xs bg-blue-50 border border-blue-300 rounded px-2 py-1 text-blue-700 hover:bg-blue-100">
@@ -68,7 +70,7 @@ export default async function InfluencersPage({ searchParams }: { searchParams: 
               </tr>
             ))}
             {!list?.length && (
-              <tr><td colSpan={9} className="p-8 text-center text-gray-400">{t('influencer.none')}</td></tr>
+              <tr><td colSpan={10} className="p-8 text-center text-gray-400">{t('influencer.none')}</td></tr>
             )}
           </tbody>
         </table>

@@ -47,6 +47,7 @@ export interface Influencer {
   id: number;
   channel: ChannelType;
   handle: string;
+  line_id: string | null;
   followers: number;
   account_url: string | null;
   unit_price: number | null;

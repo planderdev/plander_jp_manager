@@ -68,6 +68,12 @@ export default function InfluencerForm({
               className="w-full border border-gray-400 rounded p-2" />
           </div>
           <div>
+            <label className="text-sm block mb-1 font-medium">{t('influencerForm.lineId')}</label>
+            <input name="line_id" defaultValue={i?.line_id ?? ''}
+              className="w-full border border-gray-400 rounded p-2" />
+            <p className="text-xs text-gray-600 mt-1">{t('influencerForm.lineIdHelp')}</p>
+          </div>
+          <div>
             <label className="text-sm block mb-1 font-medium">{t('influencerForm.followers')}</label>
             <input name="followers" type="number" required defaultValue={i?.followers ?? ''}
               className="w-full border border-gray-400 rounded p-2" />

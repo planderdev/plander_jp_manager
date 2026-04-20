@@ -35,6 +35,7 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
         <h2 className="text-sm font-semibold border-b border-gray-300 pb-1">{t('common.basicInfo')}</h2>
         <Row label={t('influencerForm.channel')} value={<div className="flex items-center gap-2"><ChannelIcon channel={i.channel} size={22} /><span>{channelLabel(i.channel, locale)}</span></div>} />
         <Row label={t('influencer.handle')} value={`@${i.handle}`} />
+        <Row label={t('influencer.lineId')} value={i.line_id ?? '-'} />
         <Row label={t('influencer.followers')} value={`${i.followers?.toLocaleString() ?? 0}${t('common.people')}`} />
         <Row label={t('common.age')} value={i.age ?? '-'} />
         <Row label={t('common.gender')} value={genderLabel(i.gender, locale)} />

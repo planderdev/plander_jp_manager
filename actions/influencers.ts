@@ -11,6 +11,7 @@ function parsePayload(fd: FormData) {
   return {
     channel: String(fd.get('channel') || 'instagram') as ChannelType,
     handle: String(fd.get('handle') || ''),
+    line_id: String(fd.get('line_id') || '').trim() || null,
     followers: Number(fd.get('followers')) || 0,
     account_url: String(fd.get('account_url') || '') || null,
     unit_price: Number(fd.get('unit_price')) || null,
