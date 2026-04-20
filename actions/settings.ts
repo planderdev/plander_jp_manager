@@ -1,7 +1,7 @@
 'use server';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
-import { getDeliverySettings, parseDeliverySettingsFormData, saveDeliverySettings } from '@/lib/briefing-config';
+import { getDeliverySettings, getLineWebhookStatus, parseDeliverySettingsFormData, saveDeliverySettings } from '@/lib/briefing-config';
 
 export async function saveApifyTokenAction(fd: FormData) {
   const token = String(fd.get('apify_token') || '').trim();
@@ -41,4 +41,8 @@ export async function saveDeliverySettingsAction(fd: FormData) {
 
 export async function getDeliverySettingsStatus() {
   return getDeliverySettings();
+}
+
+export async function getLineWebhookStatusAction() {
+  return getLineWebhookStatus();
 }

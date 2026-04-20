@@ -24,7 +24,11 @@ export default async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isLogin = path.startsWith('/login');
-  const isPublic = path === '/login' || path.startsWith('/report/') || path.startsWith('/api/cron/');
+  const isPublic =
+    path === '/login' ||
+    path.startsWith('/report/') ||
+    path.startsWith('/api/cron/') ||
+    path.startsWith('/api/line/webhook');
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));

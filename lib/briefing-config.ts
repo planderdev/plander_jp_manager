@@ -6,6 +6,7 @@ const CLIENT_BRIEF_SETTINGS_KEY = 'client_brief_settings';
 const INFLUENCER_MEDIA_SETTINGS_KEY = 'influencer_media_settings';
 const DELIVERY_SETTINGS_KEY = 'delivery_channel_settings';
 const BRIEF_EMAIL_LOG_KEY = 'brief_email_log';
+const LINE_WEBHOOK_STATUS_KEY = 'line_webhook_status';
 
 export type ClientBriefConfig = {
   visitNotesJa: string;
@@ -23,6 +24,7 @@ export type DeliverySettings = {
   emailRecipient: string;
   emailSender: string;
   lineChannelAccessToken: string;
+  lineChannelSecret: string;
   lineDestinationId: string;
   lineInfluencerMessageTemplate: string;
   kakaoJavascriptKey: string;
@@ -30,6 +32,14 @@ export type DeliverySettings = {
   kakaoAdminKey: string;
   kakaoSenderKey: string;
   kakaoStoreMessageTemplate: string;
+};
+
+export type LineWebhookStatus = {
+  lastReceivedAt: string | null;
+  lastEventType: string | null;
+  lastSourceType: string | null;
+  lastSourceId: string | null;
+  lastMessageText: string | null;
 };
 
 type BriefEmailLogEntry = {
@@ -74,6 +84,7 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   emailRecipient: '1986desire@gmail.com',
   emailSender: 'Plander <onboarding@resend.dev>',
   lineChannelAccessToken: '',
+  lineChannelSecret: '',
   lineDestinationId: '',
   lineInfluencerMessageTemplate: '안녕하세요 {{influencerHandle}}님.\n내일 {{visitDate}} {{visitTime}} 방문 일정 안내드립니다.',
   kakaoJavascriptKey: '',
@@ -81,6 +92,14 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   kakaoAdminKey: '',
   kakaoSenderKey: '',
   kakaoStoreMessageTemplate: '내일 {{visitDate}} 방문 일정 공유드립니다.\n{{influencerHandle}} / 팔로워 {{followers}}명 / 방문시간 {{visitTime}} / 방문인원 {{visitorCount}}명',
+};
+
+export const DEFAULT_LINE_WEBHOOK_STATUS: LineWebhookStatus = {
+  lastReceivedAt: null,
+  lastEventType: null,
+  lastSourceType: null,
+  lastSourceId: null,
+  lastMessageText: null,
 };
 
 function mergeClientBriefConfig(input?: Partial<ClientBriefConfig> | null): ClientBriefConfig {
@@ -104,6 +123,7 @@ function mergeDeliverySettings(input?: Partial<DeliverySettings> | null): Delive
     emailRecipient: normalizeLine(input?.emailRecipient, DEFAULT_DELIVERY_SETTINGS.emailRecipient),
     emailSender: normalizeLine(input?.emailSender, DEFAULT_DELIVERY_SETTINGS.emailSender),
     lineChannelAccessToken: normalizeNullableString(input?.lineChannelAccessToken) ?? '',
+    lineChannelSecret: normalizeNullableString(input?.lineChannelSecret) ?? '',
     lineDestinationId: normalizeNullableString(input?.lineDestinationId) ?? '',
     lineInfluencerMessageTemplate: normalizeMultiline(input?.lineInfluencerMessageTemplate, DEFAULT_DELIVERY_SETTINGS.lineInfluencerMessageTemplate),
     kakaoJavascriptKey: normalizeNullableString(input?.kakaoJavascriptKey) ?? '',
@@ -132,6 +152,16 @@ function normalizeTime(value: unknown, fallback: string) {
 function normalizeNullableString(value: unknown) {
   const text = String(value ?? '').trim();
   return text || null;
+}
+
+function mergeLineWebhookStatus(input?: Partial<LineWebhookStatus> | null): LineWebhookStatus {
+  return {
+    lastReceivedAt: normalizeNullableString(input?.lastReceivedAt),
+    lastEventType: normalizeNullableString(input?.lastEventType),
+    lastSourceType: normalizeNullableString(input?.lastSourceType),
+    lastSourceId: normalizeNullableString(input?.lastSourceId),
+    lastMessageText: normalizeNullableString(input?.lastMessageText),
+  };
 }
 
 async function readSettingValue(key: string) {
@@ -214,6 +244,22 @@ export async function saveDeliverySettings(input: Partial<DeliverySettings>) {
   return next;
 }
 
+export async function getLineWebhookStatus() {
+  const raw = await readSettingValue(LINE_WEBHOOK_STATUS_KEY);
+  return mergeLineWebhookStatus(parseJson<Partial<LineWebhookStatus>>(raw, DEFAULT_LINE_WEBHOOK_STATUS));
+}
+
+export async function markLineWebhookReceived(input: Partial<LineWebhookStatus>) {
+  const current = await getLineWebhookStatus();
+  const next = mergeLineWebhookStatus({
+    ...current,
+    ...input,
+    lastReceivedAt: input.lastReceivedAt ?? new Date().toISOString(),
+  });
+  await writeSettingValue(LINE_WEBHOOK_STATUS_KEY, JSON.stringify(next));
+  return next;
+}
+
 async function getBriefEmailLogMap() {
   const raw = await readSettingValue(BRIEF_EMAIL_LOG_KEY);
   return parseJson<Record<string, BriefEmailLogEntry>>(raw, {});
@@ -270,6 +316,7 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
   setString('emailRecipient', 'email_recipient');
   setString('emailSender', 'email_sender');
   setString('lineChannelAccessToken', 'line_channel_access_token');
+  setString('lineChannelSecret', 'line_channel_secret');
   setString('lineDestinationId', 'line_destination_id');
   setString('lineInfluencerMessageTemplate', 'line_influencer_message_template');
   setString('kakaoJavascriptKey', 'kakao_javascript_key');

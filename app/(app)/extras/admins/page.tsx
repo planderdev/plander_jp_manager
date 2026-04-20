@@ -4,6 +4,7 @@ import {
   saveApifyTokenAction,
   getApifyTokenStatus,
   getDeliverySettingsStatus,
+  getLineWebhookStatusAction,
   saveDeliverySettingsAction,
 } from '@/actions/settings';
 import { syncAllPosts } from '@/actions/sync-metrics';
@@ -20,8 +21,11 @@ export default async function AdminsPage() {
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
   const tokenStatus = await getApifyTokenStatus();
   const deliverySettings = await getDeliverySettingsStatus();
+  const lineWebhookStatus = await getLineWebhookStatusAction();
   const { data: actorRow } = await sb.from('app_settings').select('value').eq('key', 'apify_actor_id').single();
   const actorId = actorRow?.value ?? '';
+  const appBaseUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
+  const lineWebhookUrl = `${appBaseUrl}/api/line/webhook`;
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -104,9 +108,24 @@ export default async function AdminsPage() {
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
+                <label className="text-sm block mb-1 font-medium">{t('admin.lineChannelSecret')}</label>
+                <input type="password" name="line_channel_secret" defaultValue={deliverySettings.lineChannelSecret}
+                  className="w-full border border-gray-400 rounded p-2" />
+              </div>
+              <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.lineDestinationId')}</label>
                 <input name="line_destination_id" defaultValue={deliverySettings.lineDestinationId}
                   className="w-full border border-gray-400 rounded p-2" />
+              </div>
+              <div>
+                <label className="text-sm block mb-1 font-medium">{t('admin.lineWebhookUrl')}</label>
+                <input value={lineWebhookUrl} readOnly
+                  className="w-full border border-gray-300 bg-gray-50 rounded p-2 text-sm text-gray-700" />
+              </div>
+              <div className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-xs text-gray-600 space-y-1">
+                <div>{t('admin.lineWebhookLastReceived')}: {lineWebhookStatus.lastReceivedAt ?? '-'}</div>
+                <div>{t('admin.lineWebhookLastEvent')}: {lineWebhookStatus.lastEventType ?? '-'}</div>
+                <div>{t('admin.lineWebhookLastSource')}: {lineWebhookStatus.lastSourceType ?? '-'} / {lineWebhookStatus.lastSourceId ?? '-'}</div>
               </div>
               <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.influencerMessageTemplate')}</label>
