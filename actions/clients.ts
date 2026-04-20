@@ -2,6 +2,7 @@
 import { createClient as createSupabase } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { parseClientBriefConfigFormData, saveClientBriefConfig } from '@/lib/briefing-config';
 
 function parseClientPayload(formData: FormData) {
   return {
@@ -69,6 +70,8 @@ export async function createClientAction(formData: FormData) {
     }
   }
 
+  await saveClientBriefConfig(inserted.id, parseClientBriefConfigFormData(formData));
+
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
   redirect(`/campaigns/clients/${inserted.id}`);
@@ -100,6 +103,8 @@ export async function updateClientAction(formData: FormData) {
     await sb.storage.from('contracts').upload(path, file);
     await sb.from('clients').update({ contract_file_path: path }).eq('id', id);
   }
+
+  await saveClientBriefConfig(id, parseClientBriefConfigFormData(formData));
 
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');

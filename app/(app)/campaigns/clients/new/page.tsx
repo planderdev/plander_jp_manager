@@ -1,6 +1,7 @@
 import ClientForm from '@/components/ClientForm';
 import { createClientAction } from '@/actions/clients';
 import { getClientOptions } from '@/actions/client-options';
+import { DEFAULT_CLIENT_BRIEF_CONFIG } from '@/lib/briefing-config';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { getI18n } from '@/lib/i18n/server';
@@ -24,6 +25,7 @@ export default async function NewClientPage() {
         options={options}
         admins={admins ?? []}
         currentUserId={user.id}
+        briefConfig={DEFAULT_CLIENT_BRIEF_CONFIG}
       />
     </div>
   );

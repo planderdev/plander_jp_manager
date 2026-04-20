@@ -1,6 +1,7 @@
 'use server';
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
+import { getDeliverySettings, parseDeliverySettingsFormData, saveDeliverySettings } from '@/lib/briefing-config';
 
 export async function saveApifyTokenAction(fd: FormData) {
   const token = String(fd.get('apify_token') || '').trim();
@@ -31,4 +32,13 @@ export async function getApifyTokenStatus() {
   const v = data.value;
   const masked = v.length > 8 ? `${v.slice(0, 6)}...${v.slice(-4)}` : '****';
   return { hasToken: true, masked, updatedAt: data.updated_at };
+}
+
+export async function saveDeliverySettingsAction(fd: FormData) {
+  await saveDeliverySettings(parseDeliverySettingsFormData(fd));
+  revalidatePath('/extras/admins');
+}
+
+export async function getDeliverySettingsStatus() {
+  return getDeliverySettings();
 }

@@ -63,6 +63,7 @@ export interface Influencer {
   age: number | null;
   gender: Gender | null;
   contact_status: ContactStatus;
+  profile_screenshot_path?: string | null;
   created_at: string;
   updated_at: string;
 }

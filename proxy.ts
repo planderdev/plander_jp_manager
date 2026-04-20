@@ -24,7 +24,7 @@ export default async function proxy(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isLogin = path.startsWith('/login');
-  const isPublic = path === '/login' || path.startsWith('/report/');
+  const isPublic = path === '/login' || path.startsWith('/report/') || path.startsWith('/api/cron/');
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));

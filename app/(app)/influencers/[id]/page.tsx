@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getInfluencerMediaConfig } from '@/lib/briefing-config';
 import { notFound } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import { fullLocalized } from '@/lib/datetime';
@@ -16,6 +17,10 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
   const sb = await createClient();
   const { data: i } = await sb.from('influencers').select('*').eq('id', Number(id)).single();
   if (!i) notFound();
+  const mediaConfig = await getInfluencerMediaConfig(i.id);
+  const profileScreenshotUrl = mediaConfig.profileScreenshotPath
+    ? (await sb.storage.from('contracts').createSignedUrl(mediaConfig.profileScreenshotPath, 3600)).data?.signedUrl ?? null
+    : null;
 
   const { data: schedules } = await sb.from('schedules')
     .select('*, clients(company_name), posts(post_url, settlement_status)')
@@ -37,6 +42,11 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
         <Row label={t('influencer.accountLink')} value={
           i.account_url
             ? <a href={i.account_url} target="_blank" className="inline-block bg-blue-50 border border-blue-300 rounded px-3 py-1 text-blue-700 hover:bg-blue-100">{t('influencer.openAccountFull')}</a>
+            : '-'
+        } />
+        <Row label={t('influencer.profileScreenshot')} value={
+          profileScreenshotUrl
+            ? <img src={profileScreenshotUrl} alt="Profile screenshot" className="max-w-xs rounded-xl border border-gray-200" />
             : '-'
         } />
         <Row label={t('common.memo')} value={i.memo ?? '-'} />

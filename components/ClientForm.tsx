@@ -1,6 +1,7 @@
 'use client';
 
 import type { Client, ClientStatus } from '@/types/db';
+import type { ClientBriefConfig } from '@/lib/briefing-config';
 import SubmitButton from '@/components/SubmitButton';
 import PhoneInput from '@/components/PhoneInput';
 import AddressSearch from '@/components/AddressSearch';
@@ -12,13 +13,14 @@ type OptionItem = { id: number; value: string };
 type Admin = { id: string; name: string };
 
 export default function ClientForm({
-  client, action, options, admins, currentUserId,
+  client, action, options, admins, currentUserId, briefConfig,
 }: {
   client?: Client;
   action: (fd: FormData) => void;
   options: { categories: OptionItem[]; regions: OptionItem[]; products: OptionItem[] };
   admins: Admin[];
   currentUserId: string;
+  briefConfig: ClientBriefConfig;
 }) {
   const { t } = useI18n();
   const statusOptions: { value: ClientStatus; label: string }[] = [
@@ -173,6 +175,62 @@ export default function ClientForm({
           {client?.contract_file_path && (
             <p className="text-xs text-gray-600 mt-1">{t('clientForm.fileUploaded')}</p>
           )}
+        </div>
+      </div>
+
+      <div className="space-y-4">
+        <h2 className="text-base font-semibold border-b border-gray-300 pb-1">{t('common.guideSettings')}</h2>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.visitNoticeTime')}</label>
+          <input
+            type="time"
+            step="600"
+            name="visit_notice_time"
+            defaultValue={briefConfig.visitNoticeTime}
+            className="w-full border border-gray-400 rounded p-2 max-w-xs"
+          />
+          <p className="text-xs text-gray-500 mt-1">{t('clientForm.visitNoticeHelp')}</p>
+        </div>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.guideVisitNotes')}</label>
+          <textarea
+            name="guide_visit_notes_ja"
+            defaultValue={briefConfig.visitNotesJa}
+            rows={8}
+            className="w-full border border-gray-400 rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.guidePublishNotes')}</label>
+          <textarea
+            name="guide_publish_notes_ja"
+            defaultValue={briefConfig.publishNotesJa}
+            rows={2}
+            className="w-full border border-gray-400 rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.guidePostNotes')}</label>
+          <textarea
+            name="guide_post_notes_ja"
+            defaultValue={briefConfig.postNotesJa}
+            rows={3}
+            className="w-full border border-gray-400 rounded p-2"
+          />
+        </div>
+
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('clientForm.guideShootNotes')}</label>
+          <textarea
+            name="guide_shoot_notes_ja"
+            defaultValue={briefConfig.shootNotesJa}
+            rows={6}
+            className="w-full border border-gray-400 rounded p-2"
+          />
         </div>
       </div>
 

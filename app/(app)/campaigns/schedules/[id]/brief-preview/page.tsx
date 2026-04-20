@@ -2,10 +2,18 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getBriefScheduleData } from '@/lib/briefing';
 import { getI18n } from '@/lib/i18n/server';
+import { sendBriefingEmailAction } from '@/actions/briefings';
 
-export default async function BriefPreviewPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function BriefPreviewPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams?: Promise<{ sent?: string }>;
+}) {
   const { id } = await params;
   const { t } = await getI18n();
+  const query = await searchParams;
   const brief = await getBriefScheduleData(Number(id));
 
   if (!brief) notFound();
@@ -21,6 +29,9 @@ export default async function BriefPreviewPage({ params }: { params: Promise<{ i
           <p className="text-sm text-gray-500 mt-1">
             @{brief.influencerHandle} · {brief.clientName}
           </p>
+          {query?.sent === '1' ? (
+            <p className="text-sm text-emerald-600 mt-2">고정 메일 주소로 전송했습니다.</p>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <Link href={`/campaigns/schedules/${brief.id}`} className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
@@ -32,6 +43,13 @@ export default async function BriefPreviewPage({ params }: { params: Promise<{ i
           <a href={guideSrc} target="_blank" className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">
             가이드 열기
           </a>
+          <form action={sendBriefingEmailAction}>
+            <input type="hidden" name="schedule_id" value={brief.id} />
+            <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview`} />
+            <button className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700">
+              메일 테스트 전송
+            </button>
+          </form>
         </div>
       </div>
 

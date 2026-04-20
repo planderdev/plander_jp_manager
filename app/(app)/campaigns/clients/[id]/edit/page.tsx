@@ -1,6 +1,7 @@
 import ClientForm from '@/components/ClientForm';
 import { updateClientAction } from '@/actions/clients';
 import { getClientOptions } from '@/actions/client-options';
+import { getClientBriefConfig } from '@/lib/briefing-config';
 import { createClient } from '@/lib/supabase/server';
 import { notFound, redirect } from 'next/navigation';
 import { getI18n } from '@/lib/i18n/server';
@@ -12,10 +13,11 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect('/login');
 
-  const [{ data: client }, options, { data: admins }] = await Promise.all([
+  const [{ data: client }, options, { data: admins }, briefConfig] = await Promise.all([
     sb.from('clients').select('*').eq('id', Number(id)).single(),
     getClientOptions(),
     sb.from('admins').select('id, name').order('name'),
+    getClientBriefConfig(Number(id)),
   ]);
   if (!client) notFound();
 
@@ -32,6 +34,7 @@ export default async function EditClientPage({ params }: { params: Promise<{ id:
         options={options}
         admins={admins ?? []}
         currentUserId={user.id}
+        briefConfig={briefConfig}
       />
     </div>
   );

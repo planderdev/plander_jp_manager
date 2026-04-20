@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ChannelType, ContactStatus, Gender } from '@/types/db';
+import { saveInfluencerMediaConfig } from '@/lib/briefing-config';
 
 function parsePayload(fd: FormData) {
   const rawAge = String(fd.get('age') || '').trim();
@@ -31,11 +32,23 @@ function parsePayload(fd: FormData) {
 
 export async function createInfluencerAction(fd: FormData) {
   const sb = await createClient();
-  const { error } = await sb.from('influencers').insert(parsePayload(fd));
+  const { data: inserted, error } = await sb.from('influencers').insert(parsePayload(fd)).select('id').single();
   if (error) {
     if (error.code === '23505') throw new Error('이미 등록된 인플루언서 아이디입니다');
     throw new Error(error.message);
   }
+
+  if (inserted) {
+    const screenshot = fd.get('profile_screenshot') as File | null;
+    if (screenshot && screenshot.size > 0) {
+      const path = `influencer-screenshots/${inserted.id}/${Date.now()}_${screenshot.name}`;
+      const { error: uploadError } = await sb.storage.from('contracts').upload(path, screenshot, { upsert: true });
+      if (!uploadError) {
+        await saveInfluencerMediaConfig(inserted.id, { profileScreenshotPath: path });
+      }
+    }
+  }
+
   revalidatePath('/influencers');
   redirect('/influencers');
 }
@@ -45,6 +58,21 @@ export async function updateInfluencerAction(fd: FormData) {
   const id = Number(fd.get('id'));
   const { error } = await sb.from('influencers').update(parsePayload(fd)).eq('id', id);
   if (error) throw new Error(error.message);
+
+  const removeScreenshot = String(fd.get('remove_profile_screenshot') || '') === 'on';
+  if (removeScreenshot) {
+    await saveInfluencerMediaConfig(id, { profileScreenshotPath: null });
+  }
+
+  const screenshot = fd.get('profile_screenshot') as File | null;
+  if (screenshot && screenshot.size > 0) {
+    const path = `influencer-screenshots/${id}/${Date.now()}_${screenshot.name}`;
+    const { error: uploadError } = await sb.storage.from('contracts').upload(path, screenshot, { upsert: true });
+    if (!uploadError) {
+      await saveInfluencerMediaConfig(id, { profileScreenshotPath: path });
+    }
+  }
+
   revalidatePath('/influencers');
   redirect('/influencers');
 }

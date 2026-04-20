@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { ImageResponse } from 'next/og';
-import { getBriefScheduleData, getGuideSections } from '@/lib/briefing';
+import { getBriefScheduleData } from '@/lib/briefing';
 
 export const runtime = 'nodejs';
 
@@ -20,7 +20,7 @@ export async function GET(
     return new Response('Not found', { status: 404 });
   }
 
-  const sections = getGuideSections();
+  const sections = brief.guideSections;
   const regularFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Regular.otf');
   const mediumFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Medium.otf');
   const boldFontPath = path.join(process.cwd(), 'public', 'fonts', 'PretendardJP-Bold.otf');

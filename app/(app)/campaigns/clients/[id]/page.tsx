@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
+import { getClientBriefConfig } from '@/lib/briefing-config';
 import { notFound, redirect } from 'next/navigation';
 import BackButton from '@/components/BackButton';
 import DeleteButton from '@/components/client/DeleteButton';
@@ -16,6 +17,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
 
   const { data: c } = await sb.from('clients').select('*').eq('id', Number(id)).single();
   if (!c) notFound();
+  const briefConfig = await getClientBriefConfig(c.id);
 
   const { data: ownerAdmin } = c.owner_id
     ? await sb.from('admins').select('name').eq('id', c.owner_id).single()
@@ -48,6 +50,7 @@ export default async function ClientDetailPage({ params }: { params: Promise<{ i
         <Row label={t('clientForm.addressJa')} value={c.address_ja ?? '-'} />
         <Row label={t('clientForm.businessHours')} value={c.business_hours ?? '-'} />
         <Row label={t('clientForm.providedMenu')} value={c.provided_menu ?? '-'} />
+        <Row label={t('clientForm.visitNoticeTime')} value={briefConfig.visitNoticeTime} />
       </section>
 
       <section className="bg-white rounded-lg shadow p-6 space-y-3">

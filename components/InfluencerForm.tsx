@@ -6,8 +6,8 @@ import SubmitButton from '@/components/SubmitButton';
 import { useI18n } from '@/lib/i18n/provider';
 
 export default function InfluencerForm({
-  influencer, action,
-}: { influencer?: Influencer; action: (fd: FormData) => void }) {
+  influencer, action, profileScreenshotUrl,
+}: { influencer?: Influencer; action: (fd: FormData) => void; profileScreenshotUrl?: string | null }) {
   const i = influencer;
   const { t } = useI18n();
   const [channel, setChannel] = useState<ChannelType>(i?.channel ?? 'instagram');
@@ -192,6 +192,28 @@ export default function InfluencerForm({
           <option value="inactive">{t('contact.inactive')}</option>
           <option value="blocked">{t('contact.blocked')}</option>
         </select>
+      </div>
+
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold border-b border-gray-300 pb-1">{t('influencer.profileScreenshot')}</h2>
+        <div>
+          <label className="text-sm block mb-1 font-medium">{t('influencerForm.profileScreenshot')}</label>
+          <input type="file" name="profile_screenshot" accept=".png,.jpg,.jpeg,.webp" className="block text-sm" />
+          <p className="text-xs text-gray-500 mt-1">{t('influencerForm.profileScreenshotHelp')}</p>
+        </div>
+        {profileScreenshotUrl ? (
+          <div className="space-y-2">
+            <img
+              src={profileScreenshotUrl}
+              alt="Profile screenshot"
+              className="max-w-xs rounded-xl border border-gray-200"
+            />
+            <label className="inline-flex items-center gap-2 text-sm text-red-600">
+              <input type="checkbox" name="remove_profile_screenshot" />
+              {t('common.remove')}
+            </label>
+          </div>
+        ) : null}
       </div>
 
       <SubmitButton>{t('common.save')}</SubmitButton>
