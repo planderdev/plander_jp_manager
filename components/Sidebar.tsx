@@ -6,6 +6,7 @@ import Logo from '@/components/Logo';
 import { localeLabels } from '@/lib/i18n/config';
 import { useI18n } from '@/lib/i18n/provider';
 import { usePresentation } from '@/lib/presentation-context';
+import { useNotifications } from '@/lib/notification-context';
 
 export default function Sidebar({
   userName, signOutAction,
@@ -14,6 +15,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { locale, setLocale, t } = useI18n();
+  const { newApplicantCount } = useNotifications();
 
   const close = () => setOpen(false);
 
@@ -62,7 +64,7 @@ export default function Sidebar({
           <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>{t('nav.scheduleManagement')}</NavLink>
           <Section>{t('nav.influencer')}</Section>
           <NavLink href="/influencers" pathname={pathname} onClick={close}>{t('nav.influencerList')}</NavLink>
-          <NavLink href="/influencers/applications" pathname={pathname} onClick={close}>{t('nav.webApplicants')}</NavLink>
+          <NavLink href="/influencers/applications" pathname={pathname} onClick={close} badgeCount={newApplicantCount}>{t('nav.webApplicants')}</NavLink>
           <NavLink href="/influencers/posts" pathname={pathname} onClick={close}>{t('nav.postSettlement')}</NavLink>
           <NavLink href="/campaigns/completed" pathname={pathname} onClick={close}>{t('nav.completedPosts')}</NavLink>
           <Section>{t('nav.extras')}</Section>
@@ -109,7 +111,7 @@ export default function Sidebar({
   );
 }
 
-function NavLink({ href, pathname, onClick, children }: any) {
+function NavLink({ href, pathname, onClick, children, badgeCount = 0 }: any) {
   const active =
     pathname === href ||
     (href !== '/' && pathname?.startsWith(href + '/') &&
@@ -119,8 +121,13 @@ function NavLink({ href, pathname, onClick, children }: any) {
      )));
   return (
     <Link href={href} onClick={onClick}
-      className={`block px-3 py-2 rounded ${active ? 'bg-gray-700' : 'hover:bg-gray-800'}`}>
-      {children}
+      className={`flex items-center justify-between gap-3 px-3 py-2 rounded ${active ? 'bg-gray-700' : 'hover:bg-gray-800'}`}>
+      <span>{children}</span>
+      {badgeCount > 0 ? (
+        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+          {badgeCount > 99 ? '99+' : badgeCount}
+        </span>
+      ) : null}
     </Link>
   );
 }

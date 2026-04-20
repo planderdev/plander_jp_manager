@@ -50,6 +50,13 @@ type BriefEmailLogEntry = {
   lastManualRecipient?: string | null;
 };
 
+export type BriefEmailNotificationEvent = {
+  scheduleId: number;
+  mode: 'manual' | 'scheduled';
+  sentAt: string;
+  recipient: string | null;
+};
+
 type JsonObject = Record<string, unknown>;
 
 export const DEFAULT_CLIENT_BRIEF_CONFIG: ClientBriefConfig = {
@@ -293,6 +300,40 @@ export async function markBriefEmailManual(scheduleId: number, input: { sentAt: 
     lastManualRecipient: input.recipient,
   };
   await saveBriefEmailLogMap(map);
+}
+
+export async function getBriefEmailEventsSince(since?: string | null) {
+  const map = await getBriefEmailLogMap();
+  const sinceTime = since ? new Date(since).getTime() : null;
+  const events: BriefEmailNotificationEvent[] = [];
+
+  for (const [scheduleId, entry] of Object.entries(map)) {
+    if (entry.lastManualAt) {
+      const sentAt = new Date(entry.lastManualAt).getTime();
+      if (!sinceTime || sentAt > sinceTime) {
+        events.push({
+          scheduleId: Number(scheduleId),
+          mode: 'manual',
+          sentAt: entry.lastManualAt,
+          recipient: entry.lastManualRecipient ?? null,
+        });
+      }
+    }
+
+    if (entry.scheduledAt) {
+      const sentAt = new Date(entry.scheduledAt).getTime();
+      if (!sinceTime || sentAt > sinceTime) {
+        events.push({
+          scheduleId: Number(scheduleId),
+          mode: 'scheduled',
+          sentAt: entry.scheduledAt,
+          recipient: entry.lastScheduledRecipient ?? null,
+        });
+      }
+    }
+  }
+
+  return events.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
 }
 
 export function parseClientBriefConfigFormData(formData: FormData): ClientBriefConfig {

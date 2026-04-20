@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation';
 import { signOutAction } from '@/actions/auth';
 import Sidebar from '@/components/Sidebar';
 import { PresentationProvider } from '@/lib/presentation-context';
+import { NotificationProvider } from '@/lib/notification-context';
 
 import type { Metadata } from "next";
 
@@ -24,10 +25,12 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <PresentationProvider>
-      <div className="min-h-screen md:flex">
-        <Sidebar userName={userName} signOutAction={signOutAction} />
-        <main className="flex-1 bg-gray-50 min-w-0">{children}</main>
-      </div>
+      <NotificationProvider>
+        <div className="min-h-screen md:flex">
+          <Sidebar userName={userName} signOutAction={signOutAction} />
+          <main className="flex-1 bg-gray-50 min-w-0">{children}</main>
+        </div>
+      </NotificationProvider>
     </PresentationProvider>
   );
 }
