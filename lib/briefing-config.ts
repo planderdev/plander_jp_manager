@@ -24,14 +24,12 @@ export type DeliverySettings = {
   emailSender: string;
   lineChannelAccessToken: string;
   lineDestinationId: string;
-  lineStoreMessageTemplate: string;
   lineInfluencerMessageTemplate: string;
   kakaoJavascriptKey: string;
   kakaoRestApiKey: string;
   kakaoAdminKey: string;
   kakaoSenderKey: string;
   kakaoStoreMessageTemplate: string;
-  kakaoInfluencerMessageTemplate: string;
 };
 
 type BriefEmailLogEntry = {
@@ -77,14 +75,12 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   emailSender: 'Plander <onboarding@resend.dev>',
   lineChannelAccessToken: '',
   lineDestinationId: '',
-  lineStoreMessageTemplate: '내일 {{visitDate}} 방문 일정 공유드립니다.\n{{influencerHandle}} / 팔로워 {{followers}}명 / 방문시간 {{visitTime}} / 방문인원 {{visitorCount}}명',
   lineInfluencerMessageTemplate: '안녕하세요 {{influencerHandle}}님.\n내일 {{visitDate}} {{visitTime}} 방문 일정 안내드립니다.',
   kakaoJavascriptKey: '',
   kakaoRestApiKey: '',
   kakaoAdminKey: '',
   kakaoSenderKey: '',
   kakaoStoreMessageTemplate: '내일 {{visitDate}} 방문 일정 공유드립니다.\n{{influencerHandle}} / 팔로워 {{followers}}명 / 방문시간 {{visitTime}} / 방문인원 {{visitorCount}}명',
-  kakaoInfluencerMessageTemplate: '안녕하세요 {{influencerHandle}}님.\n내일 {{visitDate}} {{visitTime}} 방문 일정 안내드립니다.',
 };
 
 function mergeClientBriefConfig(input?: Partial<ClientBriefConfig> | null): ClientBriefConfig {
@@ -109,14 +105,12 @@ function mergeDeliverySettings(input?: Partial<DeliverySettings> | null): Delive
     emailSender: normalizeLine(input?.emailSender, DEFAULT_DELIVERY_SETTINGS.emailSender),
     lineChannelAccessToken: normalizeNullableString(input?.lineChannelAccessToken) ?? '',
     lineDestinationId: normalizeNullableString(input?.lineDestinationId) ?? '',
-    lineStoreMessageTemplate: normalizeMultiline(input?.lineStoreMessageTemplate, DEFAULT_DELIVERY_SETTINGS.lineStoreMessageTemplate),
     lineInfluencerMessageTemplate: normalizeMultiline(input?.lineInfluencerMessageTemplate, DEFAULT_DELIVERY_SETTINGS.lineInfluencerMessageTemplate),
     kakaoJavascriptKey: normalizeNullableString(input?.kakaoJavascriptKey) ?? '',
     kakaoRestApiKey: normalizeNullableString(input?.kakaoRestApiKey) ?? '',
     kakaoAdminKey: normalizeNullableString(input?.kakaoAdminKey) ?? '',
     kakaoSenderKey: normalizeNullableString(input?.kakaoSenderKey) ?? '',
     kakaoStoreMessageTemplate: normalizeMultiline(input?.kakaoStoreMessageTemplate, DEFAULT_DELIVERY_SETTINGS.kakaoStoreMessageTemplate),
-    kakaoInfluencerMessageTemplate: normalizeMultiline(input?.kakaoInfluencerMessageTemplate, DEFAULT_DELIVERY_SETTINGS.kakaoInfluencerMessageTemplate),
   };
 }
 
@@ -277,14 +271,12 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
   setString('emailSender', 'email_sender');
   setString('lineChannelAccessToken', 'line_channel_access_token');
   setString('lineDestinationId', 'line_destination_id');
-  setString('lineStoreMessageTemplate', 'line_store_message_template');
   setString('lineInfluencerMessageTemplate', 'line_influencer_message_template');
   setString('kakaoJavascriptKey', 'kakao_javascript_key');
   setString('kakaoRestApiKey', 'kakao_rest_api_key');
   setString('kakaoAdminKey', 'kakao_admin_key');
   setString('kakaoSenderKey', 'kakao_sender_key');
   setString('kakaoStoreMessageTemplate', 'kakao_store_message_template');
-  setString('kakaoInfluencerMessageTemplate', 'kakao_influencer_message_template');
 
   return next;
 }

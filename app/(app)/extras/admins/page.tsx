@@ -1,6 +1,4 @@
 import { createClient } from '@/lib/supabase/server';
-import { createAdminAction } from '@/actions/admins';
-import PhoneInput from '@/components/PhoneInput';
 import SubmitButton from '@/components/SubmitButton';
 import {
   saveApifyTokenAction,
@@ -14,6 +12,7 @@ import Link from 'next/link';
 import { deleteAdminAction } from '@/actions/admins';
 import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
+import AdminCreateDialog from '@/components/admins/AdminCreateDialog';
 
 export default async function AdminsPage() {
   const { locale, t } = await getI18n();
@@ -29,25 +28,10 @@ export default async function AdminsPage() {
       <h1 className="text-2xl font-bold">{t('admin.title')}</h1>
 
       <section>
-        <h2 className="text-lg font-semibold mb-3">{t('admin.new')}</h2>
-        <form action={createAdminAction} className="bg-white p-6 rounded-lg shadow space-y-4 max-w-2xl">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <F name="name" label={t('admin.name')} required />
-            <F name="company" label={t('admin.company')} />
-            <F name="title" label={t('admin.jobTitle')} />
-            <div>
-              <label className="text-sm block mb-1 font-medium">{t('common.phone')}</label>
-              <PhoneInput name="phone" />
-            </div>
-            <F name="email" label={t('admin.emailLogin')} type="email" required />
-            <F name="password" label={t('admin.passwordMin')} type="password" required />
-          </div>
-          <SubmitButton>{t('common.create')}</SubmitButton>
-        </form>
-      </section>
-
-      <section>
-        <h2 className="text-lg font-semibold mb-3">{t('admin.list')}</h2>
+        <div className="mb-3 flex items-center justify-between gap-3">
+          <h2 className="text-lg font-semibold">{t('admin.list')}</h2>
+          <AdminCreateDialog />
+        </div>
         <div className="bg-white rounded-lg shadow overflow-x-auto">
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-100 text-left">
@@ -125,11 +109,6 @@ export default async function AdminsPage() {
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
-                <label className="text-sm block mb-1 font-medium">{t('admin.storeMessageTemplate')}</label>
-                <textarea name="line_store_message_template" defaultValue={deliverySettings.lineStoreMessageTemplate}
-                  rows={4} className="w-full border border-gray-400 rounded p-2" />
-              </div>
-              <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.influencerMessageTemplate')}</label>
                 <textarea name="line_influencer_message_template" defaultValue={deliverySettings.lineInfluencerMessageTemplate}
                   rows={4} className="w-full border border-gray-400 rounded p-2" />
@@ -170,11 +149,6 @@ export default async function AdminsPage() {
                 <div>
                   <label className="text-sm block mb-1 font-medium">{t('admin.storeMessageTemplate')}</label>
                   <textarea name="kakao_store_message_template" defaultValue={deliverySettings.kakaoStoreMessageTemplate}
-                    rows={4} className="w-full border border-gray-400 rounded p-2" />
-                </div>
-                <div>
-                  <label className="text-sm block mb-1 font-medium">{t('admin.influencerMessageTemplate')}</label>
-                  <textarea name="kakao_influencer_message_template" defaultValue={deliverySettings.kakaoInfluencerMessageTemplate}
                     rows={4} className="w-full border border-gray-400 rounded p-2" />
                 </div>
                 <p className="text-xs text-amber-600">{t('admin.kakaoLimitNote')}</p>
@@ -238,16 +212,6 @@ export default async function AdminsPage() {
           </form>
         </div>
       </section>
-    </div>
-  );
-}
-
-function F({ name, label, type = 'text', required }: any) {
-  return (
-    <div>
-      <label className="text-sm block mb-1 font-medium">{label}</label>
-      <input name={name} type={type} required={required}
-        className="w-full border border-gray-400 rounded p-2" />
     </div>
   );
 }
