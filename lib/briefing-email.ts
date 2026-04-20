@@ -60,6 +60,18 @@ function getAppBaseUrl() {
   return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
 }
 
+function dayDiffLabel(targetDate: string, now = new Date()) {
+  const nowParts = krDateParts(now);
+  const today = new Date(`${nowParts.year}-${nowParts.month}-${nowParts.day}T00:00:00+09:00`);
+  const target = new Date(`${targetDate}T00:00:00+09:00`);
+  const diff = Math.round((target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+
+  return {
+    ko: diff <= 1 ? '내일' : `${diff}일 후`,
+    ja: diff <= 1 ? '明日' : `${diff}日後`,
+  };
+}
+
 async function sendResendEmail(payload: Record<string, unknown>, idempotencyKey: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -154,15 +166,17 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
     await markBriefEmailManual(scheduleId, { sentAt, recipient });
   }
 
-  await sendWebPushNotification((locale) => ({
-    title: locale === 'ja' ? '招待状/ガイドメール送信完了' : '초대장/가이드 메일 전송 완료',
-    body:
-      locale === 'ja'
-        ? `${brief.clientName} / @${brief.influencerHandle} の送信が完了しました。`
-        : `${brief.clientName} / @${brief.influencerHandle} 전송이 완료되었습니다.`,
-    url: '/extras/admins',
-    tag: `brief-email-${scheduleId}`,
-  }));
+  if (mode === 'manual') {
+    await sendWebPushNotification((locale) => ({
+      title: locale === 'ja' ? '招待状/ガイドメール送信完了' : '초대장/가이드 메일 전송 완료',
+      body:
+        locale === 'ja'
+          ? `${brief.clientName} / @${brief.influencerHandle} の送信が完了しました。`
+          : `${brief.clientName} / @${brief.influencerHandle} 전송이 완료되었습니다.`,
+      url: '/extras/admins',
+      tag: `brief-email-${scheduleId}`,
+    }));
+  }
 
   return { recipient, subject, visitAt };
 }
@@ -205,6 +219,19 @@ export async function runScheduledBriefingEmails(now = new Date()) {
     await sendBriefingEmail(schedule.id, 'scheduled');
     sent += 1;
     results.push({ scheduleId: schedule.id, status: 'sent' });
+  }
+
+  if (sent > 0) {
+    const label = dayDiffLabel(targetDate, now);
+    await sendWebPushNotification((locale) => ({
+      title: locale === 'ja' ? '訪問スケジュール通知' : '방문 스케줄 알림',
+      body:
+        locale === 'ja'
+          ? `${label.ja} ${sent}件のスケジュールがあります。`
+          : `${label.ko} ${sent}건의 스케줄이 있습니다.`,
+      url: '/campaigns/schedules',
+      tag: `scheduled-brief-${targetDate}`,
+    }));
   }
 
   return {
