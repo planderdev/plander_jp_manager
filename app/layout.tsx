@@ -15,8 +15,15 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app'),
   title: "Plander",
   description: "플랜더는 이름 그대로 신규브랜드 및 기존브랜드 에 필요한 브랜딩/리브랜딩의 모든 일을 할수 있는 능력이 있는 회사입니다.",
+  manifest: '/manifest.webmanifest',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Plander',
+  },
 };
 
 export default async function RootLayout({

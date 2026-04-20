@@ -28,7 +28,8 @@ export default async function proxy(request: NextRequest) {
     path === '/login' ||
     path.startsWith('/report/') ||
     path.startsWith('/api/cron/') ||
-    path.startsWith('/api/line/webhook');
+    path.startsWith('/api/line/webhook') ||
+    path.startsWith('/api/push/applicant');
 
   if (!user && !isPublic) {
     return NextResponse.redirect(new URL('/login', request.url));

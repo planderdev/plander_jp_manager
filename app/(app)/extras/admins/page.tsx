@@ -14,6 +14,7 @@ import { deleteAdminAction } from '@/actions/admins';
 import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
 import AdminCreateDialog from '@/components/admins/AdminCreateDialog';
+import WebPushSettings from '@/components/admins/WebPushSettings';
 
 export default async function AdminsPage() {
   const { locale, t } = await getI18n();
@@ -79,6 +80,8 @@ export default async function AdminsPage() {
       <section>
         <h2 className="text-lg font-semibold mb-3">{t('admin.deliverySettings')}</h2>
         <div className="grid gap-6 xl:grid-cols-2">
+          <WebPushSettings />
+
           <div className="bg-white p-6 rounded-lg shadow space-y-4">
             <h3 className="text-base font-semibold">{t('admin.emailSettings')}</h3>
             <form action={saveDeliverySettingsAction} className="space-y-3">

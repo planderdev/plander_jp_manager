@@ -35,7 +35,6 @@ const NotificationContext = createContext<NotificationContextValue>({
 const APPLICATIONS_SEEN_KEY = 'planderjp_seen_applications_at';
 const APPLICATIONS_NOTIFIED_KEY = 'planderjp_notified_applications_at';
 const BRIEF_EMAIL_NOTIFIED_KEY = 'planderjp_notified_brief_email_at';
-const NOTIFICATION_PERMISSION_KEY = 'planderjp_notification_permission_requested';
 
 function readLocalStorage(key: string) {
   if (typeof window === 'undefined') return null;
@@ -127,12 +126,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   }, [pathname, pushToast, t]);
 
   useEffect(() => {
-    if (typeof window === 'undefined' || !('Notification' in window)) return;
-    if (window.Notification.permission !== 'default') return;
-    if (readLocalStorage(NOTIFICATION_PERMISSION_KEY)) return;
+    if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return;
 
-    writeLocalStorage(NOTIFICATION_PERMISSION_KEY, nowIso());
-    void window.Notification.requestPermission();
+    void navigator.serviceWorker.register('/sw.js').catch((error) => {
+      console.error('service worker registration failed', error);
+    });
   }, []);
 
   useEffect(() => {

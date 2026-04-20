@@ -9,6 +9,7 @@ import {
   markBriefEmailManual,
   markBriefEmailScheduled,
 } from '@/lib/briefing-config';
+import { sendWebPushNotification } from '@/lib/web-push';
 
 type SendMode = 'manual' | 'scheduled';
 
@@ -152,6 +153,16 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
   } else {
     await markBriefEmailManual(scheduleId, { sentAt, recipient });
   }
+
+  await sendWebPushNotification((locale) => ({
+    title: locale === 'ja' ? '招待状/ガイドメール送信完了' : '초대장/가이드 메일 전송 완료',
+    body:
+      locale === 'ja'
+        ? `${brief.clientName} / @${brief.influencerHandle} の送信が完了しました。`
+        : `${brief.clientName} / @${brief.influencerHandle} 전송이 완료되었습니다.`,
+    url: '/extras/admins',
+    tag: `brief-email-${scheduleId}`,
+  }));
 
   return { recipient, subject, visitAt };
 }
