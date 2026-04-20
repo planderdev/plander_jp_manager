@@ -26,10 +26,12 @@ type ToastItem = {
 
 type NotificationContextValue = {
   newApplicantCount: number;
+  markApplicantsSeen: () => void;
 };
 
 const NotificationContext = createContext<NotificationContextValue>({
   newApplicantCount: 0,
+  markApplicantsSeen: () => {},
 });
 
 const APPLICATIONS_SEEN_KEY = 'planderjp_seen_applications_at';
@@ -74,6 +76,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     });
     notifyBrowser(title, body);
   }, [notifyBrowser]);
+
+  const markApplicantsSeen = useCallback(() => {
+    const seenAt = nowIso();
+    writeLocalStorage(APPLICATIONS_SEEN_KEY, seenAt);
+    writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, seenAt);
+    setNewApplicantCount(0);
+  }, []);
 
   const syncSummary = useCallback(async () => {
     const applicationsSince = readLocalStorage(APPLICATIONS_SEEN_KEY) ?? nowIso();
@@ -142,6 +151,11 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     if (!latestNotifiedApp) writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, nowIso());
     if (!latestNotifiedEmail) writeLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY, nowIso());
   }, []);
+
+  useEffect(() => {
+    if (!pathname?.startsWith('/influencers/applications')) return;
+    markApplicantsSeen();
+  }, [markApplicantsSeen, pathname]);
 
   useEffect(() => {
     let cancelled = false;
@@ -220,7 +234,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     return () => window.clearTimeout(timer);
   }, [toasts]);
 
-  const value = useMemo(() => ({ newApplicantCount }), [newApplicantCount]);
+  const value = useMemo(() => ({
+    newApplicantCount,
+    markApplicantsSeen,
+  }), [markApplicantsSeen, newApplicantCount]);
 
   return (
     <NotificationContext.Provider value={value}>

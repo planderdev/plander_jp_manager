@@ -15,7 +15,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { locale, setLocale, t } = useI18n();
-  const { newApplicantCount } = useNotifications();
+  const { newApplicantCount, markApplicantsSeen } = useNotifications();
 
   const close = () => setOpen(false);
 
@@ -64,7 +64,17 @@ export default function Sidebar({
           <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>{t('nav.scheduleManagement')}</NavLink>
           <Section>{t('nav.influencer')}</Section>
           <NavLink href="/influencers" pathname={pathname} onClick={close}>{t('nav.influencerList')}</NavLink>
-          <NavLink href="/influencers/applications" pathname={pathname} onClick={close} badgeCount={newApplicantCount}>{t('nav.webApplicants')}</NavLink>
+          <NavLink
+            href="/influencers/applications"
+            pathname={pathname}
+            onClick={() => {
+              markApplicantsSeen();
+              close();
+            }}
+            badgeCount={newApplicantCount}
+          >
+            {t('nav.webApplicants')}
+          </NavLink>
           <NavLink href="/influencers/posts" pathname={pathname} onClick={close}>{t('nav.postSettlement')}</NavLink>
           <NavLink href="/campaigns/completed" pathname={pathname} onClick={close}>{t('nav.completedPosts')}</NavLink>
           <Section>{t('nav.extras')}</Section>
@@ -121,12 +131,15 @@ function NavLink({ href, pathname, onClick, children, badgeCount = 0 }: any) {
      )));
   return (
     <Link href={href} onClick={onClick}
-      className={`flex items-center justify-between gap-3 px-3 py-2 rounded ${active ? 'bg-gray-700' : 'hover:bg-gray-800'}`}>
-      <span>{children}</span>
+      className={`relative flex items-center gap-3 px-3 py-2 rounded ${active ? 'bg-gray-700' : 'hover:bg-gray-800'}`}>
       {badgeCount > 0 ? (
-        <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-semibold text-white">
+        <span className="absolute left-1.5 top-1.5 inline-flex min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-white shadow">
           {badgeCount > 99 ? '99+' : badgeCount}
         </span>
+      ) : null}
+      <span className={badgeCount > 0 ? 'pl-5' : ''}>{children}</span>
+      {badgeCount > 0 ? (
+        <span className="sr-only">{badgeCount}</span>
       ) : null}
     </Link>
   );
