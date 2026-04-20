@@ -34,9 +34,9 @@ function getAppBaseUrl() {
 }
 
 function getWebPushConfig() {
-  const publicKey = process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ?? '';
-  const privateKey = process.env.WEB_PUSH_VAPID_PRIVATE_KEY ?? '';
-  const subject = process.env.WEB_PUSH_VAPID_SUBJECT ?? 'mailto:planderjp@gmail.com';
+  const publicKey = (process.env.NEXT_PUBLIC_WEB_PUSH_VAPID_PUBLIC_KEY ?? '').trim();
+  const privateKey = (process.env.WEB_PUSH_VAPID_PRIVATE_KEY ?? '').trim();
+  const subject = (process.env.WEB_PUSH_VAPID_SUBJECT ?? 'mailto:planderjp@gmail.com').trim();
 
   return {
     configured: Boolean(publicKey && privateKey),
