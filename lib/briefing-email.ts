@@ -104,7 +104,7 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
   }
 
   const deliverySettings = await getDeliverySettings();
-  const recipient = deliverySettings.emailRecipient || 'planderjp@gmail.com';
+  const recipient = deliverySettings.emailRecipient || '1986desire@gmail.com';
   const sender = deliverySettings.emailSender || 'Plander <onboarding@resend.dev>';
   const baseUrl = getAppBaseUrl().replace(/\/$/, '');
   const invitationUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/invitation.png`;

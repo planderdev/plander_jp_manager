@@ -73,7 +73,7 @@ export const DEFAULT_INFLUENCER_MEDIA_CONFIG: InfluencerMediaConfig = {
 };
 
 export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
-  emailRecipient: 'planderjp@gmail.com',
+  emailRecipient: '1986desire@gmail.com',
   emailSender: 'Plander <onboarding@resend.dev>',
   lineChannelAccessToken: '',
   lineDestinationId: '',
