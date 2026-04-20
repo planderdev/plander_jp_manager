@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useMemo, useRef, useState } from 
 import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/provider';
 import { useCallback } from 'react';
+import { createClient } from '@/lib/supabase/client';
 
 type NotificationSummary = {
   applications: {
@@ -65,6 +66,65 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const mountedRef = useRef(false);
   const notifyBrowser = useBrowserNotification();
+  const supabase = useMemo(() => createClient(), []);
+
+  const pushToast = useCallback((title: string, body: string, id: string) => {
+    setToasts((current) => {
+      if (current.some((toast) => toast.id === id)) return current;
+      return [...current, { id, title, body }];
+    });
+    notifyBrowser(title, body);
+  }, [notifyBrowser]);
+
+  const syncSummary = useCallback(async () => {
+    const applicationsSince = readLocalStorage(APPLICATIONS_SEEN_KEY) ?? nowIso();
+    const applicationsNotifiedAt = readLocalStorage(APPLICATIONS_NOTIFIED_KEY) ?? applicationsSince;
+    const emailsSince = readLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY) ?? nowIso();
+
+    const response = await fetch(
+      `/api/notifications/summary?applicationsSince=${encodeURIComponent(applicationsSince)}&emailsSince=${encodeURIComponent(emailsSince)}`,
+      { cache: 'no-store' }
+    );
+
+    if (!response.ok) return null;
+
+    const data = (await response.json()) as NotificationSummary;
+
+    if (pathname?.startsWith('/influencers/applications')) {
+      setNewApplicantCount(0);
+      writeLocalStorage(APPLICATIONS_SEEN_KEY, data.applications.latestCreatedAt ?? nowIso());
+    } else {
+      setNewApplicantCount(data.applications.newCount);
+    }
+
+    if (
+      mountedRef.current &&
+      data.applications.newCount > 0 &&
+      data.applications.latestCreatedAt &&
+      new Date(data.applications.latestCreatedAt).getTime() > new Date(applicationsNotifiedAt).getTime()
+    ) {
+      pushToast(
+        t('notifications.newApplicants'),
+        t('notifications.newApplicantsBody', { count: data.applications.newCount }),
+        `app-${data.applications.latestCreatedAt}`
+      );
+      writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, data.applications.latestCreatedAt);
+    }
+
+    if (mountedRef.current && data.briefEmails.newCount > 0 && data.briefEmails.latestSentAt) {
+      pushToast(
+        t('notifications.briefEmailSent'),
+        data.briefEmails.latestLabel
+          ? t('notifications.briefEmailSentBody', { label: data.briefEmails.latestLabel })
+          : t('notifications.briefEmailSentBodyFallback', { count: data.briefEmails.newCount }),
+        `mail-${data.briefEmails.latestSentAt}`
+      );
+      writeLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY, data.briefEmails.latestSentAt);
+    }
+
+    mountedRef.current = true;
+    return data;
+  }, [pathname, pushToast, t]);
 
   useEffect(() => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
@@ -88,67 +148,71 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   useEffect(() => {
     let cancelled = false;
 
-    async function poll() {
-      const applicationsSince = readLocalStorage(APPLICATIONS_SEEN_KEY) ?? nowIso();
-      const applicationsNotifiedAt = readLocalStorage(APPLICATIONS_NOTIFIED_KEY) ?? applicationsSince;
-      const emailsSince = readLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY) ?? nowIso();
+    void syncSummary();
 
-      const response = await fetch(
-        `/api/notifications/summary?applicationsSince=${encodeURIComponent(applicationsSince)}&emailsSince=${encodeURIComponent(emailsSince)}`,
-        { cache: 'no-store' }
-      );
+    const applicantChannel = supabase
+      .channel('notifications-influencer-applications')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'influencer_applications',
+        },
+        (payload) => {
+          if (cancelled) return;
+          const createdAt = String((payload.new as Record<string, unknown>)?.created_at ?? nowIso());
+          const status = String((payload.new as Record<string, unknown>)?.status ?? 'pending');
 
-      if (!response.ok || cancelled) return;
+          if (status !== 'pending') return;
 
-      const data = (await response.json()) as NotificationSummary;
+          if (pathname?.startsWith('/influencers/applications')) {
+            writeLocalStorage(APPLICATIONS_SEEN_KEY, createdAt);
+            setNewApplicantCount(0);
+          } else {
+            setNewApplicantCount((current) => current + 1);
+          }
 
-      if (pathname?.startsWith('/influencers/applications')) {
-        setNewApplicantCount(0);
-        writeLocalStorage(APPLICATIONS_SEEN_KEY, data.applications.latestCreatedAt ?? nowIso());
-      } else {
-        setNewApplicantCount(data.applications.newCount);
-      }
+          if (!mountedRef.current) return;
 
-      if (
-        mountedRef.current &&
-        data.applications.newCount > 0 &&
-        data.applications.latestCreatedAt &&
-        new Date(data.applications.latestCreatedAt).getTime() > new Date(applicationsNotifiedAt).getTime()
-      ) {
-        const title = t('notifications.newApplicants');
-        const body = t('notifications.newApplicantsBody', { count: data.applications.newCount });
-        setToasts((current) => [...current, { id: `app-${data.applications.latestCreatedAt}`, title, body }]);
-        notifyBrowser(title, body);
-        writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, data.applications.latestCreatedAt);
-      }
+          pushToast(
+            t('notifications.newApplicants'),
+            t('notifications.newApplicantsBody', { count: 1 }),
+            `app-${createdAt}`
+          );
+          writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, createdAt);
+        }
+      )
+      .subscribe();
 
-      if (
-        mountedRef.current &&
-        data.briefEmails.newCount > 0 &&
-        data.briefEmails.latestSentAt
-      ) {
-        const title = t('notifications.briefEmailSent');
-        const body = data.briefEmails.latestLabel
-          ? t('notifications.briefEmailSentBody', { label: data.briefEmails.latestLabel })
-          : t('notifications.briefEmailSentBodyFallback', { count: data.briefEmails.newCount });
-        setToasts((current) => [...current, { id: `mail-${data.briefEmails.latestSentAt}`, title, body }]);
-        notifyBrowser(title, body);
-        writeLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY, data.briefEmails.latestSentAt);
-      }
+    const emailChannel = supabase
+      .channel('notifications-brief-email-log')
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'app_settings',
+          filter: 'key=eq.brief_email_log',
+        },
+        () => {
+          if (cancelled) return;
+          void syncSummary();
+        }
+      )
+      .subscribe();
 
-      mountedRef.current = true;
-    }
-
-    void poll();
     const interval = window.setInterval(() => {
-      void poll();
-    }, 15000);
+      void syncSummary();
+    }, 300000);
 
     return () => {
       cancelled = true;
+      void supabase.removeChannel(applicantChannel);
+      void supabase.removeChannel(emailChannel);
       window.clearInterval(interval);
     };
-  }, [notifyBrowser, pathname, t]);
+  }, [pathname, pushToast, supabase, syncSummary, t]);
 
   useEffect(() => {
     if (!toasts.length) return;
