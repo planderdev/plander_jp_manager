@@ -6,6 +6,40 @@ import { createClient } from '@/lib/supabase/server';
 
 export const runtime = 'nodejs';
 
+function koreaTodayRange() {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  });
+  const parts: Record<string, string> = {};
+
+  for (const part of formatter.formatToParts(new Date())) {
+    if (part.type !== 'literal') {
+      parts[part.type] = part.value;
+    }
+  }
+
+  const today = `${parts.year}-${parts.month}-${parts.day}`;
+  const base = new Date(`${today}T00:00:00+09:00`);
+  const tomorrow = new Date(base.getTime() + 24 * 60 * 60 * 1000);
+  const toYmd = (value: Date) => {
+    const nextParts: Record<string, string> = {};
+    for (const part of formatter.formatToParts(value)) {
+      if (part.type !== 'literal') {
+        nextParts[part.type] = part.value;
+      }
+    }
+    return `${nextParts.year}-${nextParts.month}-${nextParts.day}`;
+  };
+
+  return {
+    start: `${today}T00:00:00+09:00`,
+    end: `${toYmd(tomorrow)}T00:00:00+09:00`,
+  };
+}
+
 export async function GET(request: Request) {
   const sb = await createClient();
   const {
@@ -20,8 +54,9 @@ export async function GET(request: Request) {
   const applicationsSince = searchParams.get('applicationsSince');
   const emailsSince = searchParams.get('emailsSince');
   const admin = createAdminClient();
+  const { start, end } = koreaTodayRange();
 
-  const [{ count: newApplicantCount }, { data: latestApplicationRow }, emailEvents] = await Promise.all([
+  const [{ count: newApplicantCount }, { data: latestApplicationRow }, emailEvents, { count: todayScheduleCount }] = await Promise.all([
     admin
       .from('influencer_applications')
       .select('id', { count: 'exact', head: true })
@@ -34,6 +69,11 @@ export async function GET(request: Request) {
       .limit(1)
       .maybeSingle(),
     getBriefEmailEventsSince(emailsSince),
+    admin
+      .from('schedules')
+      .select('id', { count: 'exact', head: true })
+      .gte('scheduled_at', start)
+      .lt('scheduled_at', end),
   ]);
 
   const latestEmailEvent = emailEvents[0] ?? null;
@@ -68,6 +108,9 @@ export async function GET(request: Request) {
       latestMode: latestEmailEvent?.mode ?? null,
       latestRecipient: latestEmailEvent?.recipient ?? null,
       latestLabel: latestEmailLabel,
+    },
+    todaySchedules: {
+      count: todayScheduleCount ?? 0,
     },
   });
 }

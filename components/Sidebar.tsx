@@ -15,7 +15,7 @@ export default function Sidebar({
   const pathname = usePathname();
   const router = useRouter();
   const { locale, setLocale, t } = useI18n();
-  const { newApplicantCount, markApplicantsSeen } = useNotifications();
+  const { newApplicantCount, todayScheduleCount, markApplicantsSeen } = useNotifications();
 
   const close = () => setOpen(false);
 
@@ -61,7 +61,7 @@ export default function Sidebar({
           <NavLink href="/sales" pathname={pathname} onClick={close}>{t('nav.salesManagement')}</NavLink>
           <Section>{t('nav.campaign')}</Section>
           <NavLink href="/campaigns/clients" pathname={pathname} onClick={close}>{t('nav.clientInfo')}</NavLink>
-          <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close}>{t('nav.scheduleManagement')}</NavLink>
+          <NavLink href="/campaigns/schedules" pathname={pathname} onClick={close} badgeCount={todayScheduleCount}>{t('nav.scheduleManagement')}</NavLink>
           <Section>{t('nav.influencer')}</Section>
           <NavLink href="/influencers" pathname={pathname} onClick={close}>{t('nav.influencerList')}</NavLink>
           <NavLink

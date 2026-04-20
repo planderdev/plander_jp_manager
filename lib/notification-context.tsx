@@ -16,6 +16,9 @@ type NotificationSummary = {
     latestSentAt: string | null;
     latestLabel: string | null;
   };
+  todaySchedules: {
+    count: number;
+  };
 };
 
 type ToastItem = {
@@ -26,11 +29,13 @@ type ToastItem = {
 
 type NotificationContextValue = {
   newApplicantCount: number;
+  todayScheduleCount: number;
   markApplicantsSeen: () => void;
 };
 
 const NotificationContext = createContext<NotificationContextValue>({
   newApplicantCount: 0,
+  todayScheduleCount: 0,
   markApplicantsSeen: () => {},
 });
 
@@ -64,6 +69,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
   const pathname = usePathname();
   const { t } = useI18n();
   const [newApplicantCount, setNewApplicantCount] = useState(0);
+  const [todayScheduleCount, setTodayScheduleCount] = useState(0);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const mountedRef = useRef(false);
   const notifyBrowser = useBrowserNotification();
@@ -104,6 +110,8 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     } else {
       setNewApplicantCount(data.applications.newCount);
     }
+
+    setTodayScheduleCount(data.todaySchedules.count);
 
     if (
       mountedRef.current &&
@@ -214,6 +222,22 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       )
       .subscribe();
 
+    const scheduleChannel = supabase
+      .channel('notifications-today-schedules')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'schedules',
+        },
+        () => {
+          if (cancelled) return;
+          void syncSummary();
+        }
+      )
+      .subscribe();
+
     const interval = window.setInterval(() => {
       void syncSummary();
     }, 300000);
@@ -222,6 +246,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       cancelled = true;
       void supabase.removeChannel(applicantChannel);
       void supabase.removeChannel(emailChannel);
+      void supabase.removeChannel(scheduleChannel);
       window.clearInterval(interval);
     };
   }, [pathname, pushToast, supabase, syncSummary, t]);
@@ -236,8 +261,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
 
   const value = useMemo(() => ({
     newApplicantCount,
+    todayScheduleCount,
     markApplicantsSeen,
-  }), [markApplicantsSeen, newApplicantCount]);
+  }), [markApplicantsSeen, newApplicantCount, todayScheduleCount]);
 
   return (
     <NotificationContext.Provider value={value}>
