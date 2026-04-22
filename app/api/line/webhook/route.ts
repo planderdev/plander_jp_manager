@@ -3,6 +3,7 @@ import { createHmac, timingSafeEqual } from 'crypto';
 import { NextResponse } from 'next/server';
 
 import { getDeliverySettings, markLineWebhookReceived } from '@/lib/briefing-config';
+import { upsertLineContactFromWebhook } from '@/lib/line-contacts';
 
 type LineWebhookEvent = {
   type?: string;
@@ -61,13 +62,24 @@ export async function POST(request: Request) {
   }
 
   const firstEvent = payload.events?.[0];
+  const sourceId = getSourceId(firstEvent);
   await markLineWebhookReceived({
     lastReceivedAt: new Date().toISOString(),
     lastEventType: firstEvent?.type ?? (payload.events?.length ? 'multiple' : 'verify'),
     lastSourceType: firstEvent?.source?.type ?? null,
-    lastSourceId: getSourceId(firstEvent),
+    lastSourceId: sourceId,
     lastMessageText: firstEvent?.message?.type === 'text' ? firstEvent.message.text ?? null : null,
   });
+
+  if (sourceId && firstEvent?.source?.type === 'user') {
+    await upsertLineContactFromWebhook({
+      lineUserId: sourceId,
+      sourceType: firstEvent.source.type,
+      eventType: firstEvent.type ?? null,
+      messageText: firstEvent.message?.type === 'text' ? firstEvent.message.text ?? null : null,
+      channelAccessToken: settings.lineChannelAccessToken,
+    });
+  }
 
   return NextResponse.json({
     ok: true,
