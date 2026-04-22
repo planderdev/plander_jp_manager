@@ -13,6 +13,11 @@ export async function GET(request: Request) {
       return NextResponse.json({ ok: true, mode: 'manual', scheduleId, result });
     }
 
+    const cronSecret = process.env.CRON_SECRET;
+    if (cronSecret && request.headers.get('authorization') !== `Bearer ${cronSecret}`) {
+      return NextResponse.json({ ok: false, error: 'unauthorized' }, { status: 401 });
+    }
+
     const result = await runScheduledBriefingEmails();
     return NextResponse.json({ ok: true, mode: 'scheduled', ...result });
   } catch (error: any) {
