@@ -4,7 +4,6 @@ import { createAdminClient } from '@/lib/supabase/admin';
 import { formatInviteDate, getBriefScheduleData } from '@/lib/briefing';
 import {
   getBriefEmailLogEntry,
-  getClientBriefConfigMap,
   getDeliverySettings,
   markBriefEmailManual,
   markBriefEmailScheduled,
@@ -38,20 +37,20 @@ function krDateParts(date: Date) {
   };
 }
 
-function tomorrowRange(date = new Date()) {
+function briefingTargetRange(date = new Date()) {
   const now = krDateParts(date);
   const base = new Date(`${now.year}-${now.month}-${now.day}T00:00:00+09:00`);
-  const tomorrow = new Date(base.getTime() + 24 * 60 * 60 * 1000);
-  const dayAfter = new Date(base.getTime() + 48 * 60 * 60 * 1000);
+  const target = new Date(base.getTime() + 48 * 60 * 60 * 1000);
+  const nextDay = new Date(base.getTime() + 72 * 60 * 60 * 1000);
   const toYmd = (value: Date) => {
     const parts = krDateParts(value);
     return `${parts.year}-${parts.month}-${parts.day}`;
   };
 
   return {
-    targetDate: toYmd(tomorrow),
-    start: `${toYmd(tomorrow)}T00:00:00+09:00`,
-    end: `${toYmd(dayAfter)}T00:00:00+09:00`,
+    targetDate: toYmd(target),
+    start: `${toYmd(target)}T00:00:00+09:00`,
+    end: `${toYmd(nextDay)}T00:00:00+09:00`,
     currentTime: `${now.hour}:${now.minute}`,
   };
 }
@@ -125,7 +124,7 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
   const subject = `[Plander] ${brief.clientName} @${brief.influencerHandle} 초대장/가이드`;
   const visitAt = formatInviteDate(brief.scheduledAt);
 
-  const { targetDate } = tomorrowRange();
+  const { targetDate } = briefingTargetRange();
   const [invitationAttachment, guideAttachment] = await Promise.all([
     fetchAttachment(invitationUrl, `invitation-${scheduleId}.png`),
     fetchAttachment(guideUrl, `guide-${scheduleId}.png`),
@@ -182,9 +181,8 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
 }
 
 export async function runScheduledBriefingEmails(now = new Date()) {
-  const { start, end, targetDate, currentTime } = tomorrowRange(now);
+  const { start, end, targetDate, currentTime } = briefingTargetRange(now);
   const sb = createAdminClient();
-  const clientBriefConfigMap = await getClientBriefConfigMap();
   const { data: schedules, error } = await sb
     .from('schedules')
     .select('id, client_id, scheduled_at')
@@ -201,14 +199,6 @@ export async function runScheduledBriefingEmails(now = new Date()) {
   const results: Array<{ scheduleId: number; status: string; reason?: string }> = [];
 
   for (const schedule of schedules ?? []) {
-    const clientConfig = clientBriefConfigMap[String(schedule.client_id)];
-    const targetTime = clientConfig?.visitNoticeTime || '18:00';
-    if (targetTime !== currentTime) {
-      skipped += 1;
-      results.push({ scheduleId: schedule.id, status: 'skipped', reason: `time_mismatch:${targetTime}` });
-      continue;
-    }
-
     const logEntry = await getBriefEmailLogEntry(schedule.id);
     if (logEntry?.scheduledTargetDate === targetDate) {
       skipped += 1;
