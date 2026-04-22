@@ -9,7 +9,7 @@ export default async function BriefPreviewPage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ sent?: string }>;
+  searchParams?: Promise<{ refresh?: string; sent?: string }>;
 }) {
   const { id } = await params;
   const { t } = await getI18n();
@@ -18,8 +18,9 @@ export default async function BriefPreviewPage({
 
   if (!brief) notFound();
 
-  const inviteSrc = `/campaigns/schedules/${brief.id}/brief-preview/invitation.png`;
-  const guideSrc = `/campaigns/schedules/${brief.id}/brief-preview/guide.png`;
+  const cacheKey = query?.refresh ? `?v=${encodeURIComponent(query.refresh)}` : '';
+  const inviteSrc = `/campaigns/schedules/${brief.id}/brief-preview/invitation.png${cacheKey}`;
+  const guideSrc = `/campaigns/schedules/${brief.id}/brief-preview/guide.png${cacheKey}`;
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -43,9 +44,15 @@ export default async function BriefPreviewPage({
           <a href={guideSrc} target="_blank" className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">
             가이드 열기
           </a>
+          <Link
+            href={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`}
+            className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50"
+          >
+            재생성
+          </Link>
           <form action={sendBriefingEmailAction}>
             <input type="hidden" name="schedule_id" value={brief.id} />
-            <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview`} />
+            <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
             <button className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700">
               메일 테스트 전송
             </button>

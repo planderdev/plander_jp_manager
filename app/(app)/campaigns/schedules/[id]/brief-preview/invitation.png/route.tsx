@@ -4,6 +4,7 @@ import { ImageResponse } from 'next/og';
 import { getBriefScheduleData, formatInviteDate } from '@/lib/briefing';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 function valueMaskStyle(top: number, width: number, height = 72) {
   return {
@@ -132,6 +133,9 @@ export async function GET(
       </div>
     ),
     {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
       width: 1080,
       height: 1920,
       fonts: [

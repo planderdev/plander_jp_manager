@@ -4,6 +4,7 @@ import { ImageResponse } from 'next/og';
 import { getBriefScheduleData } from '@/lib/briefing';
 
 export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 function row(label: string, subLabel: string, value: string) {
   return { label, subLabel, value };
@@ -109,6 +110,9 @@ export async function GET(
       </div>
     ),
     {
+      headers: {
+        'Cache-Control': 'no-store, max-age=0',
+      },
       width: 1240,
       height: brief.additionalRequests ? 1960 : 1754,
       fonts: [

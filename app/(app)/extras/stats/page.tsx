@@ -35,12 +35,14 @@ export default async function StatsPage({
   }
 
   let posts: any[] = [];
+  let schedules: any[] = [];
   let reserved = 0, uploadPending = 0, settlementPending = 0, scheduleDone = 0;
   let involvedInfluencers = 0;
+  let plannedTotal = 0;
 
   if (!rangeError) {
     let q = sb.from('posts')
-      .select('client_id, influencer_id, post_url, views, likes, comments, created_at, settlement_status, influencers(unit_price)');
+      .select('client_id, influencer_id, post_url, views, likes, comments, shares, created_at, settlement_status, influencers(unit_price)');
     if (client) q = q.eq('client_id', Number(client));
     if (influencer) q = q.eq('influencer_id', Number(influencer));
     if (fromDate) q = q.gte('created_at', `${fromDate}T00:00:00+09:00`);
@@ -48,22 +50,27 @@ export default async function StatsPage({
     const { data } = await q; posts = data ?? [];
 
     let sq = sb.from('schedules')
-      .select('*, posts(post_url, settlement_status)');
+      .select('*, influencers(unit_price), posts(post_url, settlement_status)');
     if (client) sq = sq.eq('client_id', Number(client));
     if (influencer) sq = sq.eq('influencer_id', Number(influencer));
     if (fromDate) sq = sq.gte('scheduled_at', `${fromDate}T00:00:00+09:00`);
     if (toDate) sq = sq.lte('scheduled_at', `${toDate}T23:59:59+09:00`);
     const { data: schedulesData } = await sq;
+    schedules = schedulesData ?? [];
     
-    for (const s of schedulesData ?? []) {
+    for (const s of schedules) {
       const st = getScheduleStatus(s.scheduled_at, s.posts);
       if (st === 'reserved') reserved++;
       else if (st === 'upload_pending') uploadPending++;
       else if (st === 'settlement_pending') settlementPending++;
       else if (st === 'done') scheduleDone++;
+
+      if (st === 'reserved' || st === 'upload_pending') {
+        plannedTotal += (s.influencers?.unit_price ?? 0) * 10;
+      }
     }
     const involvedSet = new Set<number>();
-    for (const s of schedulesData ?? []) {
+    for (const s of schedules) {
       if (s.influencer_id) involvedSet.add(s.influencer_id);
     }
     involvedInfluencers = involvedSet.size;
@@ -125,9 +132,9 @@ export default async function StatsPage({
     .filter((p: any) => p.settlement_status === 'done')
     .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
   const unpaidTotal = posts
-    .filter((p: any) => p.settlement_status !== 'done')
+    .filter((p: any) => p.post_url && p.settlement_status !== 'done')
     .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
-  const grandTotal = paidTotal + unpaidTotal;
+  const grandTotal = paidTotal + unpaidTotal + plannedTotal;
 
   const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [
     { label: t('stats.totalClients'), value: totalClients },
@@ -139,6 +146,7 @@ export default async function StatsPage({
     { label: t('common.views'), value: totalViews },
     { label: t('stats.totalPaid'), value: paidTotal, suffix: t('money.won'), href: '/influencers/posts' },
     { label: t('stats.totalUnpaid'), value: unpaidTotal, suffix: t('money.won'), href: '/influencers/posts' },
+    { label: t('stats.plannedSpend'), value: plannedTotal, suffix: t('money.won'), href: '/campaigns/schedules' },
     { label: t('stats.totalSpend'), value: grandTotal, suffix: t('money.won'), href: '/influencers/posts' },
     { label: t('schedule.reserved'), value: reserved, href: '/campaigns/schedules' },
     { label: t('schedule.upload_pending'), value: uploadPending, href: '/campaigns/schedules' },
@@ -193,6 +201,7 @@ export default async function StatsPage({
       <CollapsibleGroup title={t('stats.expense')} defaultOpen={false}>
         <MetricCard label={t('stats.totalPaid')} value={paidTotal} suffix={t('money.won')} href="/influencers/posts" />
         <MetricCard label={t('stats.totalUnpaid')} value={unpaidTotal} suffix={t('money.won')} href="/influencers/posts" />
+        <MetricCard label={t('stats.plannedSpend')} value={plannedTotal} suffix={t('money.won')} href="/campaigns/schedules" />
         <MetricCard label={t('stats.totalSpend')} value={grandTotal} suffix={t('money.won')} href="/influencers/posts" />
       </CollapsibleGroup>
       </HideOnPresentation>
