@@ -54,39 +54,11 @@ export default function InternalPaymentReportView({
             <div>
               <h1 className="text-2xl font-bold md:text-4xl">{t('paymentReport.title')}</h1>
               <p className="mt-2 text-sm text-gray-600 md:text-base">
-                {data.periodLabel} · {data.client?.company_name ?? t('common.all')}
+                {data.periodLabel}
               </p>
             </div>
           </div>
-
-          <div className="mt-5 rounded-3xl bg-[#f5f6fa] px-4 py-4 text-sm text-gray-600">
-            <span className="font-semibold text-gray-900">{data.client?.company_name ?? t('common.all')}</span>
-            {' · '}
-            <span>{data.influencer?.handle ? `@${data.influencer.handle}` : t('common.all')}</span>
-            {' · '}
-            <span>{data.periodLabel}</span>
-          </div>
         </div>
-
-        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
-          <div className="mb-4 flex items-end justify-between gap-4">
-            <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.campaignInfo')}</p>
-              <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.campaignInfo')}</h2>
-            </div>
-            <p className="max-w-xs text-right text-sm text-gray-500">{t('paymentReport.privateNote')}</p>
-          </div>
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <InfoCard label={t('reportMockup.selectedClient')} value={data.client?.company_name ?? t('common.all')} />
-            <InfoCard label={t('common.influencer')} value={data.influencer?.handle ? `@${data.influencer.handle}` : t('common.all')} />
-            <InfoCard label={t('paymentReport.period')} value={data.periodLabel} />
-            <InfoCard label={t('reportMockup.totalCreators')} value={`${new Set(data.rows.map((row) => row.handle)).size.toLocaleString()}${t('common.people')}`} />
-            <InfoCard label={t('reportMockup.totalPosts')} value={data.rows.filter((row) => row.postUrl).length.toLocaleString()} />
-            <InfoCard label={t('paymentReport.totalSchedules')} value={data.rows.length.toLocaleString()} />
-            <InfoCard label={t('reportMockup.contractProduct')} value={data.client?.contract_product ?? '-'} />
-            <InfoCard label={t('reportMockup.manager')} value={data.client?.manager_name ?? '-'} />
-          </div>
-        </section>
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex items-center justify-between gap-3">
@@ -308,15 +280,6 @@ export default function InternalPaymentReportView({
           </div>
         </section>
       </div>
-    </div>
-  );
-}
-
-function InfoCard({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-[22px] border border-gray-200 bg-[#fafaf8] p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{label}</p>
-      <p className="mt-3 text-sm font-semibold text-gray-900">{value}</p>
     </div>
   );
 }
