@@ -2,6 +2,11 @@ import { createClient } from '@/lib/supabase/server';
 import { getI18n } from '@/lib/i18n/server';
 import InternalPaymentReportView from '@/components/report/InternalPaymentReportView';
 import { getInternalPaymentReportData } from '@/lib/internal-payment-report';
+import SubmitButton from '@/components/SubmitButton';
+import CopyLinkButton from '@/components/report/CopyLinkButton';
+import InternalPaymentDeleteButton from '@/components/report/InternalPaymentDeleteButton';
+import { createInternalPaymentReportAction } from '@/actions/report-links';
+import Link from 'next/link';
 
 function parseYmd(value?: string) {
   if (!value) return null;
@@ -49,6 +54,11 @@ export default async function PaymentReportsPage({
   const reportData = rangeError
     ? null
     : await getInternalPaymentReportData({ clientId, influencerId, fromDate, toDate });
+  const { data: generatedReports } = await sb
+    .from('internal_payment_reports')
+    .select('id, client_id, influencer_id, from_date, to_date, title, share_token, created_at, clients(company_name), influencers(handle)')
+    .order('created_at', { ascending: false })
+    .limit(30);
 
   return (
     <div className="space-y-6 p-4 md:p-8">
@@ -90,7 +100,69 @@ export default async function PaymentReportsPage({
       {rangeError ? (
         <div className="rounded border border-red-300 bg-red-50 p-3 text-sm text-red-700">{rangeError}</div>
       ) : reportData ? (
-        <InternalPaymentReportView locale={locale} t={t} data={reportData} />
+        <>
+          <section className="rounded-3xl bg-white p-6 shadow">
+            <div className="rounded-3xl border border-gray-200 bg-[#fafaf8] p-5">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reports.new')}</p>
+              <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">{t('paymentReport.linkTitle')}</h2>
+                  <p className="mt-1 text-sm text-gray-500">{reportData.periodLabel}</p>
+                </div>
+                <form action={createInternalPaymentReportAction} className="flex items-center gap-3">
+                  <input type="hidden" name="client_id" value={clientId ?? ''} />
+                  <input type="hidden" name="influencer_id" value={influencerId ?? ''} />
+                  <input type="hidden" name="from_date" value={fromDate ?? ''} />
+                  <input type="hidden" name="to_date" value={toDate ?? ''} />
+                  <SubmitButton>{t('reports.createLink')}</SubmitButton>
+                </form>
+              </div>
+            </div>
+          </section>
+
+          <section className="overflow-hidden rounded-3xl bg-white shadow">
+            <div className="border-b border-gray-100 px-6 py-4">
+              <h2 className="text-lg font-semibold">{t('reports.generatedLinks')}</h2>
+            </div>
+            <div className="divide-y divide-gray-100">
+              {generatedReports?.map((report: any) => (
+                <div key={report.id} className="flex flex-col gap-4 px-6 py-5 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <Link href={`/payment-report/${report.share_token}`} target="_blank" className="text-base font-semibold text-gray-900 hover:underline">
+                      {report.title}
+                    </Link>
+                    <p className="mt-1 text-sm text-gray-500">
+                      {[report.clients?.company_name, report.influencers?.handle ? `@${report.influencers.handle}` : null, [report.from_date, report.to_date].filter(Boolean).join(' ~ ')]
+                        .filter(Boolean)
+                        .join(' · ') || t('common.all')}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 text-sm">
+                    <CopyLinkButton token={report.share_token} basePath="/payment-report" />
+                    <Link href={`/payment-report/${report.share_token}`} target="_blank" className="text-emerald-700 hover:underline">
+                      {t('common.link')}
+                    </Link>
+                    <InternalPaymentDeleteButton
+                      id={report.id}
+                      clientId={clientId}
+                      influencerId={influencerId}
+                      fromDate={fromDate}
+                      toDate={toDate}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {!generatedReports?.length && (
+                <div className="px-6 py-10 text-center text-sm text-gray-400">
+                  {t('reports.none')}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <InternalPaymentReportView locale={locale} t={t} data={reportData} />
+        </>
       ) : null}
     </div>
   );
