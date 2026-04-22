@@ -77,6 +77,12 @@ export type ReportViewData = {
     followers: number;
   };
   channelEntries: Array<[string, ReportRow[]]>;
+  clientMonthlyCounts: Array<{
+    key: string;
+    clientName: string;
+    month: string;
+    count: number;
+  }>;
   usingFallback: boolean;
   yearMonth: string;
 };
@@ -135,8 +141,12 @@ export function sumRows(rows: ReportRow[]) {
 export async function getReportViewData(clientId: number, yearMonth: string): Promise<ReportViewData> {
   const sb = createAdminClient();
   const prevMonth = previousMonth(yearMonth);
+  const [year, monthValue] = yearMonth.split('-').map(Number);
+  const monthStart = `${yearMonth}-01T00:00:00+09:00`;
+  const nextMonthDate = new Date(Date.UTC(year, monthValue, 1));
+  const monthEnd = `${nextMonthDate.getUTCFullYear()}-${String(nextMonthDate.getUTCMonth() + 1).padStart(2, '0')}-01T00:00:00+09:00`;
 
-  const [{ data: client }, { data: postData }] = await Promise.all([
+  const [{ data: client }, { data: postData }, { data: scheduleData }] = await Promise.all([
     sb.from('clients')
       .select('id, company_name, contract_start, contract_end, contract_product, manager_name, sales_region, category')
       .eq('id', clientId)
@@ -162,6 +172,11 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
           scheduled_at
         )
       `).eq('client_id', clientId).order('created_at', { ascending: false }),
+    sb.from('schedules')
+      .select('id, scheduled_at')
+      .eq('client_id', clientId)
+      .gte('scheduled_at', monthStart)
+      .lt('scheduled_at', monthEnd),
   ]);
 
   const allPosts = (postData ?? []) as unknown as PostRecord[];
@@ -252,6 +267,12 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
     channelMap.set(row.channel, bucket);
   });
   if (!channelMap.size) channelMap.set('instagram', rows);
+  const clientMonthlyCounts = [{
+    key: `${client?.company_name ?? clientId}:${yearMonth}`,
+    clientName: client?.company_name ?? '-',
+    month: yearMonth,
+    count: (scheduleData ?? []).length,
+  }];
 
   return {
     client: (client as ReportClient | null) ?? null,
@@ -259,6 +280,7 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
     currentTotals,
     prevTotals,
     channelEntries: Array.from(channelMap.entries()),
+    clientMonthlyCounts,
     usingFallback,
     yearMonth,
   };

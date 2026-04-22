@@ -114,6 +114,24 @@ export default function SharedReportView({
           </div>
         </section>
 
+        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
+          <div className="mb-4">
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.monthlyProgress')}</p>
+            <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.monthlyProgress')}</h2>
+          </div>
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {data.clientMonthlyCounts.map((item) => (
+              <div key={item.key} className="rounded-[22px] border border-gray-200 bg-[#fafaf8] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{item.month}</p>
+                <div className="mt-3 flex items-end justify-between gap-3">
+                  <p className="text-sm font-semibold text-gray-900">{item.clientName}</p>
+                  <p className="text-2xl font-bold text-gray-950">{item.count.toLocaleString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
         <section className="rounded-[28px] bg-[#10131a] px-5 py-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:px-7">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/50">{t('reportMockup.resultAnalysis')}</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
