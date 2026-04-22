@@ -61,6 +61,7 @@ export type ReportClient = {
 
 export type ReportViewData = {
   client: ReportClient | null;
+  clients: ReportClient[];
   rows: ReportRow[];
   currentTotals: {
     views: number;
@@ -138,19 +139,42 @@ export function sumRows(rows: ReportRow[]) {
   );
 }
 
-export async function getReportViewData(clientId: number, yearMonth: string): Promise<ReportViewData> {
+function normalizeClientIds(clientIds: number | number[]) {
+  const ids = Array.isArray(clientIds) ? clientIds : [clientIds];
+  return Array.from(new Set(ids.map(Number).filter(Boolean)));
+}
+
+function buildClientSummary(clients: ReportClient[]): ReportClient | null {
+  if (!clients.length) return null;
+  if (clients.length === 1) return clients[0];
+
+  const names = clients.map((client) => client.company_name).filter(Boolean);
+  return {
+    id: clients[0].id,
+    company_name: names.length <= 3 ? names.join(' / ') : `${names[0]} 외 ${names.length - 1}개 업체`,
+    contract_start: null,
+    contract_end: null,
+    contract_product: null,
+    manager_name: null,
+    sales_region: null,
+    category: null,
+  };
+}
+
+export async function getReportViewData(clientIds: number | number[], yearMonth: string): Promise<ReportViewData> {
   const sb = createAdminClient();
+  const ids = normalizeClientIds(clientIds);
   const prevMonth = previousMonth(yearMonth);
   const [year, monthValue] = yearMonth.split('-').map(Number);
   const monthStart = `${yearMonth}-01T00:00:00+09:00`;
   const nextMonthDate = new Date(Date.UTC(year, monthValue, 1));
   const monthEnd = `${nextMonthDate.getUTCFullYear()}-${String(nextMonthDate.getUTCMonth() + 1).padStart(2, '0')}-01T00:00:00+09:00`;
 
-  const [{ data: client }, { data: postData }, { data: scheduleData }] = await Promise.all([
+  const [{ data: clients }, { data: postData }, { data: scheduleData }] = await Promise.all([
     sb.from('clients')
       .select('id, company_name, contract_start, contract_end, contract_product, manager_name, sales_region, category')
-      .eq('id', clientId)
-      .single(),
+      .in('id', ids)
+      .order('company_name'),
     sb.from('posts').select(`
         id,
         client_id,
@@ -171,13 +195,15 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
         schedules (
           scheduled_at
         )
-      `).eq('client_id', clientId).order('created_at', { ascending: false }),
+      `).in('client_id', ids).order('created_at', { ascending: false }),
     sb.from('schedules')
-      .select('id, scheduled_at')
-      .eq('client_id', clientId)
+      .select('id, scheduled_at, clients(company_name)')
+      .in('client_id', ids)
       .gte('scheduled_at', monthStart)
       .lt('scheduled_at', monthEnd),
   ]);
+  const reportClients = (clients ?? []) as ReportClient[];
+  const client = buildClientSummary(reportClients);
 
   const allPosts = (postData ?? []) as unknown as PostRecord[];
   const postIds = allPosts.map((row) => row.id);
@@ -267,15 +293,23 @@ export async function getReportViewData(clientId: number, yearMonth: string): Pr
     channelMap.set(row.channel, bucket);
   });
   if (!channelMap.size) channelMap.set('instagram', rows);
-  const clientMonthlyCounts = [{
-    key: `${client?.company_name ?? clientId}:${yearMonth}`,
-    clientName: client?.company_name ?? '-',
-    month: yearMonth,
-    count: (scheduleData ?? []).length,
-  }];
+  const clientMonthlyMap = new Map<string, { clientName: string; month: string; count: number }>();
+  for (const schedule of scheduleData ?? []) {
+    const scheduleClient = Array.isArray(schedule.clients) ? schedule.clients[0] : schedule.clients;
+    const clientName = scheduleClient?.company_name ?? '-';
+    const month = schedule.scheduled_at?.slice(0, 7) ?? yearMonth;
+    const key = `${clientName}:${month}`;
+    const current = clientMonthlyMap.get(key) ?? { clientName, month, count: 0 };
+    current.count += 1;
+    clientMonthlyMap.set(key, current);
+  }
+  const clientMonthlyCounts = Array.from(clientMonthlyMap.entries())
+    .map(([key, value]) => ({ key, ...value }))
+    .sort((a, b) => a.clientName.localeCompare(b.clientName) || a.month.localeCompare(b.month));
 
   return {
-    client: (client as ReportClient | null) ?? null,
+    client,
+    clients: reportClients,
     rows,
     currentTotals,
     prevTotals,

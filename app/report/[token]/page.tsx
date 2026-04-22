@@ -38,12 +38,12 @@ export default async function PublicReportPage({ params }: { params: Promise<{ t
   const sb = createAdminClient();
   const { data: report } = await sb
     .from('shared_reports')
-    .select('client_id, year_month')
+    .select('client_id, client_ids, year_month')
     .eq('share_token', token)
     .single();
 
   if (!report) notFound();
 
-  const data = await getReportViewData(report.client_id, report.year_month);
+  const data = await getReportViewData(report.client_ids?.length ? report.client_ids : report.client_id, report.year_month);
   return <SharedReportView locale={locale} t={t} data={data} />;
 }

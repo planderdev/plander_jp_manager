@@ -12,8 +12,11 @@ function reportTitle(yearMonth: string, locale: 'ko' | 'ja') {
   return `${year}년 ${month}월 보고서`;
 }
 
-function redirectToManager(clientId: number, yearMonth: string) {
-  redirect(`/extras/report-links?client=${clientId}&month=${encodeURIComponent(yearMonth)}`);
+function redirectToManager(clientIds: number[], yearMonth: string) {
+  const params = new URLSearchParams();
+  clientIds.forEach((clientId) => params.append('client', String(clientId)));
+  params.set('month', yearMonth);
+  redirect(`/extras/report-links?${params.toString()}`);
 }
 
 function redirectToPaymentManager(input: {
@@ -42,38 +45,33 @@ export async function createSharedReportAction(formData: FormData) {
   const { data: { user } } = await sb.auth.getUser();
   if (!user) throw new Error('Unauthorized');
 
-  const clientId = Number(formData.get('client_id'));
+  const clientIds = formData.getAll('client_ids').map(Number).filter(Boolean);
+  const clientId = clientIds[0];
   const yearMonth = String(formData.get('year_month') || '');
   const locale = String(formData.get('locale') || 'ko') as 'ko' | 'ja';
-  if (!clientId || !yearMonth) throw new Error('필수값 누락');
+  if (!clientIds.length || !yearMonth) throw new Error('필수값 누락');
 
   const admin = createAdminClient();
   const token = crypto.randomBytes(16).toString('hex');
   const title = reportTitle(yearMonth, locale);
 
-  const { data, error } = await admin
-    .from('shared_reports')
-    .upsert(
-      {
-        client_id: clientId,
-        year_month: yearMonth,
-        title,
-        share_token: token,
-      },
-      { onConflict: 'client_id,year_month' }
-    )
-    .select('id, share_token')
-    .single();
+  const { data, error } = await admin.from('shared_reports').insert({
+    client_id: clientId,
+    client_ids: clientIds,
+    year_month: yearMonth,
+    title,
+    share_token: token,
+  }).select('id, share_token').single();
 
   if (error) throw new Error(error.message);
 
   if (!data?.share_token) throw new Error('공유 링크 생성 실패');
 
   revalidatePath('/extras/report-links');
-  redirectToManager(clientId, yearMonth);
+  redirectToManager(clientIds, yearMonth);
 }
 
-export async function deleteSharedReportAction(id: number, clientId: number, yearMonth: string) {
+export async function deleteSharedReportAction(id: number, clientIds: number[], yearMonth: string) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) throw new Error('Unauthorized');
@@ -83,7 +81,7 @@ export async function deleteSharedReportAction(id: number, clientId: number, yea
   if (error) throw new Error(error.message);
 
   revalidatePath('/extras/report-links');
-  redirectToManager(clientId, yearMonth);
+  redirectToManager(clientIds, yearMonth);
 }
 
 export async function createInternalPaymentReportAction(formData: FormData) {

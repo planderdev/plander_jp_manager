@@ -5,17 +5,17 @@ import { useI18n } from '@/lib/i18n/provider';
 
 export default function SharedDeleteButton({
   id,
-  clientId,
+  clientIds,
   yearMonth,
 }: {
   id: number;
-  clientId: number;
+  clientIds: number[];
   yearMonth: string;
 }) {
   const { t } = useI18n();
 
   return (
-    <form action={deleteSharedReportAction.bind(null, id, clientId, yearMonth)}>
+    <form action={deleteSharedReportAction.bind(null, id, clientIds, yearMonth)}>
       <button
         type="submit"
         className="text-red-500 hover:underline"
