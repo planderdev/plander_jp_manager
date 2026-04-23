@@ -12,7 +12,7 @@ export default async function CompletedPage({
 
   let q = sb.from('posts')
     .select('*, clients(company_name), influencers(handle, account_url, unit_price, name_en, bank_name, branch_name, account_number, phone, prefecture, city, street)')
-    .not('post_url', 'is', null)
+    .in('settlement_status', ['payable', 'done'])
     .order('updated_at', { ascending: false });
 
   const { data: all } = await q;
@@ -52,7 +52,6 @@ export default async function CompletedPage({
               <th className="p-3">{t('common.comments')}</th>
               <th className="p-3">{t('common.shares')}</th>
               <th className="p-3">{t('common.unitPrice')}</th>
-              <th className="p-3">{t('postForm.settlementCount')}</th>
               <th className="p-3">{t('postForm.settlementAmount')}</th>
               <th className="p-3">{t('postForm.settlementStatus')}</th>
               <th className="p-3">{t('postForm.settledOn')}</th>
@@ -73,25 +72,28 @@ export default async function CompletedPage({
                   )}
                 </td>
                 <td className="p-3">
-                  <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">{t('common.link')}</a>
+                  {p.post_url ? (
+                    <a href={p.post_url} target="_blank" className="text-blue-600 hover:underline">{t('common.link')}</a>
+                  ) : (
+                    <span className="text-gray-400">{t('reportMockup.uploadPending')}</span>
+                  )}
                 </td>
                 <td className="p-3">{p.views?.toLocaleString()}</td>
                 <td className="p-3">{p.likes?.toLocaleString()}</td>
                 <td className="p-3">{p.comments?.toLocaleString()}</td>
                 <td className="p-3">{p.shares?.toLocaleString()}</td>
                 <td className="p-3"><MoneyText value={p.influencers?.unit_price} suffix=" JPY" /></td>
-                <td className="p-3">{(p.settlement_count ?? 1).toLocaleString()}</td>
-                <td className="p-3"><MoneyText value={(p.influencers?.unit_price ?? 0) * (p.settlement_count ?? 1) * 10} /></td>
+                <td className="p-3"><MoneyText value={(p.influencers?.unit_price ?? 0) * 10} /></td>
                 <td className="p-3">
-                  <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
-                    {p.settlement_status === 'done' ? t('schedule.done') : t('postForm.pending')}
+                  <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-red-500'}>
+                    {p.settlement_status === 'done' ? t('postForm.done') : t('postForm.payable')}
                   </span>
                 </td>
                 <td className="p-3">{p.settled_on?.replaceAll('-', '/') ?? '-'}</td>
               </tr>
             ))}
             {!posts.length && (
-              <tr><td colSpan={13} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
+              <tr><td colSpan={12} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
             )}
           </tbody>
         </table>

@@ -13,16 +13,18 @@ function parseYmd(s: string | null): string | null {
 export async function upsertPostAction(fd: FormData) {
   const sb = await createClient();
   const id = fd.get('id') ? Number(fd.get('id')) : null;
+  const settlementStatus = String(fd.get('settlement_status') || 'pending');
 
   const payload = {
     client_id: Number(fd.get('client_id')),
     influencer_id: Number(fd.get('influencer_id')),
     schedule_id: fd.get('schedule_id') ? Number(fd.get('schedule_id')) : null,
-    settlement_count: Math.max(1, Number(fd.get('settlement_count')) || 1),
     post_url: String(fd.get('post_url') || '') || null,
     uploaded_on: String(fd.get('uploaded_on') || '') || null,
-    settlement_status: String(fd.get('settlement_status') || 'pending') as any,
-    settled_on: parseYmd(String(fd.get('settled_on') || '') || null),
+    settlement_status: settlementStatus as any,
+    settled_on: settlementStatus === 'done'
+      ? parseYmd(String(fd.get('settled_on') || '') || null)
+      : null,
   };
 
   let postId = id;
@@ -76,7 +78,6 @@ export async function autoCreatePostsFromPastSchedules() {
     influencer_id: s.influencer_id,
     post_url: null,
     uploaded_on: null,
-    settlement_count: 1,
     settlement_status: 'pending' as const,
   }));
 

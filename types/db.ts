@@ -105,7 +105,7 @@ export interface Schedule {
   influencers?: { handle: string; account_url: string | null };
 }
 
-export type SettlementStatus = 'pending' | 'done';
+export type SettlementStatus = 'pending' | 'payable' | 'done';
 export type SelfGrade = 'S' | 'A' | 'B' | 'C' | 'F' | 'pending';
 
 export interface Post {
@@ -113,7 +113,6 @@ export interface Post {
   schedule_id: number | null;
   client_id: number;
   influencer_id: number;
-  settlement_count: number;
   post_url: string | null;
   views: number;
   likes: number;

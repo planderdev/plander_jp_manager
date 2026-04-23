@@ -13,12 +13,11 @@ export function getScheduleStatus(
   if (!isPast) return 'reserved';
 
   const postList = Array.isArray(posts) ? posts : posts ? [posts] : [];
+  const hasPost = postList.length > 0;
 
-  const hasUrl = postList.some(p => p.post_url && p.post_url.trim() !== '');
-  if (!hasUrl) return 'upload_pending';
+  if (!hasPost || postList.some(p => p.settlement_status === 'pending')) return 'upload_pending';
 
-  const hasSettled = postList.some(p => p.settlement_status === 'done');
-  if (!hasSettled) return 'settlement_pending';
+  if (postList.some(p => p.settlement_status === 'payable')) return 'settlement_pending';
 
   return 'done';
 }

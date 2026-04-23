@@ -122,20 +122,13 @@ export default function PostForm({
 
           <Field name="uploaded_on" label={t('postForm.uploadedOn')} type="date" defaultValue={post?.uploaded_on ?? ''} />
 
-          <Field
-            name="settlement_count"
-            label={t('postForm.settlementCount')}
-            type="number"
-            defaultValue={post?.settlement_count ?? 1}
-            min={1}
-          />
-
           <div>
             <label className="text-sm block mb-1 font-medium">{t('postForm.settlementStatus')}</label>
             <select name="settlement_status" value={status}
               onChange={(e) => setStatus(e.target.value as any)}
               className="w-full border border-gray-400 rounded p-2 max-w-xs">
               <option value="pending">{t('postForm.pending')}</option>
+              <option value="payable">{t('postForm.payable')}</option>
               <option value="done">{t('postForm.done')}</option>
             </select>
           </div>

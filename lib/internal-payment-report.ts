@@ -5,7 +5,6 @@ export type PaymentStatus = 'upload_pending' | 'settled' | 'settlement_pending';
 
 export type InternalPaymentReportRow = ReportRow & {
   paymentStatus: PaymentStatus;
-  settlementCount: number;
   unitPriceJpy: number;
   payoutKrw: number;
 };
@@ -71,7 +70,6 @@ type ScheduleRecord = {
 
 type SchedulePost = {
   id: number;
-  settlement_count: number | null;
   post_url: string | null;
   views: number | null;
   likes: number | null;
@@ -88,7 +86,7 @@ function first<T>(value: T | T[] | null | undefined): T | null {
 }
 
 function paymentStatus(post: SchedulePost | null): PaymentStatus {
-  if (!post?.post_url) return 'upload_pending';
+  if (!post || post.settlement_status === 'pending') return 'upload_pending';
   if (post.settlement_status === 'done') return 'settled';
   return 'settlement_pending';
 }
@@ -132,7 +130,6 @@ export async function getInternalPaymentReportData({
       ),
       posts (
         id,
-        settlement_count,
         post_url,
         views,
         likes,
@@ -159,7 +156,6 @@ export async function getInternalPaymentReportData({
     const post = first(schedule.posts);
     const status = paymentStatus(post);
     const unitPriceJpy = influencer?.unit_price ?? 0;
-    const settlementCount = Math.max(1, post?.settlement_count ?? 1);
 
     return {
       id: post?.id ?? `schedule-${schedule.id}`,
@@ -175,9 +171,8 @@ export async function getInternalPaymentReportData({
       grade: 'pending',
       channel: influencer?.channel ?? 'instagram',
       paymentStatus: status,
-      settlementCount,
       unitPriceJpy,
-      payoutKrw: unitPriceJpy * settlementCount * 10,
+      payoutKrw: unitPriceJpy * 10,
     };
   });
 

@@ -46,7 +46,7 @@ export default async function DashboardPage() {
     { label: t('dashboard.totalInfluencers'), value: influencerCount ?? 0, href: '/influencers', color: 'bg-green-600' },
     { label: t('dashboard.reserved'), value: reserved, href: '/campaigns/schedules', color: 'bg-orange-500' },
     { label: t('dashboard.uploadPending'), value: uploadPending, href: '/influencers/posts', color: 'bg-red-500' },
-    { label: t('dashboard.settlementPending'), value: settlementPending, href: '/influencers/posts', color: 'bg-red-500' },
+    { label: t('dashboard.settlementPending'), value: settlementPending, href: '/campaigns/completed', color: 'bg-red-500' },
     { label: t('dashboard.done'), value: done, href: '/campaigns/completed', color: 'bg-green-600' },
   ];
 
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow p-5">
-          <Link href="/influencers/posts" className="text-lg font-semibold mb-4 block hover:text-blue-600">
+          <Link href="/campaigns/completed" className="text-lg font-semibold mb-4 block hover:text-blue-600">
             {t('dashboard.settlementPendingTop')}
           </Link>
           {settlementPendingList.length === 0 ? (
