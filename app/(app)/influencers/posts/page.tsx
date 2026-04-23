@@ -12,8 +12,19 @@ export default async function PostsPage() {
   const { data: posts } = await sb
     .from('posts')
     .select('*, clients(company_name), influencers(handle, unit_price)')
-    .eq('settlement_status', 'pending')
     .order('updated_at', { ascending: false });
+
+  const statusOrder: Record<string, number> = {
+    pending: 0,
+    payable: 1,
+    done: 2,
+  };
+
+  const sortedPosts = (posts ?? []).sort((a: any, b: any) => {
+    const orderDiff = (statusOrder[a.settlement_status] ?? 99) - (statusOrder[b.settlement_status] ?? 99);
+    if (orderDiff !== 0) return orderDiff;
+    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+  });
 
   return (
     <div className="p-4 md:p-8">
@@ -39,7 +50,7 @@ export default async function PostsPage() {
             </tr>
           </thead>
           <tbody>
-            {(posts ?? []).map((p: any) => (
+            {sortedPosts.map((p: any) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">{p.clients?.company_name ?? '-'}</td>
                 <td className="p-3">
@@ -55,8 +66,18 @@ export default async function PostsPage() {
                 <td className="p-3">{p.uploaded_on ?? '-'}</td>
                 <td className="p-3">{((p.influencers?.unit_price ?? 0) * 10).toLocaleString()}{t('money.won')}</td>
                 <td className="p-3">
-                  <span className="text-orange-500">
-                    {t('postForm.pending')}
+                  <span className={
+                    p.settlement_status === 'done'
+                      ? 'text-green-600'
+                      : p.settlement_status === 'payable'
+                        ? 'text-red-500'
+                        : 'text-orange-500'
+                  }>
+                    {p.settlement_status === 'done'
+                      ? t('postForm.done')
+                      : p.settlement_status === 'payable'
+                        ? t('postForm.payable')
+                        : t('postForm.pending')}
                   </span>
                 </td>
                 <td className="p-3">
