@@ -18,6 +18,7 @@ export async function upsertPostAction(fd: FormData) {
     client_id: Number(fd.get('client_id')),
     influencer_id: Number(fd.get('influencer_id')),
     schedule_id: fd.get('schedule_id') ? Number(fd.get('schedule_id')) : null,
+    settlement_count: Math.max(1, Number(fd.get('settlement_count')) || 1),
     post_url: String(fd.get('post_url') || '') || null,
     uploaded_on: String(fd.get('uploaded_on') || '') || null,
     settlement_status: String(fd.get('settlement_status') || 'pending') as any,
@@ -75,6 +76,7 @@ export async function autoCreatePostsFromPastSchedules() {
     influencer_id: s.influencer_id,
     post_url: null,
     uploaded_on: null,
+    settlement_count: 1,
     settlement_status: 'pending' as const,
   }));
 

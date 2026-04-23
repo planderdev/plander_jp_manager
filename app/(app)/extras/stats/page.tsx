@@ -42,7 +42,7 @@ export default async function StatsPage({
 
   if (!rangeError) {
     let q = sb.from('posts')
-      .select('client_id, influencer_id, post_url, views, likes, comments, shares, created_at, settlement_status, influencers(unit_price)');
+      .select('client_id, influencer_id, post_url, views, likes, comments, shares, created_at, settlement_status, settlement_count, influencers(unit_price)');
     if (client) q = q.eq('client_id', Number(client));
     if (influencer) q = q.eq('influencer_id', Number(influencer));
     if (fromDate) q = q.gte('created_at', `${fromDate}T00:00:00+09:00`);
@@ -50,7 +50,7 @@ export default async function StatsPage({
     const { data } = await q; posts = data ?? [];
 
     let sq = sb.from('schedules')
-      .select('*, influencers(unit_price), posts(post_url, settlement_status)');
+      .select('*, influencers(unit_price), posts(post_url, settlement_status, settlement_count)');
     if (client) sq = sq.eq('client_id', Number(client));
     if (influencer) sq = sq.eq('influencer_id', Number(influencer));
     if (fromDate) sq = sq.gte('scheduled_at', `${fromDate}T00:00:00+09:00`);
@@ -66,7 +66,9 @@ export default async function StatsPage({
       else if (st === 'done') scheduleDone++;
 
       if (st === 'reserved' || st === 'upload_pending') {
-        plannedTotal += (s.influencers?.unit_price ?? 0) * 10;
+        const post = Array.isArray(s.posts) ? s.posts[0] : s.posts;
+        const settlementCount = Math.max(1, post?.settlement_count ?? 1);
+        plannedTotal += (s.influencers?.unit_price ?? 0) * settlementCount * 10;
       }
     }
     const involvedSet = new Set<number>();
@@ -130,10 +132,10 @@ export default async function StatsPage({
   const totalShares = posts.reduce((a, p) => a + (p.shares ?? 0), 0);
   const paidTotal = posts
     .filter((p: any) => p.settlement_status === 'done')
-    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
+    .reduce((a, p: any) => a + ((p.influencers?.unit_price ?? 0) * Math.max(1, p.settlement_count ?? 1)), 0) * 10;
   const unpaidTotal = posts
     .filter((p: any) => p.post_url && p.settlement_status !== 'done')
-    .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
+    .reduce((a, p: any) => a + ((p.influencers?.unit_price ?? 0) * Math.max(1, p.settlement_count ?? 1)), 0) * 10;
   const grandTotal = paidTotal + unpaidTotal + plannedTotal;
 
   const metrics: { label: string; value: number; href?: string; suffix?: string }[] = [

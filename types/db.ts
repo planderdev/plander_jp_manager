@@ -113,6 +113,7 @@ export interface Post {
   schedule_id: number | null;
   client_id: number;
   influencer_id: number;
+  settlement_count: number;
   post_url: string | null;
   views: number;
   likes: number;

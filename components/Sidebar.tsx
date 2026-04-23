@@ -82,7 +82,6 @@ export default function Sidebar({
           <NavLink href="/extras/reports" pathname={pathname} onClick={close}>{t('nav.reportExport')}</NavLink>
           <NavLink href="/extras/report-links" pathname={pathname} onClick={close}>{t('nav.reportCreate')}</NavLink>
           <NavLink href="/extras/payment-reports" pathname={pathname} onClick={close}>{t('nav.paymentReport')}</NavLink>
-          <NavLink href="/extras/line-contacts" pathname={pathname} onClick={close}>{t('nav.lineContacts')}</NavLink>
         </nav>
         <div className="mt-3 mb-2 w-full rounded border border-gray-700 bg-transparent">
           <div className="flex items-center gap-1 px-2 py-2">
@@ -111,6 +110,7 @@ export default function Sidebar({
             }`}>
             {presenting ? t('presentation.on') : t('presentation.off')}
           </button>
+        <NavLink href="/extras/line-contacts" pathname={pathname} onClick={close}>{t('nav.lineContacts')}</NavLink>
         <div className="border-t border-gray-700 pt-3 mt-3 text-xs">
           <div className="px-3 mb-2">{userName}</div>
           <NavLink href="/extras/admins" pathname={pathname} onClick={close}>{t('nav.adminPage')}</NavLink>

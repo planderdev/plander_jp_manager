@@ -11,7 +11,7 @@ export default async function PostsPage() {
   const sb = await createClient();
   const { data: posts } = await sb
     .from('posts')
-    .select('*, clients(company_name), influencers(handle)')
+    .select('*, clients(company_name), influencers(handle, unit_price)')
     .order('settlement_status', { ascending: true })  // pending 먼저, done 뒤
     .order('updated_at', { ascending: false });
     
@@ -39,6 +39,8 @@ export default async function PostsPage() {
               <th className="p-3">{t('common.influencer')}</th>
               <th className="p-3">{t('common.post')}</th>
               <th className="p-3">{t('common.uploadDate')}</th>
+              <th className="p-3">{t('postForm.settlementCount')}</th>
+              <th className="p-3">{t('postForm.settlementAmount')}</th>
               <th className="p-3">{t('postForm.settlementStatus')}</th>
               <th className="p-3">{t('postForm.settledOn')}</th>
               <th className="p-3">{t('common.management')}</th>
@@ -59,6 +61,8 @@ export default async function PostsPage() {
                     : <span className="text-gray-400">{t('posts.uploaded')}</span>}
                 </td>
                 <td className="p-3">{p.uploaded_on ?? '-'}</td>
+                <td className="p-3">{(p.settlement_count ?? 1).toLocaleString()}</td>
+                <td className="p-3">{(((p.influencers?.unit_price ?? 0) * (p.settlement_count ?? 1)) * 10).toLocaleString()}{t('money.won')}</td>
                 <td className="p-3">
                   <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
                     {p.settlement_status === 'done' ? t('postForm.done') : t('postForm.pending')}
@@ -74,7 +78,7 @@ export default async function PostsPage() {
               </tr>
             ))}
             {!posts?.length && (
-              <tr><td colSpan={8} className="p-8 text-center text-gray-400">{t('posts.none')}</td></tr>
+              <tr><td colSpan={9} className="p-8 text-center text-gray-400">{t('posts.none')}</td></tr>
             )}
           </tbody>
         </table>

@@ -217,6 +217,9 @@ export default function InternalPaymentReportView({
                       {t('reportMockup.uploadPending')}
                     </span>
                   )}
+                  <span className="rounded-full bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700">
+                    {t('postForm.settlementCount')} {row.settlementCount}
+                  </span>
                   <span className="text-sm font-semibold text-gray-800">{money(row.payoutKrw)}</span>
                 </div>
               </div>
@@ -235,7 +238,8 @@ export default function InternalPaymentReportView({
                   <th className="px-4 py-3">{t('common.likes')}</th>
                   <th className="px-4 py-3">{t('common.comments')}</th>
                   <th className="px-4 py-3">{t('reportMockup.reposts')}</th>
-                  <th className="px-4 py-3">{t('common.unitPrice')}</th>
+                  <th className="px-4 py-3">{t('postForm.settlementCount')}</th>
+                  <th className="px-4 py-3">{t('postForm.settlementAmount')}</th>
                   <th className="px-4 py-3">{t('common.status')}</th>
                 </tr>
               </thead>
@@ -262,6 +266,7 @@ export default function InternalPaymentReportView({
                     <td className="px-4 py-3">{row.likes.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.comments.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.shares.toLocaleString()}</td>
+                    <td className="px-4 py-3">{row.settlementCount.toLocaleString()}</td>
                     <td className="px-4 py-3">{money(row.payoutKrw)}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(row.paymentStatus)}`}>
@@ -272,7 +277,7 @@ export default function InternalPaymentReportView({
                 ))}
                 {!data.rows.length && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
+                    <td colSpan={11} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
                   </tr>
                 )}
               </tbody>

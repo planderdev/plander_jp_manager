@@ -1,8 +1,9 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getI18n } from '@/lib/i18n/server';
 import { normalizeLineMatchValue } from '@/lib/line-contacts';
-import { linkLineContactAction, unlinkLineContactAction } from '@/actions/line-contacts';
+import { linkLineContactAction } from '@/actions/line-contacts';
 import SubmitButton from '@/components/SubmitButton';
+import LinkedContactsModal from '@/components/line/LinkedContactsModal';
 
 type LineContact = {
   id: number;
@@ -51,13 +52,18 @@ export default async function LineContactsPage() {
 
   const contactRows = (contacts ?? []) as LineContact[];
   const influencerRows = (influencers ?? []) as InfluencerOption[];
-  const pendingCount = contactRows.filter((contact) => !contact.linked_influencer_id).length;
+  const pendingContacts = contactRows.filter((contact) => !contact.linked_influencer_id);
+  const linkedContacts = contactRows.filter((contact) => contact.linked_influencer_id);
+  const pendingCount = pendingContacts.length;
 
   return (
     <div className="space-y-6 p-4 md:p-8">
-      <div>
-        <h1 className="text-2xl font-bold">{t('lineContacts.title')}</h1>
-        <p className="mt-2 text-sm text-gray-500">{t('lineContacts.description')}</p>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-bold">{t('lineContacts.title')}</h1>
+          <p className="mt-2 text-sm text-gray-500">{t('lineContacts.description')}</p>
+        </div>
+        <LinkedContactsModal contacts={linkedContacts} influencers={influencerRows} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
@@ -72,7 +78,7 @@ export default async function LineContactsPage() {
         </div>
 
         <div className="divide-y divide-gray-100">
-          {contactRows.map((contact) => {
+          {pendingContacts.map((contact) => {
             const suggested = findSuggestedInfluencer(contact, influencerRows);
             const linked = influencerRows.find((influencer) =>
               influencer.id === contact.linked_influencer_id || influencer.line_id === contact.line_user_id
@@ -126,25 +132,14 @@ export default async function LineContactsPage() {
                     </select>
                     <SubmitButton>{linked ? t('lineContacts.relink') : t('lineContacts.link')}</SubmitButton>
                   </form>
-
-                  {linked ? (
-                    <form action={unlinkLineContactAction} className="text-right">
-                      <input type="hidden" name="contact_id" value={contact.id} />
-                      <input type="hidden" name="influencer_id" value={linked.id} />
-                      <input type="hidden" name="line_user_id" value={contact.line_user_id} />
-                      <button type="submit" className="text-sm text-red-500 hover:underline">
-                        {t('lineContacts.unlink')}
-                      </button>
-                    </form>
-                  ) : null}
                 </div>
               </div>
             );
           })}
 
-          {!contactRows.length && (
+          {!pendingContacts.length && (
             <div className="px-6 py-12 text-center text-sm text-gray-400">
-              {t('lineContacts.empty')}
+              {t('lineContacts.noPending')}
             </div>
           )}
         </div>

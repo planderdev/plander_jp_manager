@@ -52,6 +52,8 @@ export default async function CompletedPage({
               <th className="p-3">{t('common.comments')}</th>
               <th className="p-3">{t('common.shares')}</th>
               <th className="p-3">{t('common.unitPrice')}</th>
+              <th className="p-3">{t('postForm.settlementCount')}</th>
+              <th className="p-3">{t('postForm.settlementAmount')}</th>
               <th className="p-3">{t('postForm.settlementStatus')}</th>
               <th className="p-3">{t('postForm.settledOn')}</th>
             </tr>
@@ -77,7 +79,9 @@ export default async function CompletedPage({
                 <td className="p-3">{p.likes?.toLocaleString()}</td>
                 <td className="p-3">{p.comments?.toLocaleString()}</td>
                 <td className="p-3">{p.shares?.toLocaleString()}</td>
-                <td className="p-3"><MoneyText value={p.unit_price} suffix=" JPY" /></td>
+                <td className="p-3"><MoneyText value={p.influencers?.unit_price} suffix=" JPY" /></td>
+                <td className="p-3">{(p.settlement_count ?? 1).toLocaleString()}</td>
+                <td className="p-3"><MoneyText value={(p.influencers?.unit_price ?? 0) * (p.settlement_count ?? 1) * 10} /></td>
                 <td className="p-3">
                   <span className={p.settlement_status === 'done' ? 'text-green-600' : 'text-orange-500'}>
                     {p.settlement_status === 'done' ? t('schedule.done') : t('postForm.pending')}
@@ -87,7 +91,7 @@ export default async function CompletedPage({
               </tr>
             ))}
             {!posts.length && (
-              <tr><td colSpan={11} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
+              <tr><td colSpan={13} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
             )}
           </tbody>
         </table>
