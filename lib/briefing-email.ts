@@ -59,24 +59,6 @@ function briefingTargetRange(date = new Date()) {
   };
 }
 
-function lineTargetRange(date = new Date()) {
-  const now = krDateParts(date);
-  const base = new Date(`${now.year}-${now.month}-${now.day}T00:00:00+09:00`);
-  const target = new Date(base.getTime() + 24 * 60 * 60 * 1000);
-  const nextDay = new Date(base.getTime() + 48 * 60 * 60 * 1000);
-  const toYmd = (value: Date) => {
-    const parts = krDateParts(value);
-    return `${parts.year}-${parts.month}-${parts.day}`;
-  };
-
-  return {
-    targetDate: toYmd(target),
-    start: `${toYmd(target)}T00:00:00+09:00`,
-    end: `${toYmd(nextDay)}T00:00:00+09:00`,
-    currentTime: `${now.hour}:${now.minute}`,
-  };
-}
-
 function getAppBaseUrl() {
   return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
 }
@@ -91,6 +73,11 @@ function formatVisitDateParts(value: string) {
 
 function isTimeReached(currentTime: string, scheduledTime: string) {
   return currentTime >= scheduledTime;
+}
+
+function formatYmdInKst(value: string | Date) {
+  const parts = krDateParts(new Date(value));
+  return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
 function dayDiffLabel(targetDate: string, now = new Date()) {
@@ -393,9 +380,12 @@ export async function runScheduledBriefingEmails(now = new Date()) {
 }
 
 export async function runScheduledBriefingLineMessages(now = new Date()) {
-  const { start, end, targetDate, currentTime } = lineTargetRange(now);
   const sb = createAdminClient();
   const deliverySettings = await getDeliverySettings();
+  const currentTime = `${krDateParts(now).hour}:${krDateParts(now).minute}`;
+  const lineSendHoursBefore = deliverySettings.lineSendHoursBefore;
+  const nowIso = now.toISOString();
+  const latestScheduledAt = new Date(now.getTime() + lineSendHoursBefore * 60 * 60 * 1000).toISOString();
 
   if (!deliverySettings.lineChannelAccessToken) {
     await sendWebPushNotification((locale) => ({
@@ -405,12 +395,12 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
           ? 'LINE Channel Access Token が未設定です。'
           : 'LINE Channel Access Token이 비어 있어서 발송을 못 했어.',
       url: '/extras/admins',
-      tag: `scheduled-line-missing-token-${targetDate}`,
+      tag: 'scheduled-line-missing-token',
     }));
 
     return {
-      targetDate,
       currentTime,
+      lineSendHoursBefore,
       total: 0,
       sent: 0,
       failed: 0,
@@ -423,8 +413,8 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
   const { data: schedules, error } = await sb
     .from('schedules')
     .select('id')
-    .gte('scheduled_at', start)
-    .lt('scheduled_at', end)
+    .gt('scheduled_at', nowIso)
+    .lte('scheduled_at', latestScheduledAt)
     .order('scheduled_at', { ascending: true });
 
   if (error) {
@@ -444,14 +434,18 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
       continue;
     }
 
-    if (!isTimeReached(currentTime, brief.visitNoticeTime)) {
+    const scheduledAt = new Date(brief.scheduledAt);
+    const triggerAt = new Date(scheduledAt.getTime() - lineSendHoursBefore * 60 * 60 * 1000);
+    const scheduleTargetDate = formatYmdInKst(brief.scheduledAt);
+
+    if (triggerAt.getTime() > now.getTime()) {
       skipped += 1;
-      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'before_notice_time' });
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'before_send_window' });
       continue;
     }
 
     const logEntry = await getBriefLineLogEntry(schedule.id);
-    if (logEntry?.scheduledTargetDate === targetDate) {
+    if (logEntry?.scheduledTargetDate === scheduleTargetDate) {
       skipped += 1;
       results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'already_sent' });
       continue;
@@ -460,7 +454,7 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
     try {
       const result = await sendBriefingLine(schedule.id, 'scheduled');
       await markBriefLineScheduled(schedule.id, {
-        targetDate,
+        targetDate: scheduleTargetDate,
         sentAt: new Date().toISOString(),
         recipient: result.recipient,
         status: 'sent',
@@ -470,7 +464,7 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
     } catch (error: any) {
       const errorMessage = error?.message ?? 'send_failed';
       await markBriefLineScheduled(schedule.id, {
-        targetDate,
+        targetDate: scheduleTargetDate,
         sentAt: new Date().toISOString(),
         recipient: brief.lineUserId,
         status: 'failed',
@@ -486,16 +480,16 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
       title: locale === 'ja' ? 'LINE自動送信結果' : 'LINE 자동발송 결과',
       body:
         locale === 'ja'
-          ? `明日 LINE 성공 ${sent}件 / 실패 ${failed}件`
-          : `내일 LINE 성공 ${sent}건 / 실패 ${failed}건`,
+          ? `${lineSendHoursBefore}時間前基準 LINE 성공 ${sent}件 / 실패 ${failed}件`
+          : `${lineSendHoursBefore}시간 전 기준 LINE 성공 ${sent}건 / 실패 ${failed}건`,
       url: '/extras/line-contacts',
-      tag: `scheduled-line-${targetDate}`,
+      tag: `scheduled-line-${lineSendHoursBefore}`,
     }));
   }
 
   return {
-    targetDate,
     currentTime,
+    lineSendHoursBefore,
     total: schedules?.length ?? 0,
     sent,
     failed,

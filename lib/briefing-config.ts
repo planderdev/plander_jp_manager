@@ -27,6 +27,7 @@ export type DeliverySettings = {
   lineChannelAccessToken: string;
   lineChannelSecret: string;
   lineDestinationId: string;
+  lineSendHoursBefore: number;
   lineInfluencerMessageTemplate: string;
   kakaoJavascriptKey: string;
   kakaoRestApiKey: string;
@@ -106,6 +107,7 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   lineChannelAccessToken: '',
   lineChannelSecret: '',
   lineDestinationId: '',
+  lineSendHoursBefore: 24,
   lineInfluencerMessageTemplate: '안녕하세요 {{influencerHandle}}님.\n내일 {{visitDate}} {{visitTime}} 방문 일정 안내드립니다.',
   kakaoJavascriptKey: '',
   kakaoRestApiKey: '',
@@ -145,6 +147,7 @@ function mergeDeliverySettings(input?: Partial<DeliverySettings> | null): Delive
     lineChannelAccessToken: normalizeNullableString(input?.lineChannelAccessToken) ?? '',
     lineChannelSecret: normalizeNullableString(input?.lineChannelSecret) ?? '',
     lineDestinationId: normalizeNullableString(input?.lineDestinationId) ?? '',
+    lineSendHoursBefore: normalizeHours(input?.lineSendHoursBefore, DEFAULT_DELIVERY_SETTINGS.lineSendHoursBefore),
     lineInfluencerMessageTemplate: normalizeMultiline(input?.lineInfluencerMessageTemplate, DEFAULT_DELIVERY_SETTINGS.lineInfluencerMessageTemplate),
     kakaoJavascriptKey: normalizeNullableString(input?.kakaoJavascriptKey) ?? '',
     kakaoRestApiKey: normalizeNullableString(input?.kakaoRestApiKey) ?? '',
@@ -167,6 +170,15 @@ function normalizeMultiline(value: unknown, fallback: string) {
 function normalizeTime(value: unknown, fallback: string) {
   const text = String(value ?? '').trim();
   return /^\d{2}:\d{2}$/.test(text) ? text : fallback;
+}
+
+function normalizeHours(value: unknown, fallback: number) {
+  const numeric = Number(value);
+  if (!Number.isFinite(numeric)) return fallback;
+  const integer = Math.trunc(numeric);
+  if (integer < 1) return fallback;
+  if (integer > 168) return 168;
+  return integer;
 }
 
 function normalizeNullableString(value: unknown) {
@@ -417,7 +429,21 @@ export function parseClientBriefConfigFormData(formData: FormData): ClientBriefC
 
 export function parseDeliverySettingsFormData(formData: FormData): Partial<DeliverySettings> {
   const next: Partial<DeliverySettings> = {};
-  const setString = (key: keyof DeliverySettings, formKey: string) => {
+  const setString = (
+    key:
+      | 'emailRecipient'
+      | 'emailSender'
+      | 'lineChannelAccessToken'
+      | 'lineChannelSecret'
+      | 'lineDestinationId'
+      | 'lineInfluencerMessageTemplate'
+      | 'kakaoJavascriptKey'
+      | 'kakaoRestApiKey'
+      | 'kakaoAdminKey'
+      | 'kakaoSenderKey'
+      | 'kakaoStoreMessageTemplate',
+    formKey: string
+  ) => {
     if (formData.has(formKey)) {
       next[key] = String(formData.get(formKey) || '');
     }
@@ -428,6 +454,9 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
   setString('lineChannelAccessToken', 'line_channel_access_token');
   setString('lineChannelSecret', 'line_channel_secret');
   setString('lineDestinationId', 'line_destination_id');
+  if (formData.has('line_send_hours_before')) {
+    next.lineSendHoursBefore = Number(formData.get('line_send_hours_before') || DEFAULT_DELIVERY_SETTINGS.lineSendHoursBefore);
+  }
   setString('lineInfluencerMessageTemplate', 'line_influencer_message_template');
   setString('kakaoJavascriptKey', 'kakao_javascript_key');
   setString('kakaoRestApiKey', 'kakao_rest_api_key');

@@ -146,6 +146,19 @@ export default async function AdminsPage({
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
+                <label className="text-sm block mb-1 font-medium">{t('admin.lineSendHoursBefore')}</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="168"
+                  step="1"
+                  name="line_send_hours_before"
+                  defaultValue={deliverySettings.lineSendHoursBefore}
+                  className="w-full max-w-xs border border-gray-400 rounded p-2"
+                />
+                <p className="mt-1 text-xs text-gray-500">{t('admin.lineSendHoursBeforeHelp')}</p>
+              </div>
+              <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.lineWebhookUrl')}</label>
                 <input value={lineWebhookUrl} readOnly
                   className="w-full border border-gray-300 bg-gray-50 rounded p-2 text-sm text-gray-700" />
