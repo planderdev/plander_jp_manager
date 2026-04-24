@@ -10,9 +10,18 @@ import ChannelIcon from '@/components/ChannelIcon';
 import { getScheduleStatus, statusLabel, statusColor } from '@/lib/schedule-status';
 import MoneyText from '@/components/MoneyText';
 import { getI18n } from '@/lib/i18n/server';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
-export default async function InfluencerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function InfluencerDetailPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ sort?: string; order?: SortOrder }>;
+}) {
   const { id } = await params;
+  const currentSearchParams = await searchParams;
   const { locale, t } = await getI18n();
   const sb = await createClient();
   const { data: i } = await sb.from('influencers').select('*').eq('id', Number(id)).single();
@@ -26,6 +35,27 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
     .select('*, clients(company_name), posts(post_url, settlement_status)')
     .eq('influencer_id', Number(id))
     .order('scheduled_at', { ascending: false });
+
+  const scheduleStatusOrder: Record<string, number> = {
+    reserved: 0,
+    upload_pending: 1,
+    settlement_pending: 2,
+    done: 3,
+  };
+  const currentSort = currentSearchParams.sort ?? 'scheduled_at';
+  const currentOrder = currentSearchParams.order === 'asc' ? 'asc' : 'desc';
+  const sortedSchedules = sortItems(schedules ?? [], (schedule: any) => {
+    const currentStatus = getScheduleStatus(schedule.scheduled_at, schedule.posts);
+
+    switch (currentSort) {
+      case 'company_name':
+        return schedule.clients?.company_name;
+      case 'status':
+        return scheduleStatusOrder[currentStatus] ?? 99;
+      default:
+        return schedule.scheduled_at;
+    }
+  }, currentOrder);
 
   return (
     <div className="p-4 md:p-8 space-y-6 max-w-3xl">
@@ -68,10 +98,38 @@ export default async function InfluencerDetailPage({ params }: { params: Promise
         {schedules?.length ? (
           <table className="w-full text-sm">
             <thead className="text-left text-gray-600">
-              <tr><th className="pb-2">{t('common.date')}</th><th className="pb-2">{t('common.company')}</th><th className="pb-2">{t('common.status')}</th></tr>
+              <tr>
+                <th className="pb-2">
+                  <SortableHeaderLink
+                    label={t('common.date')}
+                    sortKey="scheduled_at"
+                    currentSort={currentSort}
+                    currentOrder={currentOrder}
+                    searchParams={currentSearchParams}
+                  />
+                </th>
+                <th className="pb-2">
+                  <SortableHeaderLink
+                    label={t('common.company')}
+                    sortKey="company_name"
+                    currentSort={currentSort}
+                    currentOrder={currentOrder}
+                    searchParams={currentSearchParams}
+                  />
+                </th>
+                <th className="pb-2">
+                  <SortableHeaderLink
+                    label={t('common.status')}
+                    sortKey="status"
+                    currentSort={currentSort}
+                    currentOrder={currentOrder}
+                    searchParams={currentSearchParams}
+                  />
+                </th>
+              </tr>
             </thead>
             <tbody>
-              {schedules.map((s: any) => {
+              {sortedSchedules.map((s: any) => {
                 const st = getScheduleStatus(s.scheduled_at, s.posts);
                 return (
                   <tr key={s.id} className="border-t">

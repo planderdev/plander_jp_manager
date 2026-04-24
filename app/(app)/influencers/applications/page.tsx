@@ -1,8 +1,10 @@
 import ChannelIcon from '@/components/ChannelIcon';
 import ConfirmSubmitButton from '@/components/ConfirmSubmitButton';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
 import { channelLabel } from '@/lib/labels';
 import { getI18n } from '@/lib/i18n/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 import type {
   ChannelType,
   InfluencerApplication,
@@ -96,24 +98,35 @@ function formatApplicationDate(value: string | null) {
 export default async function InfluencerApplicationsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; sort?: string; order?: SortOrder }>;
 }) {
   const { locale, t } = await getI18n();
-  const { error } = await searchParams;
+  const currentSearchParams = await searchParams;
+  const { error } = currentSearchParams;
   const admin = createAdminClient();
   const { data } = await admin
     .from('influencer_applications')
     .select('*')
     .order('created_at', { ascending: false });
 
-  const applications = ((data ?? []) as InfluencerApplication[]).sort((a, b) => {
-    const byStatus = sortWeight(a.status) - sortWeight(b.status);
-    if (byStatus !== 0) return byStatus;
-
-    const aTime = a.created_at ? new Date(a.created_at).getTime() : 0;
-    const bTime = b.created_at ? new Date(b.created_at).getTime() : 0;
-    return bTime - aTime;
-  });
+  const currentSort = currentSearchParams.sort ?? 'status';
+  const currentOrder = currentSearchParams.order === 'desc' ? 'desc' : 'asc';
+  const applications = sortItems((data ?? []) as InfluencerApplication[], (application) => {
+    switch (currentSort) {
+      case 'platform':
+        return normalizePlatform(application.platform);
+      case 'handle':
+        return normalizeHandle(application.account_id);
+      case 'gender':
+        return application.gender ?? '';
+      case 'age_group':
+        return application.age_group ?? '';
+      case 'created_at':
+        return application.created_at ?? '';
+      default:
+        return sortWeight(application.status);
+    }
+  }, currentOrder);
 
   return (
     <div className="p-8">
@@ -227,12 +240,12 @@ export default async function InfluencerApplicationsPage({
         <table className="w-full text-sm">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">{t('influencerForm.channel')}</th>
-              <th className="p-3">{t('influencer.handle')}</th>
-              <th className="p-3">{t('common.gender')}</th>
-              <th className="p-3">{t('common.age')}</th>
-              <th className="p-3">{t('applications.applicationDate')}</th>
-              <th className="p-3">{t('common.status')}</th>
+              <th className="p-3"><SortableHeaderLink label={t('influencerForm.channel')} sortKey="platform" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('influencer.handle')} sortKey="handle" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.gender')} sortKey="gender" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.age')} sortKey="age_group" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('applications.applicationDate')} sortKey="created_at" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.status')} sortKey="status" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3">{t('common.management')}</th>
             </tr>
           </thead>

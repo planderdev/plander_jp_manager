@@ -2,11 +2,14 @@ import { createClient } from '@/lib/supabase/server';
 import Link from 'next/link';
 import MoneyText from '@/components/MoneyText';
 import { getI18n } from '@/lib/i18n/server';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
 export default async function CompletedPage({
   searchParams,
-}: { searchParams: Promise<{ handle?: string; company?: string }> }) {
-  const { handle, company } = await searchParams;
+}: { searchParams: Promise<{ handle?: string; company?: string; sort?: string; order?: SortOrder }> }) {
+  const currentSearchParams = await searchParams;
+  const { handle, company } = currentSearchParams;
   const { t } = await getI18n();
   const sb = await createClient();
 
@@ -20,6 +23,40 @@ export default async function CompletedPage({
 
   if (handle) posts = posts.filter((p: any) => p.influencers?.handle?.toLowerCase().includes(handle.toLowerCase()));
   if (company) posts = posts.filter((p: any) => p.clients?.company_name?.toLowerCase().includes(company.toLowerCase()));
+
+  const statusOrder: Record<string, number> = { payable: 0, done: 1 };
+  const currentSort = currentSearchParams.sort ?? 'updated_at';
+  const currentOrder = currentSearchParams.order === 'asc' ? 'asc' : 'desc';
+  const sortedPosts = sortItems(posts, (post: any) => {
+    switch (currentSort) {
+      case 'company_name':
+        return post.clients?.company_name;
+      case 'handle':
+        return post.influencers?.handle;
+      case 'account_url':
+        return post.influencers?.account_url;
+      case 'post_url':
+        return post.post_url;
+      case 'views':
+        return post.views ?? 0;
+      case 'likes':
+        return post.likes ?? 0;
+      case 'comments':
+        return post.comments ?? 0;
+      case 'shares':
+        return post.shares ?? 0;
+      case 'unit_price':
+        return post.influencers?.unit_price ?? 0;
+      case 'settlement_amount':
+        return (post.influencers?.unit_price ?? 0) * 10;
+      case 'settlement_status':
+        return statusOrder[post.settlement_status] ?? 99;
+      case 'settled_on':
+        return post.settled_on ?? '';
+      default:
+        return post.updated_at;
+    }
+  }, currentOrder);
 
   return (
     <div className="p-4 md:p-8">
@@ -36,6 +73,8 @@ export default async function CompletedPage({
           className="border border-gray-400 rounded p-2 text-sm" />
         <input name="company" defaultValue={company ?? ''} placeholder={t('completed.companyPlaceholder')}
           className="border border-gray-400 rounded p-2 text-sm" />
+        <input type="hidden" name="sort" value={currentSort} />
+        <input type="hidden" name="order" value={currentOrder} />
         <button className="bg-black text-white px-4 py-2 rounded text-sm">{t('completed.search')}</button>
       </form>
 
@@ -43,22 +82,22 @@ export default async function CompletedPage({
         <table className="w-full text-sm min-w-[1000px]">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">{t('common.companyName')}</th>
-              <th className="p-3">{t('common.influencer')}</th>
-              <th className="p-3">{t('postForm.accountLink')}</th>
-              <th className="p-3">{t('common.post')}</th>
-              <th className="p-3">{t('common.views')}</th>
-              <th className="p-3">{t('common.likes')}</th>
-              <th className="p-3">{t('common.comments')}</th>
-              <th className="p-3">{t('common.shares')}</th>
-              <th className="p-3">{t('common.unitPrice')}</th>
-              <th className="p-3">{t('postForm.settlementAmount')}</th>
-              <th className="p-3">{t('postForm.settlementStatus')}</th>
-              <th className="p-3">{t('postForm.settledOn')}</th>
+              <th className="p-3"><SortableHeaderLink label={t('common.companyName')} sortKey="company_name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.influencer')} sortKey="handle" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.accountLink')} sortKey="account_url" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.post')} sortKey="post_url" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.shares')} sortKey="shares" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.unitPrice')} sortKey="unit_price" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settlementAmount')} sortKey="settlement_amount" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settlementStatus')} sortKey="settlement_status" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settledOn')} sortKey="settled_on" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
             </tr>
           </thead>
           <tbody>
-            {posts.map((p: any) => (
+            {sortedPosts.map((p: any) => (
               <tr key={p.id} className="border-t">
                 <td className="p-3">{p.clients?.company_name}</td>
                 <td className="p-3">
@@ -92,7 +131,7 @@ export default async function CompletedPage({
                 <td className="p-3">{p.settled_on?.replaceAll('-', '/') ?? '-'}</td>
               </tr>
             ))}
-            {!posts.length && (
+            {!sortedPosts.length && (
               <tr><td colSpan={12} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
             )}
           </tbody>

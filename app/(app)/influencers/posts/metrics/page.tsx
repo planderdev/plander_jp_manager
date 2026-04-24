@@ -2,8 +2,10 @@ import Link from 'next/link';
 import { getMetricsForMonth, saveMetricsForMonth } from '@/actions/metrics';
 import SubmitButton from '@/components/SubmitButton';
 import BackButton from '@/components/BackButton';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
 import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 import type { PostMetricsHistory, SelfGrade } from '@/types/db';
 
 function defaultMonth() {
@@ -13,8 +15,9 @@ function defaultMonth() {
 
 export default async function MetricsPage({
   searchParams,
-}: { searchParams: Promise<{ month?: string }> }) {
-  const { month: m } = await searchParams;
+}: { searchParams: Promise<{ month?: string; sort?: string; order?: SortOrder }> }) {
+  const currentSearchParams = await searchParams;
+  const { month: m } = currentSearchParams;
   const { locale, t } = await getI18n();
   const month = m || defaultMonth();
   const { posts, history } = await getMetricsForMonth(month);
@@ -23,6 +26,33 @@ export default async function MetricsPage({
   for (const h of history) histMap.set(h.post_id, h);
 
   const gradeOptions: SelfGrade[] = ['S', 'A', 'B', 'C', 'F', 'pending'];
+  const currentSort = currentSearchParams.sort ?? 'uploaded_on';
+  const currentOrder = currentSearchParams.order === 'asc' ? 'asc' : 'desc';
+  const sortedPosts = sortItems(posts, (post: any) => {
+    const historyRow = histMap.get(post.id);
+    switch (currentSort) {
+      case 'handle':
+        return post.influencers?.handle;
+      case 'company_name':
+        return post.clients?.company_name;
+      case 'post_url':
+        return post.post_url;
+      case 'views':
+        return historyRow?.views ?? post.views ?? 0;
+      case 'likes':
+        return historyRow?.likes ?? post.likes ?? 0;
+      case 'comments':
+        return historyRow?.comments ?? post.comments ?? 0;
+      case 'shares':
+        return historyRow?.shares ?? post.shares ?? 0;
+      case 'self_grade':
+        return historyRow?.self_grade ?? 'pending';
+      case 'entered_at':
+        return historyRow?.entered_at ?? '';
+      default:
+        return post.uploaded_on ?? '';
+    }
+  }, currentOrder);
 
   return (
     <div className="p-4 md:p-8 space-y-6">
@@ -39,6 +69,8 @@ export default async function MetricsPage({
           <input type="month" name="month" defaultValue={month}
             className="border border-gray-400 rounded p-2" />
         </div>
+        <input type="hidden" name="sort" value={currentSort} />
+        <input type="hidden" name="order" value={currentOrder} />
         <button className="bg-black text-white px-4 py-2 rounded text-sm">{t('common.search')}</button>
       </form>
 
@@ -54,20 +86,20 @@ export default async function MetricsPage({
             <table className="w-full text-sm min-w-[1100px]">
               <thead className="bg-gray-100 text-left">
                 <tr>
-                  <th className="p-3">{t('common.uploadDate')}</th>
-                  <th className="p-3">{t('common.influencer')}</th>
-                  <th className="p-3">{t('common.companyName')}</th>
-                  <th className="p-3">{t('common.link')}</th>
-                  <th className="p-3">{t('common.views')}</th>
-                  <th className="p-3">{t('common.likes')}</th>
-                  <th className="p-3">{t('common.comments')}</th>
-                  <th className="p-3">{t('common.shares')}</th>
-                  <th className="p-3">{t('reportMockup.selfGrade')}</th>
-                  <th className="p-3">{t('metrics.lastEntered')}</th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.uploadDate')} sortKey="uploaded_on" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.influencer')} sortKey="handle" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.companyName')} sortKey="company_name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.link')} sortKey="post_url" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('common.shares')} sortKey="shares" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('reportMockup.selfGrade')} sortKey="self_grade" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                  <th className="p-3"><SortableHeaderLink label={t('metrics.lastEntered')} sortKey="entered_at" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                 </tr>
               </thead>
               <tbody>
-                {posts.map((p: any) => {
+                {sortedPosts.map((p: any) => {
                   const h = histMap.get(p.id);
                   return (
                     <tr key={p.id} className="border-t">

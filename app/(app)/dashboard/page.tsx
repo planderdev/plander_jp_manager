@@ -5,8 +5,22 @@ import { clientStatusLabel } from '@/lib/labels';
 import { getScheduleStatus } from '@/lib/schedule-status';
 import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
 import { getI18n } from '@/lib/i18n/server';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    upload_sort?: string;
+    upload_order?: SortOrder;
+    settlement_sort?: string;
+    settlement_order?: SortOrder;
+    client_sort?: string;
+    client_order?: SortOrder;
+  }>;
+}) {
+  const currentSearchParams = await searchParams;
   await autoCreatePostsFromPastSchedules();
   const { locale, t } = await getI18n();
   
@@ -40,6 +54,49 @@ export default async function DashboardPage() {
     else if (st === 'settlement_pending') { settlementPending++; settlementPendingList.push(s); }
     else if (st === 'done') done++;
   }
+
+  const uploadSort = currentSearchParams.upload_sort ?? 'scheduled_at';
+  const uploadOrder = currentSearchParams.upload_order === 'asc' ? 'asc' : 'desc';
+  const sortedUploadPendingList = sortItems(uploadPendingList, (schedule: any) => {
+    switch (uploadSort) {
+      case 'handle':
+        return schedule.influencers?.handle;
+      case 'company_name':
+        return schedule.clients?.company_name;
+      default:
+        return schedule.scheduled_at;
+    }
+  }, uploadOrder);
+
+  const settlementSort = currentSearchParams.settlement_sort ?? 'scheduled_at';
+  const settlementOrder = currentSearchParams.settlement_order === 'asc' ? 'asc' : 'desc';
+  const sortedSettlementPendingList = sortItems(settlementPendingList, (schedule: any) => {
+    switch (settlementSort) {
+      case 'handle':
+        return schedule.influencers?.handle;
+      case 'company_name':
+        return schedule.clients?.company_name;
+      default:
+        return schedule.scheduled_at;
+    }
+  }, settlementOrder);
+
+  const clientSort = currentSearchParams.client_sort ?? 'company_name';
+  const clientOrder = currentSearchParams.client_order === 'desc' ? 'desc' : 'asc';
+  const sortedClients = sortItems(clients ?? [], (client: any) => {
+    switch (clientSort) {
+      case 'contact_person':
+        return client.contact_person;
+      case 'phone':
+        return client.phone;
+      case 'status':
+        return client.status;
+      case 'contract_period':
+        return client.contract_start;
+      default:
+        return client.company_name;
+    }
+  }, clientOrder);
 
   const cards = [
     { label: t('dashboard.totalClients'), value: clientCount ?? 0, href: '/sales', color: 'bg-purple-600' },
@@ -76,10 +133,44 @@ export default async function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100 text-left">
-                  <tr><th className="p-2">{t('common.shootDate')}</th><th className="p-2">{t('common.influencer')}</th><th className="p-2">{t('common.companyName')}</th></tr>
+                  <tr>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.shootDate')}
+                        sortKey="scheduled_at"
+                        currentSort={uploadSort}
+                        currentOrder={uploadOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="upload_sort"
+                        orderParamName="upload_order"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.influencer')}
+                        sortKey="handle"
+                        currentSort={uploadSort}
+                        currentOrder={uploadOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="upload_sort"
+                        orderParamName="upload_order"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.companyName')}
+                        sortKey="company_name"
+                        currentSort={uploadSort}
+                        currentOrder={uploadOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="upload_sort"
+                        orderParamName="upload_order"
+                      />
+                    </th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {uploadPendingList.slice(0, 10).map((s: any) => (
+                  {sortedUploadPendingList.slice(0, 10).map((s: any) => (
                     <tr key={s.id} className="border-t">
                       <td className="p-2">{shortLocalized(s.scheduled_at, locale)}</td>
                       <td className="p-2">
@@ -106,10 +197,44 @@ export default async function DashboardPage() {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead className="bg-gray-100 text-left">
-                  <tr><th className="p-2">{t('common.shootDate')}</th><th className="p-2">{t('common.influencer')}</th><th className="p-2">{t('common.companyName')}</th></tr>
+                  <tr>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.shootDate')}
+                        sortKey="scheduled_at"
+                        currentSort={settlementSort}
+                        currentOrder={settlementOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="settlement_sort"
+                        orderParamName="settlement_order"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.influencer')}
+                        sortKey="handle"
+                        currentSort={settlementSort}
+                        currentOrder={settlementOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="settlement_sort"
+                        orderParamName="settlement_order"
+                      />
+                    </th>
+                    <th className="p-2">
+                      <SortableHeaderLink
+                        label={t('common.companyName')}
+                        sortKey="company_name"
+                        currentSort={settlementSort}
+                        currentOrder={settlementOrder}
+                        searchParams={currentSearchParams}
+                        sortParamName="settlement_sort"
+                        orderParamName="settlement_order"
+                      />
+                    </th>
+                  </tr>
                 </thead>
                 <tbody>
-                  {settlementPendingList.slice(0, 10).map((s: any) => (
+                  {sortedSettlementPendingList.slice(0, 10).map((s: any) => (
                     <tr key={s.id} className="border-t">
                       <td className="p-2">{shortLocalized(s.scheduled_at, locale)}</td>
                       <td className="p-2">
@@ -138,15 +263,65 @@ export default async function DashboardPage() {
             <table className="w-full text-sm min-w-[600px]">
               <thead className="bg-gray-100 text-left">
                 <tr>
-                  <th className="p-2">{t('common.companyName')}</th>
-                  <th className="p-2">{t('sales.owner')}</th>
-                  <th className="p-2">{t('common.contact')}</th>
-                  <th className="p-2">{t('common.status')}</th>
-                  <th className="p-2">{t('common.contractPeriod')}</th>
+                  <th className="p-2">
+                    <SortableHeaderLink
+                      label={t('common.companyName')}
+                      sortKey="company_name"
+                      currentSort={clientSort}
+                      currentOrder={clientOrder}
+                      searchParams={currentSearchParams}
+                      sortParamName="client_sort"
+                      orderParamName="client_order"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <SortableHeaderLink
+                      label={t('sales.owner')}
+                      sortKey="contact_person"
+                      currentSort={clientSort}
+                      currentOrder={clientOrder}
+                      searchParams={currentSearchParams}
+                      sortParamName="client_sort"
+                      orderParamName="client_order"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <SortableHeaderLink
+                      label={t('common.contact')}
+                      sortKey="phone"
+                      currentSort={clientSort}
+                      currentOrder={clientOrder}
+                      searchParams={currentSearchParams}
+                      sortParamName="client_sort"
+                      orderParamName="client_order"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <SortableHeaderLink
+                      label={t('common.status')}
+                      sortKey="status"
+                      currentSort={clientSort}
+                      currentOrder={clientOrder}
+                      searchParams={currentSearchParams}
+                      sortParamName="client_sort"
+                      orderParamName="client_order"
+                    />
+                  </th>
+                  <th className="p-2">
+                    <SortableHeaderLink
+                      label={t('common.contractPeriod')}
+                      sortKey="contract_period"
+                      currentSort={clientSort}
+                      currentOrder={clientOrder}
+                      searchParams={currentSearchParams}
+                      sortParamName="client_sort"
+                      orderParamName="client_order"
+                    />
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {clients?.map((c: any) => (
+                {sortedClients.map((c: any) => (
                   <tr key={c.id} className="border-t">
                     <td className="p-2 font-medium">
                       <Link href={`/campaigns/clients/${c.id}`} className="text-blue-600 hover:underline">

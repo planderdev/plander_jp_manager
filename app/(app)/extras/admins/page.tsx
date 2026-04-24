@@ -15,11 +15,36 @@ import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
 import AdminCreateDialog from '@/components/admins/AdminCreateDialog';
 import WebPushSettings from '@/components/admins/WebPushSettings';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
-export default async function AdminsPage() {
+export default async function AdminsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; order?: SortOrder }>;
+}) {
+  const currentSearchParams = await searchParams;
   const { locale, t } = await getI18n();
   const sb = await createClient();
   const { data: admins } = await sb.from('admins').select('*').order('created_at', { ascending: false });
+  const currentSort = currentSearchParams.sort ?? 'created_at';
+  const currentOrder = currentSearchParams.order === 'asc' ? 'asc' : 'desc';
+  const sortedAdmins = sortItems(admins ?? [], (admin) => {
+    switch (currentSort) {
+      case 'name':
+        return admin.name;
+      case 'company':
+        return admin.company;
+      case 'title':
+        return admin.title;
+      case 'email':
+        return admin.email;
+      case 'phone':
+        return admin.phone;
+      default:
+        return admin.created_at;
+    }
+  }, currentOrder);
   const tokenStatus = await getApifyTokenStatus();
   const deliverySettings = await getDeliverySettingsStatus();
   const lineWebhookStatus = await getLineWebhookStatusAction();
@@ -41,17 +66,17 @@ export default async function AdminsPage() {
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-100 text-left">
               <tr>
-                <th className="p-3">{t('sales.owner')}</th>
-                <th className="p-3">{t('admin.company')}</th>
-                <th className="p-3">{t('admin.jobTitle')}</th>
-                <th className="p-3">{t('common.email')}</th>
-                <th className="p-3">{t('common.phone')}</th>
-                <th className="p-3">{t('common.createdAt')}</th>
+                <th className="p-3"><SortableHeaderLink label={t('sales.owner')} sortKey="name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('admin.company')} sortKey="company" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('admin.jobTitle')} sortKey="title" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('common.email')} sortKey="email" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('common.phone')} sortKey="phone" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('common.createdAt')} sortKey="created_at" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                 <th className="p-3">{t('common.management')}</th>
               </tr>
             </thead>
             <tbody>
-              {admins?.map((a: any) => (
+              {sortedAdmins.map((a: any) => (
                 <tr key={a.id} className="border-t">
                   <td className="p-3 font-medium">{a.name}</td>
                   <td className="p-3">{a.company ?? '-'}</td>

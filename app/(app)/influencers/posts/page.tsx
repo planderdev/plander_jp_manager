@@ -3,8 +3,15 @@ import { createClient } from '@/lib/supabase/server';
 import DeleteButton from '@/components/post/DeleteButton';
 import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
 import { getI18n } from '@/lib/i18n/server';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
-export default async function PostsPage() {
+export default async function PostsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; order?: SortOrder }>;
+}) {
+  const currentSearchParams = await searchParams;
   const { t } = await getI18n();
   await autoCreatePostsFromPastSchedules();
 
@@ -19,12 +26,27 @@ export default async function PostsPage() {
     payable: 1,
     done: 2,
   };
+  const currentSort = currentSearchParams.sort ?? 'settlement_status';
+  const currentOrder = currentSearchParams.order === 'desc' ? 'desc' : 'asc';
 
-  const sortedPosts = (posts ?? []).sort((a: any, b: any) => {
-    const orderDiff = (statusOrder[a.settlement_status] ?? 99) - (statusOrder[b.settlement_status] ?? 99);
-    if (orderDiff !== 0) return orderDiff;
-    return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
-  });
+  const sortedPosts = sortItems(posts ?? [], (post: any) => {
+    switch (currentSort) {
+      case 'company_name':
+        return post.clients?.company_name;
+      case 'handle':
+        return post.influencers?.handle;
+      case 'post_url':
+        return post.post_url ?? '';
+      case 'uploaded_on':
+        return post.uploaded_on ?? '';
+      case 'settlement_amount':
+        return (post.influencers?.unit_price ?? 0) * 10;
+      case 'settled_on':
+        return post.settled_on ?? '';
+      default:
+        return statusOrder[post.settlement_status] ?? 99;
+    }
+  }, currentOrder);
 
   return (
     <div className="p-4 md:p-8">
@@ -39,13 +61,13 @@ export default async function PostsPage() {
         <table className="w-full text-sm min-w-[800px]">
           <thead className="bg-gray-100 text-left">
             <tr>
-              <th className="p-3">{t('common.companyName')}</th>
-              <th className="p-3">{t('common.influencer')}</th>
-              <th className="p-3">{t('common.post')}</th>
-              <th className="p-3">{t('common.uploadDate')}</th>
-              <th className="p-3">{t('postForm.settlementAmount')}</th>
-              <th className="p-3">{t('postForm.settlementStatus')}</th>
-              <th className="p-3">{t('postForm.settledOn')}</th>
+              <th className="p-3"><SortableHeaderLink label={t('common.companyName')} sortKey="company_name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.influencer')} sortKey="handle" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.post')} sortKey="post_url" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('common.uploadDate')} sortKey="uploaded_on" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settlementAmount')} sortKey="settlement_amount" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settlementStatus')} sortKey="settlement_status" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+              <th className="p-3"><SortableHeaderLink label={t('postForm.settledOn')} sortKey="settled_on" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3">{t('common.management')}</th>
             </tr>
           </thead>

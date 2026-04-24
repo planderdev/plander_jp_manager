@@ -6,15 +6,36 @@ import SubmitButton from '@/components/SubmitButton';
 import { dateLocale } from '@/lib/datetime';
 import { getI18n } from '@/lib/i18n/server';
 import Link from 'next/link';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 
 
-export default async function ReportsPage() {
+export default async function ReportsPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ sort?: string; order?: SortOrder }>;
+}) {
+  const currentSearchParams = await searchParams;
   const { locale, t } = await getI18n();
   const sb = await createClient();
   const [{ data: clients }, { data: reports }] = await Promise.all([
     sb.from('clients').select('id, company_name').order('company_name'),
     sb.from('reports').select('*, clients(company_name)').order('created_at', { ascending: false }),
   ]);
+  const currentSort = currentSearchParams.sort ?? 'created_at';
+  const currentOrder = currentSearchParams.order === 'asc' ? 'asc' : 'desc';
+  const sortedReports = sortItems(reports ?? [], (report: any) => {
+    switch (currentSort) {
+      case 'company_name':
+        return report.clients?.company_name;
+      case 'year_month':
+        return report.year_month;
+      case 'file_name':
+        return report.file_name;
+      default:
+        return report.created_at;
+    }
+  }, currentOrder);
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -49,15 +70,15 @@ export default async function ReportsPage() {
           <table className="w-full text-sm min-w-[600px]">
             <thead className="bg-gray-100 text-left">
               <tr>
-                <th className="p-3">{t('common.companyName')}</th>
-                <th className="p-3">{t('metrics.month')}</th>
-                <th className="p-3">{t('reports.fileName')}</th>
-                <th className="p-3">{t('common.createdAt')}</th>
+                <th className="p-3"><SortableHeaderLink label={t('common.companyName')} sortKey="company_name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('metrics.month')} sortKey="year_month" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('reports.fileName')} sortKey="file_name" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
+                <th className="p-3"><SortableHeaderLink label={t('common.createdAt')} sortKey="created_at" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                 <th className="p-3">{t('common.management')}</th>
               </tr>
             </thead>
             <tbody>
-              {reports?.map((r: any) => (
+              {sortedReports.map((r: any) => (
                 <tr key={r.id} className="border-t">
                   <td className="p-3">{r.clients?.company_name}</td>
                   <td className="p-3">{r.year_month}</td>
@@ -69,7 +90,7 @@ export default async function ReportsPage() {
                   </td>
                 </tr>
               ))}
-              {!reports?.length && (
+              {!sortedReports.length && (
                 <tr><td colSpan={5} className="p-8 text-center text-gray-400">{t('reports.none')}</td></tr>
               )}
             </tbody>
