@@ -20,14 +20,14 @@ export default function QuickSettlementStatusForm({
   const [currentStatus, setCurrentStatus] = useState<SettlementStatus>(status);
 
   return (
-    <form action={updatePostSettlementStatusAction} className="flex min-w-[160px] items-center gap-2">
+    <form action={updatePostSettlementStatusAction} className="flex items-center gap-1">
       <input type="hidden" name="id" value={id} />
       <input type="hidden" name="settled_on" value={settledOn ?? ''} />
       <select
         name="settlement_status"
         value={currentStatus}
         onChange={(event) => setCurrentStatus(event.target.value as SettlementStatus)}
-        className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs"
+        className="w-[92px] rounded border border-gray-300 bg-white px-1.5 py-1 text-xs"
       >
         <option value="pending">{t('postForm.pending')}</option>
         <option value="payable">{t('postForm.payable')}</option>
@@ -46,9 +46,9 @@ function InlineSubmitButton() {
     <button
       type="submit"
       disabled={pending}
-      className="rounded bg-black px-2.5 py-1 text-xs text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+      className="rounded bg-black px-2 py-1 text-[11px] text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
     >
-      {pending ? t('common.loading') : t('common.save')}
+      {pending ? '...' : t('common.save')}
     </button>
   );
 }
