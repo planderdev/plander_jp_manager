@@ -6,6 +6,7 @@ export type BriefScheduleData = {
   scheduledAt: string;
   clientId: number;
   influencerHandle: string;
+  lineUserId: string | null;
   clientName: string;
   storeNameJa: string;
   addressKo: string;
@@ -45,7 +46,8 @@ export async function getBriefScheduleData(scheduleId: number): Promise<BriefSch
         provided_menu
       ),
       influencers (
-        handle
+        handle,
+        line_id
       )
     `)
     .eq('id', scheduleId)
@@ -71,6 +73,7 @@ export async function getBriefScheduleData(scheduleId: number): Promise<BriefSch
     clientId: data.client_id,
     scheduledAt: data.scheduled_at,
     influencerHandle: influencer?.handle ?? 'sample_creator',
+    lineUserId: influencer?.line_id ?? null,
     clientName: client?.company_name ?? '-',
     storeNameJa: client?.store_name_ja ?? client?.company_name ?? '-',
     addressKo: addressKo || '-',

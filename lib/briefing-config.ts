@@ -6,6 +6,7 @@ const CLIENT_BRIEF_SETTINGS_KEY = 'client_brief_settings';
 const INFLUENCER_MEDIA_SETTINGS_KEY = 'influencer_media_settings';
 const DELIVERY_SETTINGS_KEY = 'delivery_channel_settings';
 const BRIEF_EMAIL_LOG_KEY = 'brief_email_log';
+const BRIEF_LINE_LOG_KEY = 'brief_line_log';
 const LINE_WEBHOOK_STATUS_KEY = 'line_webhook_status';
 
 export type ClientBriefConfig = {
@@ -48,6 +49,18 @@ type BriefEmailLogEntry = {
   lastScheduledRecipient?: string | null;
   lastManualAt?: string | null;
   lastManualRecipient?: string | null;
+};
+
+type BriefLineLogEntry = {
+  scheduledTargetDate?: string | null;
+  scheduledAt?: string | null;
+  lastScheduledRecipient?: string | null;
+  lastScheduledStatus?: string | null;
+  lastScheduledError?: string | null;
+  lastManualAt?: string | null;
+  lastManualRecipient?: string | null;
+  lastManualStatus?: string | null;
+  lastManualError?: string | null;
 };
 
 export type BriefEmailNotificationEvent = {
@@ -276,6 +289,15 @@ async function saveBriefEmailLogMap(map: Record<string, BriefEmailLogEntry>) {
   await writeSettingValue(BRIEF_EMAIL_LOG_KEY, JSON.stringify(map));
 }
 
+async function getBriefLineLogMap() {
+  const raw = await readSettingValue(BRIEF_LINE_LOG_KEY);
+  return parseJson<Record<string, BriefLineLogEntry>>(raw, {});
+}
+
+async function saveBriefLineLogMap(map: Record<string, BriefLineLogEntry>) {
+  await writeSettingValue(BRIEF_LINE_LOG_KEY, JSON.stringify(map));
+}
+
 export async function getBriefEmailLogEntry(scheduleId: number) {
   const map = await getBriefEmailLogMap();
   return map[String(scheduleId)] ?? null;
@@ -300,6 +322,53 @@ export async function markBriefEmailManual(scheduleId: number, input: { sentAt: 
     lastManualRecipient: input.recipient,
   };
   await saveBriefEmailLogMap(map);
+}
+
+export async function getBriefLineLogEntry(scheduleId: number) {
+  const map = await getBriefLineLogMap();
+  return map[String(scheduleId)] ?? null;
+}
+
+export async function markBriefLineScheduled(
+  scheduleId: number,
+  input: {
+    targetDate: string;
+    sentAt: string;
+    recipient: string | null;
+    status: 'sent' | 'failed';
+    error?: string | null;
+  }
+) {
+  const map = await getBriefLineLogMap();
+  map[String(scheduleId)] = {
+    ...(map[String(scheduleId)] ?? {}),
+    scheduledTargetDate: input.targetDate,
+    scheduledAt: input.sentAt,
+    lastScheduledRecipient: input.recipient,
+    lastScheduledStatus: input.status,
+    lastScheduledError: input.error ?? null,
+  };
+  await saveBriefLineLogMap(map);
+}
+
+export async function markBriefLineManual(
+  scheduleId: number,
+  input: {
+    sentAt: string;
+    recipient: string | null;
+    status: 'sent' | 'failed';
+    error?: string | null;
+  }
+) {
+  const map = await getBriefLineLogMap();
+  map[String(scheduleId)] = {
+    ...(map[String(scheduleId)] ?? {}),
+    lastManualAt: input.sentAt,
+    lastManualRecipient: input.recipient,
+    lastManualStatus: input.status,
+    lastManualError: input.error ?? null,
+  };
+  await saveBriefLineLogMap(map);
 }
 
 export async function getBriefEmailEventsSince(since?: string | null) {
