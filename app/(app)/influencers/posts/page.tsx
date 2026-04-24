@@ -5,6 +5,7 @@ import { autoCreatePostsFromPastSchedules } from '@/actions/posts';
 import { getI18n } from '@/lib/i18n/server';
 import SortableHeaderLink from '@/components/table/SortableHeaderLink';
 import { sortItems, type SortOrder } from '@/lib/table-sort';
+import QuickSettlementStatusForm from '@/components/post/QuickSettlementStatusForm';
 
 export default async function PostsPage({
   searchParams,
@@ -88,19 +89,11 @@ export default async function PostsPage({
                 <td className="p-3">{p.uploaded_on ?? '-'}</td>
                 <td className="p-3">{((p.influencers?.unit_price ?? 0) * 10).toLocaleString()}{t('money.won')}</td>
                 <td className="p-3">
-                  <span className={
-                    p.settlement_status === 'done'
-                      ? 'text-green-600'
-                      : p.settlement_status === 'payable'
-                        ? 'text-red-500'
-                        : 'text-orange-500'
-                  }>
-                    {p.settlement_status === 'done'
-                      ? t('postForm.done')
-                      : p.settlement_status === 'payable'
-                        ? t('postForm.payable')
-                        : t('postForm.pending')}
-                  </span>
+                  <QuickSettlementStatusForm
+                    id={p.id}
+                    status={p.settlement_status ?? 'pending'}
+                    settledOn={p.settled_on}
+                  />
                 </td>
                 <td className="p-3">
                   {p.settled_on ? p.settled_on.replaceAll('-', '/') : '-'}

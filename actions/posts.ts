@@ -58,6 +58,36 @@ export async function deletePostAction(id: number) {
   revalidatePath('/influencers/posts');
 }
 
+export async function updatePostSettlementStatusAction(fd: FormData) {
+  const sb = await createClient();
+  const id = Number(fd.get('id'));
+  const settlementStatus = String(fd.get('settlement_status') || 'pending');
+
+  if (!Number.isFinite(id)) {
+    throw new Error('Invalid post id');
+  }
+
+  const settledOn =
+    settlementStatus === 'done'
+      ? parseYmd(String(fd.get('settled_on') || '') || null) ?? new Date().toISOString().slice(0, 10)
+      : null;
+
+  const { error } = await sb
+    .from('posts')
+    .update({
+      settlement_status: settlementStatus as any,
+      settled_on: settledOn,
+    })
+    .eq('id', id);
+
+  if (error) throw new Error(error.message);
+
+  revalidatePath('/influencers/posts');
+  revalidatePath('/campaigns/completed');
+  revalidatePath('/dashboard');
+  revalidatePath('/extras/stats');
+}
+
 export async function autoCreatePostsFromPastSchedules() {
   const sb = await createClient();
   const now = new Date().toISOString();
