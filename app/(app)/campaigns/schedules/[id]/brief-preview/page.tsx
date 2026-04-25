@@ -2,14 +2,14 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { getBriefScheduleData } from '@/lib/briefing';
 import { getI18n } from '@/lib/i18n/server';
-import { sendBriefingEmailAction } from '@/actions/briefings';
+import { sendBriefingEmailAction, sendBriefingLineAction } from '@/actions/briefings';
 
 export default async function BriefPreviewPage({
   params,
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams?: Promise<{ refresh?: string; sent?: string }>;
+  searchParams?: Promise<{ refresh?: string; sent?: string; email_error?: string; line_sent?: string; line_error?: string }>;
 }) {
   const { id } = await params;
   const { t } = await getI18n();
@@ -33,6 +33,15 @@ export default async function BriefPreviewPage({
           {query?.sent === '1' ? (
             <p className="text-sm text-emerald-600 mt-2">고정 메일 주소로 전송했습니다.</p>
           ) : null}
+          {query?.email_error ? (
+            <p className="text-sm text-red-600 mt-2">{decodeURIComponent(query.email_error)}</p>
+          ) : null}
+          {query?.line_sent === '1' ? (
+            <p className="text-sm text-emerald-600 mt-2">LINE으로 전송했습니다.</p>
+          ) : null}
+          {query?.line_error ? (
+            <p className="text-sm text-red-600 mt-2">{decodeURIComponent(query.line_error)}</p>
+          ) : null}
         </div>
         <div className="flex gap-2">
           <Link href={`/campaigns/schedules/${brief.id}`} className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50">
@@ -55,6 +64,13 @@ export default async function BriefPreviewPage({
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
             <button className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700">
               메일 테스트 전송
+            </button>
+          </form>
+          <form action={sendBriefingLineAction}>
+            <input type="hidden" name="schedule_id" value={brief.id} />
+            <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
+            <button className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+              LINE 바로 전송
             </button>
           </form>
         </div>

@@ -52,6 +52,8 @@ export default async function AdminsPage({
   const actorId = actorRow?.value ?? '';
   const appBaseUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
   const lineWebhookUrl = `${appBaseUrl}/api/line/webhook`;
+  const emailSendHoursBefore = Math.max(1, Math.round(deliverySettings.emailSendMinutesBefore / 60));
+  const lineSendHoursBefore = Math.max(1, Math.round(deliverySettings.lineSendMinutesBefore / 60));
 
   return (
     <div className="p-4 md:p-8 space-y-8">
@@ -121,17 +123,17 @@ export default async function AdminsPage({
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
-                <label className="text-sm block mb-1 font-medium">{t('admin.emailSendMinutesBefore')}</label>
+                <label className="text-sm block mb-1 font-medium">{t('admin.emailSendHoursBefore')}</label>
                 <input
                   type="number"
                   min="1"
-                  max="10080"
+                  max="168"
                   step="1"
-                  name="email_send_minutes_before"
-                  defaultValue={deliverySettings.emailSendMinutesBefore}
+                  name="email_send_hours_before"
+                  defaultValue={emailSendHoursBefore}
                   className="w-full max-w-xs border border-gray-400 rounded p-2"
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('admin.emailSendMinutesBeforeHelp')}</p>
+                <p className="mt-1 text-xs text-gray-500">{t('admin.emailSendHoursBeforeHelp')}</p>
               </div>
               <div className="text-xs text-gray-500">
                 Resend API 키는 서버 환경변수 `RESEND_API_KEY` 로 사용됩니다.
@@ -159,17 +161,17 @@ export default async function AdminsPage({
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
-                <label className="text-sm block mb-1 font-medium">{t('admin.lineSendMinutesBefore')}</label>
+                <label className="text-sm block mb-1 font-medium">{t('admin.lineSendHoursBefore')}</label>
                 <input
                   type="number"
                   min="1"
-                  max="10080"
+                  max="168"
                   step="1"
-                  name="line_send_minutes_before"
-                  defaultValue={deliverySettings.lineSendMinutesBefore}
+                  name="line_send_hours_before"
+                  defaultValue={lineSendHoursBefore}
                   className="w-full max-w-xs border border-gray-400 rounded p-2"
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('admin.lineSendMinutesBeforeHelp')}</p>
+                <p className="mt-1 text-xs text-gray-500">{t('admin.lineSendHoursBeforeHelp')}</p>
               </div>
               <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.lineWebhookUrl')}</label>

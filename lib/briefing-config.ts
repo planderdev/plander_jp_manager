@@ -442,6 +442,15 @@ export function parseClientBriefConfigFormData(formData: FormData): ClientBriefC
 
 export function parseDeliverySettingsFormData(formData: FormData): Partial<DeliverySettings> {
   const next: Partial<DeliverySettings> = {};
+  const setHoursAsMinutes = (
+    key: 'emailSendMinutesBefore' | 'lineSendMinutesBefore',
+    formKey: string,
+    fallbackMinutes: number
+  ) => {
+    if (!formData.has(formKey)) return;
+    const rawValue = Number(formData.get(formKey) || fallbackMinutes / 60);
+    next[key] = Math.trunc(rawValue * 60);
+  };
   const setString = (
     key:
       | 'emailRecipient'
@@ -464,15 +473,11 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
 
   setString('emailRecipient', 'email_recipient');
   setString('emailSender', 'email_sender');
-  if (formData.has('email_send_minutes_before')) {
-    next.emailSendMinutesBefore = Number(formData.get('email_send_minutes_before') || DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore);
-  }
+  setHoursAsMinutes('emailSendMinutesBefore', 'email_send_hours_before', DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore);
   setString('lineChannelAccessToken', 'line_channel_access_token');
   setString('lineChannelSecret', 'line_channel_secret');
   setString('lineDestinationId', 'line_destination_id');
-  if (formData.has('line_send_minutes_before')) {
-    next.lineSendMinutesBefore = Number(formData.get('line_send_minutes_before') || DEFAULT_DELIVERY_SETTINGS.lineSendMinutesBefore);
-  }
+  setHoursAsMinutes('lineSendMinutesBefore', 'line_send_hours_before', DEFAULT_DELIVERY_SETTINGS.lineSendMinutesBefore);
   setString('lineInfluencerMessageTemplate', 'line_influencer_message_template');
   setString('kakaoJavascriptKey', 'kakao_javascript_key');
   setString('kakaoRestApiKey', 'kakao_rest_api_key');
