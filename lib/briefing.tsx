@@ -92,11 +92,23 @@ export async function getBriefScheduleData(scheduleId: number): Promise<BriefSch
 }
 
 export function formatInviteDate(value: string) {
-  const date = new Date(value);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  const hour = String(date.getHours()).padStart(2, '0');
-  const minute = String(date.getMinutes()).padStart(2, '0');
-  return `${year}.${month}.${day} ${hour}:${minute}`;
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts: Record<string, string> = {};
+
+  for (const part of formatter.formatToParts(new Date(value))) {
+    if (part.type !== 'literal') {
+      parts[part.type] = part.value;
+    }
+  }
+
+  const hour = parts.hour === '24' ? '00' : parts.hour;
+  return `${parts.year}.${parts.month}.${parts.day} ${hour}:${parts.minute}`;
 }
