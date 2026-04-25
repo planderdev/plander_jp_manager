@@ -22,21 +22,21 @@ function countWrappedLines(value: string, charsPerLine: number) {
 
 function estimateInfoSectionHeight(rows: Array<{ value: string }>) {
   const contentHeight = rows.reduce((total, item) => {
-    const lines = countWrappedLines(item.value, 28);
-    return total + Math.max(74, 26 + lines * 38);
+    const lines = countWrappedLines(item.value, 22);
+    return total + Math.max(92, 34 + lines * 46);
   }, 0);
 
-  return Math.max(220, contentHeight + 8);
+  return Math.max(280, contentHeight + 24);
 }
 
 function estimateSingleSectionHeight(value: string) {
-  const lines = countWrappedLines(value, 34);
-  return Math.max(98, 36 + lines * 40);
+  const lines = countWrappedLines(value, 26);
+  return Math.max(132, 46 + lines * 48);
 }
 
 function estimateTextSectionHeight(lines: string[]) {
-  const wrappedLines = lines.reduce((total, line) => total + countWrappedLines(line, 42), 0);
-  return Math.max(180, 44 + wrappedLines * 42 + Math.max(0, lines.length - 1) * 14);
+  const wrappedLines = lines.reduce((total, line) => total + countWrappedLines(line, 30), 0);
+  return Math.max(240, 64 + wrappedLines * 48 + Math.max(0, lines.length - 1) * 18);
 }
 
 export async function GET(
@@ -67,7 +67,7 @@ export async function GET(
     row('営業時間', '', brief.businessHours),
   ];
   const imageHeight =
-    96 +
+    128 +
     estimateInfoSectionHeight(infoRows) +
     estimateTextSectionHeight(sections.visit) +
     estimateSingleSectionHeight(brief.providedMenu) +
@@ -75,7 +75,7 @@ export async function GET(
     estimateSingleSectionHeight(sections.post) +
     estimateTextSectionHeight(sections.shoot) +
     (brief.additionalRequests ? estimateSingleSectionHeight(brief.additionalRequests) : 0) +
-    56;
+    180;
 
   return new ImageResponse(
     (

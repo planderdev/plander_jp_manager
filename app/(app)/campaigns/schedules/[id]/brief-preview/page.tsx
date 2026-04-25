@@ -4,6 +4,7 @@ import { getBriefScheduleData } from '@/lib/briefing';
 import { getI18n } from '@/lib/i18n/server';
 import { sendBriefingEmailAction, sendBriefingLineAction } from '@/actions/briefings';
 import FormActionButton from '@/components/FormActionButton';
+import BusyLinkButton from '@/components/BusyLinkButton';
 
 export default async function BriefPreviewPage({
   params,
@@ -54,12 +55,12 @@ export default async function BriefPreviewPage({
           <a href={guideSrc} target="_blank" className="px-4 py-2 rounded bg-black text-white hover:bg-gray-800">
             가이드 열기
           </a>
-          <Link
+          <BusyLinkButton
             href={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`}
-            className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50"
+            className="px-4 py-2 rounded border border-gray-300 bg-white hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
           >
             재생성
-          </Link>
+          </BusyLinkButton>
           <form action={sendBriefingEmailAction}>
             <input type="hidden" name="schedule_id" value={brief.id} />
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
