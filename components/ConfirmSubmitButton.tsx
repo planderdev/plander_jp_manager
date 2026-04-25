@@ -1,23 +1,21 @@
 'use client';
+import FormActionButton from '@/components/FormActionButton';
 
 type Props = {
   children: React.ReactNode;
   className?: string;
+  pendingText?: string;
   message: string;
 };
 
-export default function ConfirmSubmitButton({ children, className, message }: Props) {
+export default function ConfirmSubmitButton({ children, className, pendingText, message }: Props) {
   return (
-    <button
-      type="submit"
+    <FormActionButton
       className={className}
-      onClick={(event) => {
-        if (!window.confirm(message)) {
-          event.preventDefault();
-        }
-      }}
+      pendingText={pendingText}
+      confirmMessage={message}
     >
       {children}
-    </button>
+    </FormActionButton>
   );
 }

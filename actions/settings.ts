@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { getDeliverySettings, getLineWebhookStatus, parseDeliverySettingsFormData, saveDeliverySettings } from '@/lib/briefing-config';
+import { setFlashMessage } from '@/lib/flash';
 
 export async function saveApifyTokenAction(fd: FormData) {
   const token = String(fd.get('apify_token') || '').trim();
@@ -22,6 +23,7 @@ export async function saveApifyTokenAction(fd: FormData) {
     await sb.from('app_settings').upsert({ key: 'apify_actor_id', value: actorId }, { onConflict: 'key' });
   }
 
+  await setFlashMessage({ title: '작업 완료', body: 'Apify 설정을 저장했어.' });
   revalidatePath('/extras/admins');
 }
 
@@ -36,6 +38,7 @@ export async function getApifyTokenStatus() {
 
 export async function saveDeliverySettingsAction(fd: FormData) {
   await saveDeliverySettings(parseDeliverySettingsFormData(fd));
+  await setFlashMessage({ title: '작업 완료', body: '전송 설정을 저장했어.' });
   revalidatePath('/extras/admins');
 }
 

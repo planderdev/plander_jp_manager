@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createAdminClient } from '@/lib/supabase/admin';
 import type { ChannelType, Gender, InfluencerApplication } from '@/types/db';
+import { setFlashMessage } from '@/lib/flash';
 
 function normalizePlatform(value: string): ChannelType {
   const platform = value.trim().toLowerCase();
@@ -171,6 +172,7 @@ export async function approveInfluencerApplicationAction(id: string) {
     throw error;
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '신청자를 승인했어.' });
   revalidatePath('/influencers');
   revalidatePath('/influencers/applications');
 }
@@ -186,6 +188,7 @@ export async function rejectInfluencerApplicationAction(id: string) {
     throw new Error(error.message);
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '신청자를 반려 처리했어.' });
   revalidatePath('/influencers/applications');
 }
 
@@ -200,5 +203,6 @@ export async function restoreInfluencerApplicationAction(id: string) {
     throw new Error(error.message);
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '반려를 취소했어.' });
   revalidatePath('/influencers/applications');
 }

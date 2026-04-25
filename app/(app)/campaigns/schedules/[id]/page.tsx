@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import { getI18n } from '@/lib/i18n/server';
 import Link from 'next/link';
 import { sendBriefingEmailAction, sendBriefingLineAction } from '@/actions/briefings';
+import FormActionButton from '@/components/FormActionButton';
 
 export default async function EditSchedulePage({
   params,
@@ -49,16 +50,16 @@ export default async function EditSchedulePage({
           <form action={sendBriefingEmailAction}>
             <input type="hidden" name="schedule_id" value={id} />
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${id}`} />
-            <button className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700">
+            <FormActionButton className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:bg-blue-300" pendingText="작업중...">
               이메일 바로 전송
-            </button>
+            </FormActionButton>
           </form>
           <form action={sendBriefingLineAction}>
             <input type="hidden" name="schedule_id" value={id} />
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${id}`} />
-            <button className="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700">
+            <FormActionButton className="rounded bg-emerald-600 px-4 py-2 text-white hover:bg-emerald-700 disabled:bg-emerald-300" pendingText="작업중...">
               LINE 바로 전송
-            </button>
+            </FormActionButton>
           </form>
           <Link
             href={`/campaigns/schedules/${id}/brief-preview`}

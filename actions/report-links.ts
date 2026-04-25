@@ -5,6 +5,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { setFlashMessage } from '@/lib/flash';
 
 function reportTitle(yearMonth: string, locale: 'ko' | 'ja') {
   const [year, month] = yearMonth.split('-').map(Number);
@@ -67,6 +68,7 @@ export async function createSharedReportAction(formData: FormData) {
 
   if (!data?.share_token) throw new Error('공유 링크 생성 실패');
 
+  await setFlashMessage({ title: '작업 완료', body: '업체용 보고서 링크를 만들었어.' });
   revalidatePath('/extras/report-links');
   redirectToManager(clientIds, yearMonth);
 }
@@ -80,6 +82,7 @@ export async function deleteSharedReportAction(id: number, clientIds: number[], 
   const { error } = await admin.from('shared_reports').delete().eq('id', id);
   if (error) throw new Error(error.message);
 
+  await setFlashMessage({ title: '작업 완료', body: '업체용 보고서 링크를 삭제했어.' });
   revalidatePath('/extras/report-links');
   redirectToManager(clientIds, yearMonth);
 }
@@ -107,6 +110,7 @@ export async function createInternalPaymentReportAction(formData: FormData) {
 
   if (error) throw new Error(error.message);
 
+  await setFlashMessage({ title: '작업 완료', body: '내부 보고서 링크를 만들었어.' });
   revalidatePath('/extras/payment-reports');
   redirectToPaymentManager({ clientId, influencerId, fromDate, toDate });
 }
@@ -123,6 +127,7 @@ export async function deleteInternalPaymentReportAction(
   const { error } = await admin.from('internal_payment_reports').delete().eq('id', id);
   if (error) throw new Error(error.message);
 
+  await setFlashMessage({ title: '작업 완료', body: '내부 보고서 링크를 삭제했어.' });
   revalidatePath('/extras/payment-reports');
   redirectToPaymentManager(input);
 }

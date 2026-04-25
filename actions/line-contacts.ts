@@ -3,6 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
+import { setFlashMessage } from '@/lib/flash';
 
 export async function linkLineContactAction(formData: FormData) {
   const sb = await createClient();
@@ -24,6 +25,7 @@ export async function linkLineContactAction(formData: FormData) {
   if (influencerError) throw new Error(influencerError.message);
   if (contactError) throw new Error(contactError.message);
 
+  await setFlashMessage({ title: '작업 완료', body: 'LINE 계정을 연결했어.' });
   revalidatePath('/extras/line-contacts');
   revalidatePath('/influencers');
 }
@@ -46,6 +48,7 @@ export async function unlinkLineContactAction(formData: FormData) {
     await admin.from('influencers').update({ line_id: null, updated_at: now }).eq('id', influencerId).eq('line_id', lineUserId);
   }
 
+  await setFlashMessage({ title: '작업 완료', body: 'LINE 연결을 해제했어.' });
   revalidatePath('/extras/line-contacts');
   revalidatePath('/influencers');
 }

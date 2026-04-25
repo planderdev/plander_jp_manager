@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getBriefScheduleData } from '@/lib/briefing';
 import { getI18n } from '@/lib/i18n/server';
 import { sendBriefingEmailAction, sendBriefingLineAction } from '@/actions/briefings';
+import FormActionButton from '@/components/FormActionButton';
 
 export default async function BriefPreviewPage({
   params,
@@ -62,16 +63,16 @@ export default async function BriefPreviewPage({
           <form action={sendBriefingEmailAction}>
             <input type="hidden" name="schedule_id" value={brief.id} />
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
-            <button className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700">
+            <FormActionButton className="px-4 py-2 rounded bg-emerald-600 text-white hover:bg-emerald-700 disabled:bg-emerald-300" pendingText="작업중...">
               메일 테스트 전송
-            </button>
+            </FormActionButton>
           </form>
           <form action={sendBriefingLineAction}>
             <input type="hidden" name="schedule_id" value={brief.id} />
             <input type="hidden" name="return_to" value={`/campaigns/schedules/${brief.id}/brief-preview?refresh=${Date.now()}`} />
-            <button className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">
+            <FormActionButton className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700 disabled:bg-blue-300" pendingText="작업중...">
               LINE 바로 전송
-            </button>
+            </FormActionButton>
           </form>
         </div>
       </div>

@@ -4,6 +4,7 @@ import { signOutAction } from '@/actions/auth';
 import Sidebar from '@/components/Sidebar';
 import { PresentationProvider } from '@/lib/presentation-context';
 import { NotificationProvider } from '@/lib/notification-context';
+import { readFlashMessage } from '@/lib/flash';
 
 import type { Metadata } from "next";
 
@@ -19,13 +20,14 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
   if (!user) redirect('/login');
+  const flashMessage = await readFlashMessage();
 
   const { data: admin } = await sb.from('admins').select('name, title').eq('id', user.id).single();
   const userName = admin?.title ? `${admin.title} ${admin.name}` : (admin?.name ?? user.email ?? '');
 
   return (
     <PresentationProvider>
-      <NotificationProvider>
+      <NotificationProvider initialFlash={flashMessage}>
         <div className="min-h-screen md:flex">
           <Sidebar userName={userName} signOutAction={signOutAction} />
           <main className="flex-1 bg-gray-50 min-w-0">{children}</main>

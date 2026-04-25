@@ -2,6 +2,7 @@
 
 import { deleteSharedReportAction } from '@/actions/report-links';
 import { useI18n } from '@/lib/i18n/provider';
+import FormActionButton from '@/components/FormActionButton';
 
 export default function SharedDeleteButton({
   id,
@@ -16,15 +17,13 @@ export default function SharedDeleteButton({
 
   return (
     <form action={deleteSharedReportAction.bind(null, id, clientIds, yearMonth)}>
-      <button
-        type="submit"
+      <FormActionButton
         className="text-red-500 hover:underline"
-        onClick={(event) => {
-          if (!confirm(t('delete.confirm'))) event.preventDefault();
-        }}
+        pendingText={t('common.loading')}
+        confirmMessage={t('delete.confirm')}
       >
         {t('common.delete')}
-      </button>
+      </FormActionButton>
     </form>
   );
 }

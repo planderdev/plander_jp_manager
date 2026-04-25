@@ -4,6 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import type { ChannelType, ContactStatus, Gender } from '@/types/db';
 import { saveInfluencerMediaConfig } from '@/lib/briefing-config';
+import { setFlashMessage } from '@/lib/flash';
 
 function parsePayload(fd: FormData) {
   const rawAge = String(fd.get('age') || '').trim();
@@ -50,6 +51,7 @@ export async function createInfluencerAction(fd: FormData) {
     }
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '인플루언서를 등록했어.' });
   revalidatePath('/influencers');
   redirect('/influencers');
 }
@@ -74,6 +76,7 @@ export async function updateInfluencerAction(fd: FormData) {
     }
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '인플루언서 정보를 저장했어.' });
   revalidatePath('/influencers');
   redirect('/influencers');
 }
@@ -82,5 +85,6 @@ export async function deleteInfluencerAction(id: number) {
   const sb = await createClient();
   const { error } = await sb.from('influencers').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  await setFlashMessage({ title: '작업 완료', body: '인플루언서를 삭제했어.' });
   revalidatePath('/influencers');
 }

@@ -65,7 +65,13 @@ function useBrowserNotification() {
   }, []);
 }
 
-export function NotificationProvider({ children }: { children: React.ReactNode }) {
+export function NotificationProvider({
+  children,
+  initialFlash,
+}: {
+  children: React.ReactNode;
+  initialFlash?: ToastItem | null;
+}) {
   const pathname = usePathname();
   const { t } = useI18n();
   const [newApplicantCount, setNewApplicantCount] = useState(0);
@@ -250,6 +256,13 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       window.clearInterval(interval);
     };
   }, [pathname, pushToast, supabase, syncSummary, t]);
+
+  useEffect(() => {
+    if (!initialFlash) return;
+
+    pushToast(initialFlash.title, initialFlash.body, initialFlash.id);
+    document.cookie = 'plander_flash=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax';
+  }, [initialFlash, pushToast]);
 
   useEffect(() => {
     if (!toasts.length) return;

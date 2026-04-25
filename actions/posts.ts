@@ -2,6 +2,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { setFlashMessage } from '@/lib/flash';
 
 function parseYmd(s: string | null): string | null {
   if (!s) return null;
@@ -46,6 +47,7 @@ export async function upsertPostAction(fd: FormData) {
     }
   }
 
+  await setFlashMessage({ title: '작업 완료', body: '게시물 정보를 저장했어.' });
   revalidatePath('/influencers/posts');
   revalidatePath('/campaigns/completed');
   redirect('/influencers/posts');
@@ -55,6 +57,7 @@ export async function deletePostAction(id: number) {
   const sb = await createClient();
   const { error } = await sb.from('posts').delete().eq('id', id);
   if (error) throw new Error(error.message);
+  await setFlashMessage({ title: '작업 완료', body: '게시물을 삭제했어.' });
   revalidatePath('/influencers/posts');
 }
 
@@ -82,6 +85,7 @@ export async function updatePostSettlementStatusAction(fd: FormData) {
 
   if (error) throw new Error(error.message);
 
+  await setFlashMessage({ title: '작업 완료', body: '정산 상태를 변경했어.' });
   revalidatePath('/influencers/posts');
   revalidatePath('/campaigns/completed');
   revalidatePath('/dashboard');

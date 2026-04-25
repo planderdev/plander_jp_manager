@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 body {
   background: #ffffff;
   color: #111827;
@@ -9,6 +15,7 @@ body {
 /* 본문 기본 글자색: 진한 검정 */
 main {
   color: #111827;
+  overflow-x: hidden;
 }
 main input, main select, main textarea {
   color: #111827 !important;
@@ -41,4 +48,13 @@ a.bg-black * {
 }
 .bg-red-500, .bg-red-500 * {
   color: #ffffff !important;
+}
+
+@media (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  button {
+    font-size: 16px !important;
+  }
 }
