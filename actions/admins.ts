@@ -46,7 +46,7 @@ export async function createAdminAction(fd: FormData) {
   });
   if (profileErr) throw new Error(profileErr.message);
 
-  await setFlashMessage({ title: '작업 완료', body: '관리자를 등록했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '관리자가 등록되었습니다.' });
   revalidatePath('/extras/admins');
   redirect('/extras/admins');
 }
@@ -67,7 +67,7 @@ export async function updateAdminAction(fd: FormData) {
   const { error } = await sb.from('admins').update(payload).eq('id', id);
   if (error) throw new Error(error.message);
 
-  await setFlashMessage({ title: '작업 완료', body: '관리자 정보를 저장했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '관리자 정보가 저장되었습니다.' });
   revalidatePath('/extras/admins');
   redirect('/extras/admins');
 }
@@ -84,6 +84,6 @@ export async function deleteAdminAction(id: string) {
   // admins 테이블은 cascade 안 걸려있으면 직접 삭제
   await sb.from('admins').delete().eq('id', id);
 
-  await setFlashMessage({ title: '작업 완료', body: '관리자를 삭제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '관리자가 삭제되었습니다.' });
   revalidatePath('/extras/admins');
 }

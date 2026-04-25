@@ -34,13 +34,13 @@ export default async function EditSchedulePage({
         <div>
           <h1 className="text-2xl font-bold">{t('schedule.editTitle')}</h1>
           {query?.sent === '1' ? (
-            <p className="mt-2 text-sm text-emerald-600">이메일 전송이 완료됐어.</p>
+            <p className="mt-2 text-sm text-emerald-600">이메일 전송이 완료되었습니다.</p>
           ) : null}
           {query?.email_error ? (
             <p className="mt-2 text-sm text-red-600">{decodeURIComponent(query.email_error)}</p>
           ) : null}
           {query?.line_sent === '1' ? (
-            <p className="mt-2 text-sm text-emerald-600">LINE 전송이 완료됐어.</p>
+            <p className="mt-2 text-sm text-emerald-600">LINE 전송이 완료되었습니다.</p>
           ) : null}
           {query?.line_error ? (
             <p className="mt-2 text-sm text-red-600">{decodeURIComponent(query.line_error)}</p>

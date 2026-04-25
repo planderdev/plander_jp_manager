@@ -265,7 +265,7 @@ export async function sendBriefingLine(scheduleId: number, mode: SendMode = 'man
       body:
         locale === 'ja'
           ? `${brief.clientName} / @${brief.influencerHandle} 送信に成功しました。`
-          : `${brief.clientName} / @${brief.influencerHandle} 전송에 성공했어.`,
+          : `${brief.clientName} / @${brief.influencerHandle} 전송이 완료되었습니다.`,
       url: '/extras/line-contacts',
       tag: `brief-line-${scheduleId}`,
     }));
@@ -368,7 +368,7 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
       body:
         locale === 'ja'
           ? 'LINE Channel Access Token が未設定です。'
-          : 'LINE Channel Access Token이 비어 있어서 발송을 못 했어.',
+          : 'LINE Channel Access Token이 비어 있어 발송할 수 없습니다.',
       url: '/extras/admins',
       tag: 'scheduled-line-missing-token',
     }));

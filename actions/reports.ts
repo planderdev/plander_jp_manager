@@ -62,7 +62,7 @@ export async function generateReportAction(formData: FormData) {
     }, { onConflict: 'client_id,year_month' });
     if (dbErr) throw new Error('db: ' + dbErr.message);
 
-    await setFlashMessage({ title: '작업 완료', body: '월별 통계 PDF를 만들었어.' });
+    await setFlashMessage({ title: '작업 완료', body: '월별 통계 PDF가 생성되었습니다.' });
     revalidatePath('/extras/reports');
   } catch (e: any) {
     console.error('[REPORT] FATAL', e);
@@ -75,7 +75,7 @@ export async function deleteReportAction(id: number) {
   const { data: r } = await sb.from('reports').select('file_path').eq('id', id).single();
   if (r) await sb.storage.from('reports').remove([r.file_path]);
   await sb.from('reports').delete().eq('id', id);
-  await setFlashMessage({ title: '작업 완료', body: '월별 통계 PDF를 삭제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '월별 통계 PDF가 삭제되었습니다.' });
   revalidatePath('/extras/reports');
 }
 

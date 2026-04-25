@@ -172,7 +172,7 @@ export async function approveInfluencerApplicationAction(id: string) {
     throw error;
   }
 
-  await setFlashMessage({ title: '작업 완료', body: '신청자를 승인했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '신청자가 승인되었습니다.' });
   revalidatePath('/influencers');
   revalidatePath('/influencers/applications');
 }
@@ -188,7 +188,7 @@ export async function rejectInfluencerApplicationAction(id: string) {
     throw new Error(error.message);
   }
 
-  await setFlashMessage({ title: '작업 완료', body: '신청자를 반려 처리했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '신청자가 반려 처리되었습니다.' });
   revalidatePath('/influencers/applications');
 }
 
@@ -203,6 +203,6 @@ export async function restoreInfluencerApplicationAction(id: string) {
     throw new Error(error.message);
   }
 
-  await setFlashMessage({ title: '작업 완료', body: '반려를 취소했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '반려가 취소되었습니다.' });
   revalidatePath('/influencers/applications');
 }

@@ -16,7 +16,7 @@ export async function createScheduleAction(fd: FormData) {
   };
   const { error } = await sb.from('schedules').insert(payload);
   if (error) throw new Error(error.message);
-  await setFlashMessage({ title: '작업 완료', body: '스케줄을 등록했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '스케줄이 등록되었습니다.' });
   revalidatePath('/campaigns/schedules');
   redirect('/campaigns/schedules');
 }
@@ -26,7 +26,7 @@ export async function deleteScheduleAction(id: number) {
   const sb = await createClient();
   const { error } = await sb.from('schedules').delete().eq('id', id);
   if (error) throw new Error(error.message);
-  await setFlashMessage({ title: '작업 완료', body: '스케줄을 삭제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '스케줄이 삭제되었습니다.' });
   revalidatePath('/campaigns/schedules');
 }
 
@@ -43,7 +43,7 @@ export async function updateScheduleAction(fd: FormData) {
   };
   const { error } = await sb.from('schedules').update(payload).eq('id', id);
   if (error) throw new Error(error.message);
-  await setFlashMessage({ title: '작업 완료', body: '스케줄을 수정했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '스케줄이 수정되었습니다.' });
   revalidatePath('/campaigns/schedules');
   redirect('/campaigns/schedules');
 }

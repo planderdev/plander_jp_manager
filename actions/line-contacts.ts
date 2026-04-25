@@ -25,7 +25,7 @@ export async function linkLineContactAction(formData: FormData) {
   if (influencerError) throw new Error(influencerError.message);
   if (contactError) throw new Error(contactError.message);
 
-  await setFlashMessage({ title: '작업 완료', body: 'LINE 계정을 연결했어.' });
+  await setFlashMessage({ title: '작업 완료', body: 'LINE 계정이 연결되었습니다.' });
   revalidatePath('/extras/line-contacts');
   revalidatePath('/influencers');
 }
@@ -48,7 +48,7 @@ export async function unlinkLineContactAction(formData: FormData) {
     await admin.from('influencers').update({ line_id: null, updated_at: now }).eq('id', influencerId).eq('line_id', lineUserId);
   }
 
-  await setFlashMessage({ title: '작업 완료', body: 'LINE 연결을 해제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: 'LINE 연결이 해제되었습니다.' });
   revalidatePath('/extras/line-contacts');
   revalidatePath('/influencers');
 }

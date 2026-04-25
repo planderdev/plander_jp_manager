@@ -47,7 +47,7 @@ export async function upsertPostAction(fd: FormData) {
     }
   }
 
-  await setFlashMessage({ title: '작업 완료', body: '게시물 정보를 저장했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '게시물 정보가 저장되었습니다.' });
   revalidatePath('/influencers/posts');
   revalidatePath('/campaigns/completed');
   redirect('/influencers/posts');
@@ -57,7 +57,7 @@ export async function deletePostAction(id: number) {
   const sb = await createClient();
   const { error } = await sb.from('posts').delete().eq('id', id);
   if (error) throw new Error(error.message);
-  await setFlashMessage({ title: '작업 완료', body: '게시물을 삭제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '게시물이 삭제되었습니다.' });
   revalidatePath('/influencers/posts');
 }
 
@@ -85,7 +85,7 @@ export async function updatePostSettlementStatusAction(fd: FormData) {
 
   if (error) throw new Error(error.message);
 
-  await setFlashMessage({ title: '작업 완료', body: '정산 상태를 변경했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '정산 상태가 변경되었습니다.' });
   revalidatePath('/influencers/posts');
   revalidatePath('/campaigns/completed');
   revalidatePath('/dashboard');

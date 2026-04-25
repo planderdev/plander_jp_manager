@@ -19,7 +19,7 @@ export async function sendBriefingEmailAction(formData: FormData) {
 
   try {
     await sendBriefingEmail(scheduleId, 'manual');
-    await setFlashMessage({ title: '작업 완료', body: '이메일 전송이 완료됐어.' });
+    await setFlashMessage({ title: '작업 완료', body: '이메일 전송이 완료되었습니다.' });
     redirect(withResultParam(returnTo, 'sent', '1'));
   } catch (error: any) {
     const message = encodeURIComponent(error?.message ?? '메일 전송에 실패했습니다');
@@ -38,7 +38,7 @@ export async function sendBriefingLineAction(formData: FormData) {
 
   try {
     await sendBriefingLine(scheduleId, 'manual');
-    await setFlashMessage({ title: '작업 완료', body: 'LINE 전송이 완료됐어.' });
+    await setFlashMessage({ title: '작업 완료', body: 'LINE 전송이 완료되었습니다.' });
     redirect(withResultParam(returnTo, 'line_sent', '1'));
   } catch (error: any) {
     const message = encodeURIComponent(error?.message ?? 'LINE 전송에 실패했습니다');

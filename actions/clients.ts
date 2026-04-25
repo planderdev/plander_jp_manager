@@ -73,7 +73,7 @@ export async function createClientAction(formData: FormData) {
 
   await saveClientBriefConfig(inserted.id, parseClientBriefConfigFormData(formData));
 
-  await setFlashMessage({ title: '작업 완료', body: '업체를 등록했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '업체가 등록되었습니다.' });
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
   redirect(`/campaigns/clients/${inserted.id}`);
@@ -108,7 +108,7 @@ export async function updateClientAction(formData: FormData) {
 
   await saveClientBriefConfig(id, parseClientBriefConfigFormData(formData));
 
-  await setFlashMessage({ title: '작업 완료', body: '업체 정보를 저장했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '업체 정보가 저장되었습니다.' });
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
   redirect(`/campaigns/clients/${id}`);
@@ -127,7 +127,7 @@ export async function deleteClientAction(id: number) {
 
   const { error } = await sb.from('clients').delete().eq('id', id);
   if (error) throw new Error(error.message);
-  await setFlashMessage({ title: '작업 완료', body: '업체를 삭제했어.' });
+  await setFlashMessage({ title: '작업 완료', body: '업체가 삭제되었습니다.' });
   revalidatePath('/sales');
   revalidatePath('/campaigns/clients');
 }
