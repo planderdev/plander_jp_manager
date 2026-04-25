@@ -10,6 +10,35 @@ function row(label: string, subLabel: string, value: string) {
   return { label, subLabel, value };
 }
 
+function countWrappedLines(value: string, charsPerLine: number) {
+  return String(value || '')
+    .split(/\r?\n/)
+    .reduce((total, line) => {
+      const clean = line.trim();
+      if (!clean) return total + 1;
+      return total + Math.max(1, Math.ceil(clean.length / charsPerLine));
+    }, 0);
+}
+
+function estimateInfoSectionHeight(rows: Array<{ value: string }>) {
+  const contentHeight = rows.reduce((total, item) => {
+    const lines = countWrappedLines(item.value, 28);
+    return total + Math.max(74, 26 + lines * 38);
+  }, 0);
+
+  return Math.max(220, contentHeight + 8);
+}
+
+function estimateSingleSectionHeight(value: string) {
+  const lines = countWrappedLines(value, 34);
+  return Math.max(98, 36 + lines * 40);
+}
+
+function estimateTextSectionHeight(lines: string[]) {
+  const wrappedLines = lines.reduce((total, line) => total + countWrappedLines(line, 42), 0);
+  return Math.max(180, 44 + wrappedLines * 42 + Math.max(0, lines.length - 1) * 14);
+}
+
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
@@ -37,13 +66,23 @@ export async function GET(
     row('韓国語の住所', '', brief.addressKo),
     row('営業時間', '', brief.businessHours),
   ];
+  const imageHeight =
+    96 +
+    estimateInfoSectionHeight(infoRows) +
+    estimateTextSectionHeight(sections.visit) +
+    estimateSingleSectionHeight(brief.providedMenu) +
+    estimateSingleSectionHeight(sections.publish) +
+    estimateSingleSectionHeight(sections.post) +
+    estimateTextSectionHeight(sections.shoot) +
+    (brief.additionalRequests ? estimateSingleSectionHeight(brief.additionalRequests) : 0) +
+    56;
 
   return new ImageResponse(
     (
       <div
         style={{
           width: '1240px',
-          minHeight: '1754px',
+          height: `${imageHeight}px`,
           display: 'flex',
           flexDirection: 'column',
           background: '#ffffff',
@@ -114,7 +153,7 @@ export async function GET(
         'Cache-Control': 'no-store, max-age=0',
       },
       width: 1240,
-      height: brief.additionalRequests ? 1960 : 1754,
+      height: imageHeight,
       fonts: [
         {
           name: 'PretendardJP',
