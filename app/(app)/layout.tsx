@@ -28,9 +28,9 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   return (
     <PresentationProvider>
       <NotificationProvider initialFlash={flashMessage}>
-        <div className="min-h-screen md:flex">
+        <div className="min-h-screen">
           <Sidebar userName={userName} signOutAction={signOutAction} />
-          <main className="flex-1 bg-gray-50 min-w-0">{children}</main>
+          <main className="min-w-0 bg-gray-50 md:ml-56">{children}</main>
         </div>
       </NotificationProvider>
     </PresentationProvider>
