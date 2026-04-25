@@ -20,13 +20,9 @@ function countWrappedLines(value: string, charsPerLine: number) {
     }, 0);
 }
 
-function estimateInfoSectionHeight(rows: Array<{ value: string }>) {
-  const contentHeight = rows.reduce((total, item) => {
-    const lines = countWrappedLines(item.value, 22);
-    return total + Math.max(92, 34 + lines * 46);
-  }, 0);
-
-  return Math.max(280, contentHeight + 24);
+function estimateInfoRowHeight(value: string) {
+  const lines = countWrappedLines(value, 22);
+  return Math.max(92, 34 + lines * 46);
 }
 
 function estimateSingleSectionHeight(value: string) {
@@ -66,16 +62,25 @@ export async function GET(
     row('韓国語の住所', '', brief.addressKo),
     row('営業時間', '', brief.businessHours),
   ];
+  const infoRowHeights = infoRows.map((item) => estimateInfoRowHeight(item.value));
+  const infoSectionHeight = infoRowHeights.reduce((sum, height) => sum + height, 0);
+  const visitHeight = estimateTextSectionHeight(sections.visit);
+  const menuHeight = estimateSingleSectionHeight(brief.providedMenu);
+  const publishHeight = estimateSingleSectionHeight(sections.publish);
+  const postHeight = estimateSingleSectionHeight(sections.post);
+  const shootHeight = estimateTextSectionHeight(sections.shoot);
+  const additionalHeight = brief.additionalRequests ? estimateSingleSectionHeight(brief.additionalRequests) : 0;
   const imageHeight =
-    128 +
-    estimateInfoSectionHeight(infoRows) +
-    estimateTextSectionHeight(sections.visit) +
-    estimateSingleSectionHeight(brief.providedMenu) +
-    estimateSingleSectionHeight(sections.publish) +
-    estimateSingleSectionHeight(sections.post) +
-    estimateTextSectionHeight(sections.shoot) +
-    (brief.additionalRequests ? estimateSingleSectionHeight(brief.additionalRequests) : 0) +
-    180;
+    28 * 2 +
+    74 +
+    infoSectionHeight +
+    visitHeight +
+    menuHeight +
+    publishHeight +
+    postHeight +
+    shootHeight +
+    additionalHeight +
+    16;
 
   return new ImageResponse(
     (
@@ -112,37 +117,45 @@ export async function GET(
             title="店舗情報"
             subTitle="매장정보"
             rows={infoRows}
+            rowHeights={infoRowHeights}
+            sectionHeight={infoSectionHeight}
           />
           <GuideTextRow
             title="店舗体験時のお願い"
             subTitle="매장방문 요구사항"
             lines={sections.visit}
+            sectionHeight={visitHeight}
           />
           <GuideSingleRow
             title="提供メニュー"
             subTitle="제공메뉴"
             value={brief.providedMenu}
+            sectionHeight={menuHeight}
           />
           <GuideSingleRow
             title="投稿時間"
             subTitle="배포시간"
             value={sections.publish}
+            sectionHeight={publishHeight}
           />
           <GuideSingleRow
             title="投稿時のお願い事項"
             subTitle="게시 시 요청사항"
             value={sections.post}
+            sectionHeight={postHeight}
           />
           <GuideTextRow
             title="撮影時のお願い事項"
             subTitle="촬영요청사항"
             lines={sections.shoot}
+            sectionHeight={shootHeight}
           />
           {brief.additionalRequests ? (
             <GuideSingleRow
               title="追加事項"
               subTitle="추가 요청사항"
               value={brief.additionalRequests}
+              sectionHeight={additionalHeight}
             />
           ) : null}
         </div>
@@ -182,17 +195,22 @@ function GuideRow({
   title,
   subTitle,
   rows,
+  rowHeights,
+  sectionHeight,
 }: {
   title: string;
   subTitle: string;
   rows: Array<{ label: string; subLabel: string; value: string }>;
+  rowHeights: number[];
+  sectionHeight: number;
 }) {
   return (
-    <div style={{ display: 'flex', borderBottom: '2px solid #1f1f1f' }}>
+    <div style={{ display: 'flex', height: sectionHeight, borderBottom: '2px solid #1f1f1f' }}>
       <div
         style={{
           width: 184,
           minWidth: 184,
+          height: sectionHeight,
           borderRight: '2px solid #1f1f1f',
           background: '#fafafa',
           display: 'flex',
@@ -211,11 +229,19 @@ function GuideRow({
       </div>
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
         {rows.map((item, index) => (
-          <div key={`${item.label}-${index}`} style={{ display: 'flex', borderBottom: index === rows.length - 1 ? '0' : '2px solid #1f1f1f' }}>
+          <div
+            key={`${item.label}-${index}`}
+            style={{
+              display: 'flex',
+              height: rowHeights[index],
+              borderBottom: index === rows.length - 1 ? '0' : '2px solid #1f1f1f',
+            }}
+          >
             <div
               style={{
                 width: 156,
                 minWidth: 156,
+                height: rowHeights[index],
                 borderRight: '2px solid #1f1f1f',
                 background: '#fafafa',
                 display: 'flex',
@@ -243,17 +269,20 @@ function GuideSingleRow({
   title,
   subTitle,
   value,
+  sectionHeight,
 }: {
   title: string;
   subTitle: string;
   value: string;
+  sectionHeight: number;
 }) {
   return (
-    <div style={{ display: 'flex', borderBottom: '2px solid #1f1f1f' }}>
+    <div style={{ display: 'flex', height: sectionHeight, borderBottom: '2px solid #1f1f1f' }}>
       <div
         style={{
           width: 184,
           minWidth: 184,
+          height: sectionHeight,
           borderRight: '2px solid #1f1f1f',
           background: '#fafafa',
           display: 'flex',
@@ -270,7 +299,17 @@ function GuideSingleRow({
         <span>{title}</span>
         <span>{subTitle}</span>
       </div>
-      <div style={{ flex: 1, display: 'flex', alignItems: 'center', padding: '22px 20px', fontSize: 26, lineHeight: 1.6 }}>
+      <div
+        style={{
+          flex: 1,
+          height: sectionHeight,
+          display: 'flex',
+          alignItems: 'center',
+          padding: '22px 20px',
+          fontSize: 26,
+          lineHeight: 1.6,
+        }}
+      >
         {value}
       </div>
     </div>
@@ -281,17 +320,20 @@ function GuideTextRow({
   title,
   subTitle,
   lines,
+  sectionHeight,
 }: {
   title: string;
   subTitle: string;
   lines: string[];
+  sectionHeight: number;
 }) {
   return (
-    <div style={{ display: 'flex', borderBottom: '2px solid #1f1f1f' }}>
+    <div style={{ display: 'flex', height: sectionHeight, borderBottom: '2px solid #1f1f1f' }}>
       <div
         style={{
           width: 184,
           minWidth: 184,
+          height: sectionHeight,
           borderRight: '2px solid #1f1f1f',
           background: '#fafafa',
           display: 'flex',
@@ -308,7 +350,19 @@ function GuideTextRow({
         <span>{title}</span>
         <span>{subTitle}</span>
       </div>
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 14, padding: '22px 20px', fontSize: 24, lineHeight: 1.7 }}>
+      <div
+        style={{
+          flex: 1,
+          height: sectionHeight,
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          justifyContent: 'center',
+          padding: '22px 20px',
+          fontSize: 24,
+          lineHeight: 1.7,
+        }}
+      >
         {lines.map((line, index) => (
           <div key={`${title}-${index}`}>{line}</div>
         ))}
