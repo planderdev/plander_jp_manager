@@ -67,6 +67,14 @@ function getScheduledWindow(now: Date, minutesBefore: number) {
   };
 }
 
+function buildFreshBriefAssetUrls(baseUrl: string, scheduleId: number, seed = Date.now()) {
+  const cacheBust = `v=${seed}`;
+  return {
+    invitationUrl: `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/invitation.png?${cacheBust}`,
+    guideUrl: `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/guide.png?${cacheBust}`,
+  };
+}
+
 async function sendResendEmail(payload: Record<string, unknown>, idempotencyKey: string) {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -92,7 +100,7 @@ async function sendResendEmail(payload: Record<string, unknown>, idempotencyKey:
 }
 
 async function fetchAttachment(url: string, fallbackFilename: string) {
-  const response = await fetch(url);
+  const response = await fetch(url, { cache: 'no-store' });
   if (!response.ok) {
     throw new Error(`이미지 생성 실패: ${fallbackFilename}`);
   }
@@ -139,8 +147,7 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
   const recipient = deliverySettings.emailRecipient || '1986desire@gmail.com';
   const sender = deliverySettings.emailSender || 'Plander <onboarding@resend.dev>';
   const baseUrl = getAppBaseUrl().replace(/\/$/, '');
-  const invitationUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/invitation.png`;
-  const guideUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/guide.png`;
+  const { invitationUrl, guideUrl } = buildFreshBriefAssetUrls(baseUrl, scheduleId);
   const subject = `[Plander] ${brief.clientName} @${brief.influencerHandle} 초대장/가이드`;
   const visitAt = formatInviteDate(brief.scheduledAt);
   const scheduleTargetDate = formatYmdInKst(brief.scheduledAt);
@@ -215,8 +222,7 @@ export async function sendBriefingLine(scheduleId: number, mode: SendMode = 'man
   }
 
   const baseUrl = getAppBaseUrl().replace(/\/$/, '');
-  const invitationUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/invitation.png`;
-  const guideUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/guide.png`;
+  const { invitationUrl, guideUrl } = buildFreshBriefAssetUrls(baseUrl, scheduleId);
   const { visitDate, visitTime } = formatVisitDateParts(brief.scheduledAt);
   const text = renderTemplate(deliverySettings.lineInfluencerMessageTemplate, {
     influencerHandle: `@${brief.influencerHandle}`,
