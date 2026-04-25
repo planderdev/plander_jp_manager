@@ -15,6 +15,7 @@ import {
 import { sendWebPushNotification } from '@/lib/web-push';
 
 type SendMode = 'manual' | 'scheduled';
+const AUTOMATION_WINDOW_MS = 5 * 60 * 1000;
 
 function krDateParts(date: Date) {
   const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -41,24 +42,6 @@ function krDateParts(date: Date) {
   };
 }
 
-function briefingTargetRange(date = new Date()) {
-  const now = krDateParts(date);
-  const base = new Date(`${now.year}-${now.month}-${now.day}T00:00:00+09:00`);
-  const target = new Date(base.getTime() + 48 * 60 * 60 * 1000);
-  const nextDay = new Date(base.getTime() + 72 * 60 * 60 * 1000);
-  const toYmd = (value: Date) => {
-    const parts = krDateParts(value);
-    return `${parts.year}-${parts.month}-${parts.day}`;
-  };
-
-  return {
-    targetDate: toYmd(target),
-    start: `${toYmd(target)}T00:00:00+09:00`,
-    end: `${toYmd(nextDay)}T00:00:00+09:00`,
-    currentTime: `${now.hour}:${now.minute}`,
-  };
-}
-
 function getAppBaseUrl() {
   return process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
 }
@@ -71,24 +54,16 @@ function formatVisitDateParts(value: string) {
   };
 }
 
-function isTimeReached(currentTime: string, scheduledTime: string) {
-  return currentTime >= scheduledTime;
-}
-
 function formatYmdInKst(value: string | Date) {
   const parts = krDateParts(new Date(value));
   return `${parts.year}-${parts.month}-${parts.day}`;
 }
 
-function dayDiffLabel(targetDate: string, now = new Date()) {
-  const nowParts = krDateParts(now);
-  const today = new Date(`${nowParts.year}-${nowParts.month}-${nowParts.day}T00:00:00+09:00`);
-  const target = new Date(`${targetDate}T00:00:00+09:00`);
-  const diff = Math.round((target.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-
+function getScheduledWindow(now: Date, minutesBefore: number) {
+  const leadMs = minutesBefore * 60 * 1000;
   return {
-    ko: diff <= 1 ? '내일' : `${diff}일 후`,
-    ja: diff <= 1 ? '明日' : `${diff}日後`,
+    windowStartIso: new Date(now.getTime() + leadMs - AUTOMATION_WINDOW_MS).toISOString(),
+    windowEndIso: new Date(now.getTime() + leadMs).toISOString(),
   };
 }
 
@@ -168,8 +143,7 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
   const guideUrl = `${baseUrl}/campaigns/schedules/${scheduleId}/brief-preview/guide.png`;
   const subject = `[Plander] ${brief.clientName} @${brief.influencerHandle} 초대장/가이드`;
   const visitAt = formatInviteDate(brief.scheduledAt);
-
-  const { targetDate } = briefingTargetRange();
+  const scheduleTargetDate = formatYmdInKst(brief.scheduledAt);
   const [invitationAttachment, guideAttachment] = await Promise.all([
     fetchAttachment(invitationUrl, `invitation-${scheduleId}.png`),
     fetchAttachment(guideUrl, `guide-${scheduleId}.png`),
@@ -201,11 +175,11 @@ export async function sendBriefingEmail(scheduleId: number, mode: SendMode = 'ma
         contentId: 'guide-image',
       },
     ],
-  }, `brief-${mode}-${scheduleId}-${mode === 'scheduled' ? targetDate : Date.now()}`);
+  }, `brief-${mode}-${scheduleId}-${mode === 'scheduled' ? scheduleTargetDate : Date.now()}`);
 
   const sentAt = new Date().toISOString();
   if (mode === 'scheduled') {
-    await markBriefEmailScheduled(scheduleId, { targetDate, sentAt, recipient });
+    await markBriefEmailScheduled(scheduleId, { targetDate: scheduleTargetDate, sentAt, recipient });
   } else {
     await markBriefEmailManual(scheduleId, { sentAt, recipient });
   }
@@ -299,33 +273,20 @@ export async function sendBriefingLine(scheduleId: number, mode: SendMode = 'man
 }
 
 export async function runScheduledBriefingEmails(now = new Date()) {
-  const { start, end, targetDate, currentTime } = briefingTargetRange(now);
   const sb = createAdminClient();
+  const deliverySettings = await getDeliverySettings();
+  const currentTime = `${krDateParts(now).hour}:${krDateParts(now).minute}`;
+  const emailSendMinutesBefore = deliverySettings.emailSendMinutesBefore;
+  const { windowStartIso, windowEndIso } = getScheduledWindow(now, emailSendMinutesBefore);
   const { data: schedules, error } = await sb
     .from('schedules')
     .select('id, client_id, scheduled_at')
-    .gte('scheduled_at', start)
-    .lt('scheduled_at', end)
+    .gt('scheduled_at', windowStartIso)
+    .lte('scheduled_at', windowEndIso)
     .order('scheduled_at', { ascending: true });
 
   if (error) {
     throw new Error(error.message);
-  }
-
-  if (!isTimeReached(currentTime, '12:00')) {
-    return {
-      targetDate,
-      currentTime,
-      total: schedules?.length ?? 0,
-      sent: 0,
-      failed: 0,
-      skipped: schedules?.length ?? 0,
-      results: (schedules ?? []).map((schedule) => ({
-        scheduleId: schedule.id,
-        status: 'skipped',
-        reason: 'before_send_time',
-      })),
-    };
   }
 
   let sent = 0;
@@ -334,8 +295,18 @@ export async function runScheduledBriefingEmails(now = new Date()) {
   const results: Array<{ scheduleId: number; status: string; reason?: string }> = [];
 
   for (const schedule of schedules ?? []) {
+    const scheduleTargetDate = formatYmdInKst(schedule.scheduled_at);
+    const triggerAt = new Date(new Date(schedule.scheduled_at).getTime() - emailSendMinutesBefore * 60 * 1000);
+    const diffFromTrigger = now.getTime() - triggerAt.getTime();
+
+    if (diffFromTrigger < 0 || diffFromTrigger >= AUTOMATION_WINDOW_MS) {
+      skipped += 1;
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'outside_send_window' });
+      continue;
+    }
+
     const logEntry = await getBriefEmailLogEntry(schedule.id);
-    if (logEntry?.scheduledTargetDate === targetDate) {
+    if (logEntry?.scheduledTargetDate === scheduleTargetDate) {
       skipped += 1;
       results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'already_sent' });
       continue;
@@ -356,21 +327,20 @@ export async function runScheduledBriefingEmails(now = new Date()) {
   }
 
   if (sent > 0 || failed > 0) {
-    const label = dayDiffLabel(targetDate, now);
     await sendWebPushNotification((locale) => ({
       title: locale === 'ja' ? '招待状/ガイド自動送信結果' : '초대장/가이드 자동발송 결과',
       body:
         locale === 'ja'
-          ? `${label.ja} メール 성공 ${sent}件 / 실패 ${failed}件`
-          : `${label.ko} 메일 성공 ${sent}건 / 실패 ${failed}건`,
+          ? `${emailSendMinutesBefore}分前基準 メール 성공 ${sent}件 / 실패 ${failed}件`
+          : `${emailSendMinutesBefore}분 전 기준 메일 성공 ${sent}건 / 실패 ${failed}건`,
       url: '/campaigns/schedules',
-      tag: `scheduled-brief-${targetDate}`,
+      tag: `scheduled-brief-${emailSendMinutesBefore}`,
     }));
   }
 
   return {
-    targetDate,
     currentTime,
+    emailSendMinutesBefore,
     total: schedules?.length ?? 0,
     sent,
     failed,
@@ -383,9 +353,8 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
   const sb = createAdminClient();
   const deliverySettings = await getDeliverySettings();
   const currentTime = `${krDateParts(now).hour}:${krDateParts(now).minute}`;
-  const lineSendHoursBefore = deliverySettings.lineSendHoursBefore;
-  const nowIso = now.toISOString();
-  const latestScheduledAt = new Date(now.getTime() + lineSendHoursBefore * 60 * 60 * 1000).toISOString();
+  const lineSendMinutesBefore = deliverySettings.lineSendMinutesBefore;
+  const { windowStartIso, windowEndIso } = getScheduledWindow(now, lineSendMinutesBefore);
 
   if (!deliverySettings.lineChannelAccessToken) {
     await sendWebPushNotification((locale) => ({
@@ -400,7 +369,7 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
 
     return {
       currentTime,
-      lineSendHoursBefore,
+      lineSendMinutesBefore,
       total: 0,
       sent: 0,
       failed: 0,
@@ -413,8 +382,8 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
   const { data: schedules, error } = await sb
     .from('schedules')
     .select('id')
-    .gt('scheduled_at', nowIso)
-    .lte('scheduled_at', latestScheduledAt)
+    .gt('scheduled_at', windowStartIso)
+    .lte('scheduled_at', windowEndIso)
     .order('scheduled_at', { ascending: true });
 
   if (error) {
@@ -435,12 +404,13 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
     }
 
     const scheduledAt = new Date(brief.scheduledAt);
-    const triggerAt = new Date(scheduledAt.getTime() - lineSendHoursBefore * 60 * 60 * 1000);
+    const triggerAt = new Date(scheduledAt.getTime() - lineSendMinutesBefore * 60 * 1000);
     const scheduleTargetDate = formatYmdInKst(brief.scheduledAt);
+    const diffFromTrigger = now.getTime() - triggerAt.getTime();
 
-    if (triggerAt.getTime() > now.getTime()) {
+    if (diffFromTrigger < 0 || diffFromTrigger >= AUTOMATION_WINDOW_MS) {
       skipped += 1;
-      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'before_send_window' });
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'outside_send_window' });
       continue;
     }
 
@@ -480,16 +450,16 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
       title: locale === 'ja' ? 'LINE自動送信結果' : 'LINE 자동발송 결과',
       body:
         locale === 'ja'
-          ? `${lineSendHoursBefore}時間前基準 LINE 성공 ${sent}件 / 실패 ${failed}件`
-          : `${lineSendHoursBefore}시간 전 기준 LINE 성공 ${sent}건 / 실패 ${failed}건`,
+          ? `${lineSendMinutesBefore}分前基準 LINE 성공 ${sent}件 / 실패 ${failed}件`
+          : `${lineSendMinutesBefore}분 전 기준 LINE 성공 ${sent}건 / 실패 ${failed}건`,
       url: '/extras/line-contacts',
-      tag: `scheduled-line-${lineSendHoursBefore}`,
+      tag: `scheduled-line-${lineSendMinutesBefore}`,
     }));
   }
 
   return {
     currentTime,
-    lineSendHoursBefore,
+    lineSendMinutesBefore,
     total: schedules?.length ?? 0,
     sent,
     failed,

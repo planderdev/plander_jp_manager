@@ -120,6 +120,19 @@ export default async function AdminsPage({
                 <input name="email_sender" defaultValue={deliverySettings.emailSender}
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
+              <div>
+                <label className="text-sm block mb-1 font-medium">{t('admin.emailSendMinutesBefore')}</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="10080"
+                  step="1"
+                  name="email_send_minutes_before"
+                  defaultValue={deliverySettings.emailSendMinutesBefore}
+                  className="w-full max-w-xs border border-gray-400 rounded p-2"
+                />
+                <p className="mt-1 text-xs text-gray-500">{t('admin.emailSendMinutesBeforeHelp')}</p>
+              </div>
               <div className="text-xs text-gray-500">
                 Resend API 키는 서버 환경변수 `RESEND_API_KEY` 로 사용됩니다.
               </div>
@@ -146,17 +159,17 @@ export default async function AdminsPage({
                   className="w-full border border-gray-400 rounded p-2" />
               </div>
               <div>
-                <label className="text-sm block mb-1 font-medium">{t('admin.lineSendHoursBefore')}</label>
+                <label className="text-sm block mb-1 font-medium">{t('admin.lineSendMinutesBefore')}</label>
                 <input
                   type="number"
                   min="1"
-                  max="168"
+                  max="10080"
                   step="1"
-                  name="line_send_hours_before"
-                  defaultValue={deliverySettings.lineSendHoursBefore}
+                  name="line_send_minutes_before"
+                  defaultValue={deliverySettings.lineSendMinutesBefore}
                   className="w-full max-w-xs border border-gray-400 rounded p-2"
                 />
-                <p className="mt-1 text-xs text-gray-500">{t('admin.lineSendHoursBeforeHelp')}</p>
+                <p className="mt-1 text-xs text-gray-500">{t('admin.lineSendMinutesBeforeHelp')}</p>
               </div>
               <div>
                 <label className="text-sm block mb-1 font-medium">{t('admin.lineWebhookUrl')}</label>

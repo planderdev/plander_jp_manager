@@ -8,6 +8,7 @@ const DELIVERY_SETTINGS_KEY = 'delivery_channel_settings';
 const BRIEF_EMAIL_LOG_KEY = 'brief_email_log';
 const BRIEF_LINE_LOG_KEY = 'brief_line_log';
 const LINE_WEBHOOK_STATUS_KEY = 'line_webhook_status';
+const AUTOMATION_CRON_SECRET_KEY = 'automation_cron_secret';
 
 export type ClientBriefConfig = {
   visitNotesJa: string;
@@ -24,10 +25,11 @@ export type InfluencerMediaConfig = {
 export type DeliverySettings = {
   emailRecipient: string;
   emailSender: string;
+  emailSendMinutesBefore: number;
   lineChannelAccessToken: string;
   lineChannelSecret: string;
   lineDestinationId: string;
-  lineSendHoursBefore: number;
+  lineSendMinutesBefore: number;
   lineInfluencerMessageTemplate: string;
   kakaoJavascriptKey: string;
   kakaoRestApiKey: string;
@@ -104,10 +106,11 @@ export const DEFAULT_INFLUENCER_MEDIA_CONFIG: InfluencerMediaConfig = {
 export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   emailRecipient: '1986desire@gmail.com',
   emailSender: 'Plander <onboarding@resend.dev>',
+  emailSendMinutesBefore: 2880,
   lineChannelAccessToken: '',
   lineChannelSecret: '',
   lineDestinationId: '',
-  lineSendHoursBefore: 24,
+  lineSendMinutesBefore: 1440,
   lineInfluencerMessageTemplate: '안녕하세요 {{influencerHandle}}님.\n내일 {{visitDate}} {{visitTime}} 방문 일정 안내드립니다.',
   kakaoJavascriptKey: '',
   kakaoRestApiKey: '',
@@ -144,10 +147,11 @@ function mergeDeliverySettings(input?: Partial<DeliverySettings> | null): Delive
   return {
     emailRecipient: normalizeLine(input?.emailRecipient, DEFAULT_DELIVERY_SETTINGS.emailRecipient),
     emailSender: normalizeLine(input?.emailSender, DEFAULT_DELIVERY_SETTINGS.emailSender),
+    emailSendMinutesBefore: normalizeMinutes(input?.emailSendMinutesBefore, DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore),
     lineChannelAccessToken: normalizeNullableString(input?.lineChannelAccessToken) ?? '',
     lineChannelSecret: normalizeNullableString(input?.lineChannelSecret) ?? '',
     lineDestinationId: normalizeNullableString(input?.lineDestinationId) ?? '',
-    lineSendHoursBefore: normalizeHours(input?.lineSendHoursBefore, DEFAULT_DELIVERY_SETTINGS.lineSendHoursBefore),
+    lineSendMinutesBefore: normalizeMinutes(input?.lineSendMinutesBefore, DEFAULT_DELIVERY_SETTINGS.lineSendMinutesBefore),
     lineInfluencerMessageTemplate: normalizeMultiline(input?.lineInfluencerMessageTemplate, DEFAULT_DELIVERY_SETTINGS.lineInfluencerMessageTemplate),
     kakaoJavascriptKey: normalizeNullableString(input?.kakaoJavascriptKey) ?? '',
     kakaoRestApiKey: normalizeNullableString(input?.kakaoRestApiKey) ?? '',
@@ -172,12 +176,12 @@ function normalizeTime(value: unknown, fallback: string) {
   return /^\d{2}:\d{2}$/.test(text) ? text : fallback;
 }
 
-function normalizeHours(value: unknown, fallback: number) {
+function normalizeMinutes(value: unknown, fallback: number) {
   const numeric = Number(value);
   if (!Number.isFinite(numeric)) return fallback;
   const integer = Math.trunc(numeric);
   if (integer < 1) return fallback;
-  if (integer > 168) return 168;
+  if (integer > 10080) return 10080;
   return integer;
 }
 
@@ -209,6 +213,15 @@ async function writeSettingValue(key: string, value: string) {
     value,
     updated_at: new Date().toISOString(),
   }, { onConflict: 'key' });
+}
+
+export async function getAutomationCronSecret() {
+  return normalizeNullableString(await readSettingValue(AUTOMATION_CRON_SECRET_KEY));
+}
+
+export async function saveAutomationCronSecret(secret: string) {
+  await writeSettingValue(AUTOMATION_CRON_SECRET_KEY, secret);
+  return secret;
 }
 
 function parseJson<T>(raw: string | null, fallback: T): T {
@@ -451,11 +464,14 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
 
   setString('emailRecipient', 'email_recipient');
   setString('emailSender', 'email_sender');
+  if (formData.has('email_send_minutes_before')) {
+    next.emailSendMinutesBefore = Number(formData.get('email_send_minutes_before') || DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore);
+  }
   setString('lineChannelAccessToken', 'line_channel_access_token');
   setString('lineChannelSecret', 'line_channel_secret');
   setString('lineDestinationId', 'line_destination_id');
-  if (formData.has('line_send_hours_before')) {
-    next.lineSendHoursBefore = Number(formData.get('line_send_hours_before') || DEFAULT_DELIVERY_SETTINGS.lineSendHoursBefore);
+  if (formData.has('line_send_minutes_before')) {
+    next.lineSendMinutesBefore = Number(formData.get('line_send_minutes_before') || DEFAULT_DELIVERY_SETTINGS.lineSendMinutesBefore);
   }
   setString('lineInfluencerMessageTemplate', 'line_influencer_message_template');
   setString('kakaoJavascriptKey', 'kakao_javascript_key');
