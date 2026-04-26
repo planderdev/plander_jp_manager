@@ -3,6 +3,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import Logo from '@/components/Logo';
+import WebPushToggle from '@/components/sidebar/WebPushToggle';
 import { localeLabels } from '@/lib/i18n/config';
 import { useI18n } from '@/lib/i18n/provider';
 import { usePresentation } from '@/lib/presentation-context';
@@ -83,7 +84,8 @@ export default function Sidebar({
           <NavLink href="/extras/report-links" pathname={pathname} onClick={close}>{t('nav.reportCreate')}</NavLink>
           <NavLink href="/extras/payment-reports" pathname={pathname} onClick={close}>{t('nav.paymentReport')}</NavLink>
         </nav>
-        <div className="mt-3 mb-2 w-full rounded border border-gray-700 bg-transparent">
+        <WebPushToggle />
+        <div className="mt-0 mb-2 w-full rounded border border-gray-700 bg-transparent">
           <div className="flex items-center gap-1 px-2 py-2">
             <span className="px-1 text-xs font-medium text-gray-400">{t('language.switch')}</span>
             {(['ko', 'ja'] as const).map((value) => (

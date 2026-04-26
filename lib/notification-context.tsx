@@ -244,6 +244,33 @@ export function NotificationProvider({
       )
       .subscribe();
 
+    const lineContactChannel = supabase
+      .channel('notifications-line-contacts')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'line_contacts',
+        },
+        (payload) => {
+          if (cancelled || !mountedRef.current) return;
+
+          const row = payload.new as Record<string, unknown>;
+          const createdAt = String(row.created_at ?? nowIso());
+          const displayName = String(row.display_name ?? '').trim();
+
+          pushToast(
+            t('notifications.newLineContact'),
+            displayName
+              ? t('notifications.newLineContactBody', { name: displayName })
+              : t('notifications.newLineContactBodyFallback'),
+            `line-${createdAt}`
+          );
+        }
+      )
+      .subscribe();
+
     const interval = window.setInterval(() => {
       void syncSummary();
     }, 300000);
@@ -253,6 +280,7 @@ export function NotificationProvider({
       void supabase.removeChannel(applicantChannel);
       void supabase.removeChannel(emailChannel);
       void supabase.removeChannel(scheduleChannel);
+      void supabase.removeChannel(lineContactChannel);
       window.clearInterval(interval);
     };
   }, [pathname, pushToast, supabase, syncSummary, t]);

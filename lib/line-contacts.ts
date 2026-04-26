@@ -17,6 +17,13 @@ type LineContactInput = {
   channelAccessToken?: string | null;
 };
 
+export type LineContactUpsertResult = {
+  created: boolean;
+  displayName: string | null;
+  lineUserId: string;
+  messageText: string | null;
+};
+
 async function getLineProfile(userId: string, channelAccessToken?: string | null): Promise<LineProfile | null> {
   if (!channelAccessToken) return null;
 
@@ -36,8 +43,15 @@ async function getLineProfile(userId: string, channelAccessToken?: string | null
 }
 
 export async function upsertLineContactFromWebhook(input: LineContactInput) {
-  const profile = await getLineProfile(input.lineUserId, input.channelAccessToken);
   const sb = createAdminClient();
+  const [{ data: existing }, profile] = await Promise.all([
+    sb
+      .from('line_contacts')
+      .select('id')
+      .eq('line_user_id', input.lineUserId)
+      .maybeSingle(),
+    getLineProfile(input.lineUserId, input.channelAccessToken),
+  ]);
   const now = new Date().toISOString();
 
   await sb.from('line_contacts').upsert({
@@ -51,6 +65,13 @@ export async function upsertLineContactFromWebhook(input: LineContactInput) {
     last_received_at: now,
     updated_at: now,
   }, { onConflict: 'line_user_id' });
+
+  return {
+    created: !existing,
+    displayName: profile?.displayName ?? null,
+    lineUserId: input.lineUserId,
+    messageText: input.messageText ?? null,
+  } satisfies LineContactUpsertResult;
 }
 
 export function normalizeLineMatchValue(value?: string | null) {

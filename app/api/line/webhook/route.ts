@@ -4,6 +4,7 @@ import { NextResponse } from 'next/server';
 
 import { getDeliverySettings, markLineWebhookReceived } from '@/lib/briefing-config';
 import { upsertLineContactFromWebhook } from '@/lib/line-contacts';
+import { sendWebPushNotification } from '@/lib/web-push';
 
 type LineWebhookEvent = {
   type?: string;
@@ -72,13 +73,32 @@ export async function POST(request: Request) {
   });
 
   if (sourceId && firstEvent?.source?.type === 'user') {
-    await upsertLineContactFromWebhook({
+    const lineContact = await upsertLineContactFromWebhook({
       lineUserId: sourceId,
       sourceType: firstEvent.source.type,
       eventType: firstEvent.type ?? null,
       messageText: firstEvent.message?.type === 'text' ? firstEvent.message.text ?? null : null,
       channelAccessToken: settings.lineChannelAccessToken,
     });
+
+    if (lineContact.created) {
+      await sendWebPushNotification((locale) => ({
+        title: locale === 'ja' ? '新規LINE連携待機' : '새 LINE 계정 수신',
+        body: lineContact.displayName
+          ? (
+            locale === 'ja'
+              ? `${lineContact.displayName} さんが LINE 連携待機一覧に追加されました。`
+              : `${lineContact.displayName} 계정이 LINE 연결 대기함에 추가되었습니다.`
+          )
+          : (
+            locale === 'ja'
+              ? '新しい LINE アカウントが連携待機一覧に追加されました。'
+              : '새 LINE 계정이 LINE 연결 대기함에 추가되었습니다.'
+          ),
+        url: '/extras/line-contacts',
+        tag: 'line-contacts',
+      }));
+    }
   }
 
   return NextResponse.json({
