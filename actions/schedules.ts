@@ -3,7 +3,6 @@ import { createClient } from '@/lib/supabase/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { setFlashMessage } from '@/lib/flash';
-import { sendScheduleCreatedPush } from '@/lib/push-notifications';
 
 export async function createScheduleAction(fd: FormData) {
   const sb = await createClient();
@@ -15,15 +14,8 @@ export async function createScheduleAction(fd: FormData) {
     additional_requests: String(fd.get('additional_requests') || '') || null,
     memo: String(fd.get('memo') || '') || null,
   };
-  const { data, error } = await sb.from('schedules').insert(payload).select('id').single();
+  const { error } = await sb.from('schedules').insert(payload);
   if (error) throw new Error(error.message);
-  if (data?.id) {
-    try {
-      await sendScheduleCreatedPush(data.id);
-    } catch (pushError) {
-      console.error('schedule push notification failed', { scheduleId: data.id, pushError });
-    }
-  }
   await setFlashMessage({ title: '작업 완료', body: '스케줄이 등록되었습니다.' });
   revalidatePath('/campaigns/schedules');
   redirect('/campaigns/schedules');

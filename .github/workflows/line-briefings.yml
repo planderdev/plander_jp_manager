@@ -36,3 +36,17 @@ jobs:
             echo "LINE cron failed with status ${status}"
             exit 1
           fi
+
+      - name: Trigger schedule reminder cron
+        env:
+          SCHEDULE_CRON_URL: https://plander-jp-manager.vercel.app/api/cron/schedules
+          AUTOMATION_CRON_SECRET: ${{ secrets.AUTOMATION_CRON_SECRET }}
+        run: |
+          status=$(curl -sS -o response.json -w "%{http_code}" \
+            -H "Authorization: Bearer ${AUTOMATION_CRON_SECRET}" \
+            "${SCHEDULE_CRON_URL}")
+          cat response.json
+          if [ "$status" -ge 400 ]; then
+            echo "Schedule cron failed with status ${status}"
+            exit 1
+          fi

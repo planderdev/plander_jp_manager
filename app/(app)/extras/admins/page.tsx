@@ -53,6 +53,7 @@ export default async function AdminsPage({
   const appBaseUrl = process.env.APP_BASE_URL || process.env.NEXT_PUBLIC_APP_URL || 'https://plander-jp-manager.vercel.app';
   const lineWebhookUrl = `${appBaseUrl}/api/line/webhook`;
   const emailSendHoursBefore = Math.max(1, Math.round(deliverySettings.emailSendMinutesBefore / 60));
+  const schedulePushHoursBefore = Math.max(1, Math.round(deliverySettings.schedulePushMinutesBefore / 60));
   const lineSendHoursBefore = Math.max(1, Math.round(deliverySettings.lineSendMinutesBefore / 60));
 
   return (
@@ -134,6 +135,19 @@ export default async function AdminsPage({
                   className="w-full max-w-xs border border-gray-400 rounded p-2"
                 />
                 <p className="mt-1 text-xs text-gray-500">{t('admin.emailSendHoursBeforeHelp')}</p>
+              </div>
+              <div>
+                <label className="text-sm block mb-1 font-medium">{t('admin.schedulePushHoursBefore')}</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="168"
+                  step="1"
+                  name="schedule_push_hours_before"
+                  defaultValue={schedulePushHoursBefore}
+                  className="w-full max-w-xs border border-gray-400 rounded p-2"
+                />
+                <p className="mt-1 text-xs text-gray-500">{t('admin.schedulePushHoursBeforeHelp')}</p>
               </div>
               <div className="text-xs text-gray-500">
                 Resend API 키는 서버 환경변수 `RESEND_API_KEY` 로 사용됩니다.

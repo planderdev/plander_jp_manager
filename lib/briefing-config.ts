@@ -7,6 +7,7 @@ const INFLUENCER_MEDIA_SETTINGS_KEY = 'influencer_media_settings';
 const DELIVERY_SETTINGS_KEY = 'delivery_channel_settings';
 const BRIEF_EMAIL_LOG_KEY = 'brief_email_log';
 const BRIEF_LINE_LOG_KEY = 'brief_line_log';
+const SCHEDULE_PUSH_LOG_KEY = 'schedule_push_log';
 const LINE_WEBHOOK_STATUS_KEY = 'line_webhook_status';
 const AUTOMATION_CRON_SECRET_KEY = 'automation_cron_secret';
 
@@ -26,6 +27,7 @@ export type DeliverySettings = {
   emailRecipient: string;
   emailSender: string;
   emailSendMinutesBefore: number;
+  schedulePushMinutesBefore: number;
   lineChannelAccessToken: string;
   lineChannelSecret: string;
   lineDestinationId: string;
@@ -64,6 +66,11 @@ type BriefLineLogEntry = {
   lastManualRecipient?: string | null;
   lastManualStatus?: string | null;
   lastManualError?: string | null;
+};
+
+type SchedulePushLogEntry = {
+  targetKey?: string | null;
+  sentAt?: string | null;
 };
 
 export type BriefEmailNotificationEvent = {
@@ -107,6 +114,7 @@ export const DEFAULT_DELIVERY_SETTINGS: DeliverySettings = {
   emailRecipient: '1986desire@gmail.com',
   emailSender: 'Plander <onboarding@resend.dev>',
   emailSendMinutesBefore: 2880,
+  schedulePushMinutesBefore: 180,
   lineChannelAccessToken: '',
   lineChannelSecret: '',
   lineDestinationId: '',
@@ -148,6 +156,7 @@ function mergeDeliverySettings(input?: Partial<DeliverySettings> | null): Delive
     emailRecipient: normalizeLine(input?.emailRecipient, DEFAULT_DELIVERY_SETTINGS.emailRecipient),
     emailSender: normalizeLine(input?.emailSender, DEFAULT_DELIVERY_SETTINGS.emailSender),
     emailSendMinutesBefore: normalizeMinutes(input?.emailSendMinutesBefore, DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore),
+    schedulePushMinutesBefore: normalizeMinutes(input?.schedulePushMinutesBefore, DEFAULT_DELIVERY_SETTINGS.schedulePushMinutesBefore),
     lineChannelAccessToken: normalizeNullableString(input?.lineChannelAccessToken) ?? '',
     lineChannelSecret: normalizeNullableString(input?.lineChannelSecret) ?? '',
     lineDestinationId: normalizeNullableString(input?.lineDestinationId) ?? '',
@@ -323,6 +332,15 @@ async function saveBriefLineLogMap(map: Record<string, BriefLineLogEntry>) {
   await writeSettingValue(BRIEF_LINE_LOG_KEY, JSON.stringify(map));
 }
 
+async function getSchedulePushLogMap() {
+  const raw = await readSettingValue(SCHEDULE_PUSH_LOG_KEY);
+  return parseJson<Record<string, SchedulePushLogEntry>>(raw, {});
+}
+
+async function saveSchedulePushLogMap(map: Record<string, SchedulePushLogEntry>) {
+  await writeSettingValue(SCHEDULE_PUSH_LOG_KEY, JSON.stringify(map));
+}
+
 export async function getBriefEmailLogEntry(scheduleId: number) {
   const map = await getBriefEmailLogMap();
   return map[String(scheduleId)] ?? null;
@@ -430,6 +448,27 @@ export async function getBriefEmailEventsSince(since?: string | null) {
   return events.sort((a, b) => new Date(b.sentAt).getTime() - new Date(a.sentAt).getTime());
 }
 
+export async function getSchedulePushLogEntry(scheduleId: number) {
+  const map = await getSchedulePushLogMap();
+  return map[String(scheduleId)] ?? null;
+}
+
+export async function markSchedulePushSent(
+  scheduleId: number,
+  input: {
+    targetKey: string;
+    sentAt: string;
+  }
+) {
+  const map = await getSchedulePushLogMap();
+  map[String(scheduleId)] = {
+    ...(map[String(scheduleId)] ?? {}),
+    targetKey: input.targetKey,
+    sentAt: input.sentAt,
+  };
+  await saveSchedulePushLogMap(map);
+}
+
 export function parseClientBriefConfigFormData(formData: FormData): ClientBriefConfig {
   return mergeClientBriefConfig({
     visitNoticeTime: String(formData.get('visit_notice_time') || ''),
@@ -443,7 +482,7 @@ export function parseClientBriefConfigFormData(formData: FormData): ClientBriefC
 export function parseDeliverySettingsFormData(formData: FormData): Partial<DeliverySettings> {
   const next: Partial<DeliverySettings> = {};
   const setHoursAsMinutes = (
-    key: 'emailSendMinutesBefore' | 'lineSendMinutesBefore',
+    key: 'emailSendMinutesBefore' | 'schedulePushMinutesBefore' | 'lineSendMinutesBefore',
     formKey: string,
     fallbackMinutes: number
   ) => {
@@ -474,6 +513,7 @@ export function parseDeliverySettingsFormData(formData: FormData): Partial<Deliv
   setString('emailRecipient', 'email_recipient');
   setString('emailSender', 'email_sender');
   setHoursAsMinutes('emailSendMinutesBefore', 'email_send_hours_before', DEFAULT_DELIVERY_SETTINGS.emailSendMinutesBefore);
+  setHoursAsMinutes('schedulePushMinutesBefore', 'schedule_push_hours_before', DEFAULT_DELIVERY_SETTINGS.schedulePushMinutesBefore);
   setString('lineChannelAccessToken', 'line_channel_access_token');
   setString('lineChannelSecret', 'line_channel_secret');
   setString('lineDestinationId', 'line_destination_id');

@@ -50,27 +50,6 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-function schedulePartsInKst(value: string) {
-  const formatter = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Seoul',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  });
-  const parts: Record<string, string> = {};
-  for (const part of formatter.formatToParts(new Date(value))) {
-    if (part.type !== 'literal') {
-      parts[part.type] = part.value;
-    }
-  }
-  return {
-    date: `${parts.month}/${parts.day}`,
-    time: `${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}`,
-  };
-}
-
 function useBrowserNotification() {
   return useCallback((title: string, body: string) => {
     if (typeof window === 'undefined' || !('Notification' in window)) return;
@@ -220,27 +199,8 @@ export function NotificationProvider({
           schema: 'public',
           table: 'schedules',
         },
-        (payload) => {
+        () => {
           if (cancelled) return;
-
-          if (payload.eventType === 'INSERT' && mountedRef.current) {
-            const row = payload.new as Record<string, unknown>;
-            const createdAt = String(row.created_at ?? nowIso());
-            const scheduledAt = typeof row.scheduled_at === 'string' ? row.scheduled_at : null;
-            const scheduleText = scheduledAt ? schedulePartsInKst(scheduledAt) : null;
-
-            pushToast(
-              t('notifications.newSchedule'),
-              scheduleText
-                ? t('notifications.newScheduleBody', {
-                    date: scheduleText.date,
-                    time: scheduleText.time,
-                  }).trim()
-                : t('notifications.newScheduleBodyFallback'),
-              `schedule-${createdAt}`
-            );
-          }
-
           void syncSummary();
         }
       )
