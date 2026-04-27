@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 
-import { getBriefEmailEventsSince } from '@/lib/briefing-config';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { createClient } from '@/lib/supabase/server';
 
@@ -52,11 +51,10 @@ export async function GET(request: Request) {
 
   const { searchParams } = new URL(request.url);
   const applicationsSince = searchParams.get('applicationsSince');
-  const emailsSince = searchParams.get('emailsSince');
   const admin = createAdminClient();
   const { start, end } = koreaTodayRange();
 
-  const [{ count: newApplicantCount }, { data: latestApplicationRow }, emailEvents, { count: todayScheduleCount }] = await Promise.all([
+  const [{ count: newApplicantCount }, { data: latestApplicationRow }, { count: todayScheduleCount }] = await Promise.all([
     admin
       .from('influencer_applications')
       .select('id', { count: 'exact', head: true })
@@ -68,30 +66,12 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false })
       .limit(1)
       .maybeSingle(),
-    getBriefEmailEventsSince(emailsSince),
     admin
       .from('schedules')
       .select('id', { count: 'exact', head: true })
       .gte('scheduled_at', start)
       .lt('scheduled_at', end),
   ]);
-
-  const latestEmailEvent = emailEvents[0] ?? null;
-  let latestEmailLabel: string | null = null;
-
-  if (latestEmailEvent?.scheduleId) {
-    const { data: schedule } = await admin
-      .from('schedules')
-      .select('id, clients(company_name), influencers(handle)')
-      .eq('id', latestEmailEvent.scheduleId)
-      .maybeSingle();
-
-    if (schedule) {
-      const clientName = (schedule as any).clients?.company_name ?? '업체';
-      const influencerHandle = (schedule as any).influencers?.handle ?? 'influencer';
-      latestEmailLabel = `${clientName} · @${influencerHandle}`;
-    }
-  }
 
   return NextResponse.json({
     ok: true,
@@ -101,13 +81,6 @@ export async function GET(request: Request) {
       latestAccountId: latestApplicationRow?.account_id ?? null,
       latestPlatform: latestApplicationRow?.platform ?? null,
       latestStatus: latestApplicationRow?.status ?? null,
-    },
-    briefEmails: {
-      newCount: emailEvents.length,
-      latestSentAt: latestEmailEvent?.sentAt ?? null,
-      latestMode: latestEmailEvent?.mode ?? null,
-      latestRecipient: latestEmailEvent?.recipient ?? null,
-      latestLabel: latestEmailLabel,
     },
     todaySchedules: {
       count: todayScheduleCount ?? 0,

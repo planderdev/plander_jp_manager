@@ -332,13 +332,13 @@ export async function runScheduledBriefingEmails(now = new Date()) {
     }
   }
 
-  if (sent > 0 || failed > 0) {
+  if (sent > 0) {
     await sendWebPushNotification((locale) => ({
-      title: locale === 'ja' ? '招待状/ガイド自動送信結果' : '초대장/가이드 자동발송 결과',
+      title: locale === 'ja' ? '招待状/ガイドメール自動送信完了' : '초대장/가이드 메일 자동 전송 완료',
       body:
         locale === 'ja'
-          ? `${emailSendMinutesBefore}分前基準 メール 성공 ${sent}件 / 실패 ${failed}件`
-          : `${emailSendMinutesBefore}분 전 기준 메일 성공 ${sent}건 / 실패 ${failed}건`,
+          ? `${emailSendMinutesBefore}分前基準でメール ${sent} 件の送信が完了しました。`
+          : `${emailSendMinutesBefore}분 전 기준으로 메일 ${sent}건 전송이 완료되었습니다.`,
       url: '/campaigns/schedules',
       tag: `scheduled-brief-${emailSendMinutesBefore}`,
     }));
@@ -363,16 +363,6 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
   const { windowStartIso, windowEndIso } = getScheduledWindow(now, lineSendMinutesBefore);
 
   if (!deliverySettings.lineChannelAccessToken) {
-    await sendWebPushNotification((locale) => ({
-      title: locale === 'ja' ? 'LINE自動送信失敗' : 'LINE 자동발송 실패',
-      body:
-        locale === 'ja'
-          ? 'LINE Channel Access Token が未設定です。'
-          : 'LINE Channel Access Token이 비어 있어 발송할 수 없습니다.',
-      url: '/extras/admins',
-      tag: 'scheduled-line-missing-token',
-    }));
-
     return {
       currentTime,
       lineSendMinutesBefore,
@@ -451,13 +441,13 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
     }
   }
 
-  if (sent > 0 || failed > 0) {
+  if (sent > 0) {
     await sendWebPushNotification((locale) => ({
-      title: locale === 'ja' ? 'LINE自動送信結果' : 'LINE 자동발송 결과',
+      title: locale === 'ja' ? 'LINE案内自動送信完了' : 'LINE 안내 자동 전송 완료',
       body:
         locale === 'ja'
-          ? `${lineSendMinutesBefore}分前基準 LINE 성공 ${sent}件 / 실패 ${failed}件`
-          : `${lineSendMinutesBefore}분 전 기준 LINE 성공 ${sent}건 / 실패 ${failed}건`,
+          ? `${lineSendMinutesBefore}分前基準で LINE ${sent} 件の送信が完了しました。`
+          : `${lineSendMinutesBefore}분 전 기준으로 LINE ${sent}건 전송이 완료되었습니다.`,
       url: '/extras/line-contacts',
       tag: `scheduled-line-${lineSendMinutesBefore}`,
     }));

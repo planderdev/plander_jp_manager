@@ -5,16 +5,10 @@ import { usePathname } from 'next/navigation';
 import { useI18n } from '@/lib/i18n/provider';
 import { useCallback } from 'react';
 import { createClient } from '@/lib/supabase/client';
-
 type NotificationSummary = {
   applications: {
     newCount: number;
     latestCreatedAt: string | null;
-  };
-  briefEmails: {
-    newCount: number;
-    latestSentAt: string | null;
-    latestLabel: string | null;
   };
   todaySchedules: {
     count: number;
@@ -41,7 +35,6 @@ const NotificationContext = createContext<NotificationContextValue>({
 
 const APPLICATIONS_SEEN_KEY = 'planderjp_seen_applications_at';
 const APPLICATIONS_NOTIFIED_KEY = 'planderjp_notified_applications_at';
-const BRIEF_EMAIL_NOTIFIED_KEY = 'planderjp_notified_brief_email_at';
 
 function readLocalStorage(key: string) {
   if (typeof window === 'undefined') return null;
@@ -55,6 +48,27 @@ function writeLocalStorage(key: string, value: string) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function schedulePartsInKst(value: string) {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  });
+  const parts: Record<string, string> = {};
+  for (const part of formatter.formatToParts(new Date(value))) {
+    if (part.type !== 'literal') {
+      parts[part.type] = part.value;
+    }
+  }
+  return {
+    date: `${parts.month}/${parts.day}`,
+    time: `${parts.hour === '24' ? '00' : parts.hour}:${parts.minute}`,
+  };
 }
 
 function useBrowserNotification() {
@@ -99,10 +113,9 @@ export function NotificationProvider({
   const syncSummary = useCallback(async () => {
     const applicationsSince = readLocalStorage(APPLICATIONS_SEEN_KEY) ?? nowIso();
     const applicationsNotifiedAt = readLocalStorage(APPLICATIONS_NOTIFIED_KEY) ?? applicationsSince;
-    const emailsSince = readLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY) ?? nowIso();
 
     const response = await fetch(
-      `/api/notifications/summary?applicationsSince=${encodeURIComponent(applicationsSince)}&emailsSince=${encodeURIComponent(emailsSince)}`,
+      `/api/notifications/summary?applicationsSince=${encodeURIComponent(applicationsSince)}`,
       { cache: 'no-store' }
     );
 
@@ -133,17 +146,6 @@ export function NotificationProvider({
       writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, data.applications.latestCreatedAt);
     }
 
-    if (mountedRef.current && data.briefEmails.newCount > 0 && data.briefEmails.latestSentAt) {
-      pushToast(
-        t('notifications.briefEmailSent'),
-        data.briefEmails.latestLabel
-          ? t('notifications.briefEmailSentBody', { label: data.briefEmails.latestLabel })
-          : t('notifications.briefEmailSentBodyFallback', { count: data.briefEmails.newCount }),
-        `mail-${data.briefEmails.latestSentAt}`
-      );
-      writeLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY, data.briefEmails.latestSentAt);
-    }
-
     mountedRef.current = true;
     return data;
   }, [pathname, pushToast, t]);
@@ -159,11 +161,9 @@ export function NotificationProvider({
   useEffect(() => {
     const latestSeen = readLocalStorage(APPLICATIONS_SEEN_KEY);
     const latestNotifiedApp = readLocalStorage(APPLICATIONS_NOTIFIED_KEY);
-    const latestNotifiedEmail = readLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY);
 
     if (!latestSeen) writeLocalStorage(APPLICATIONS_SEEN_KEY, nowIso());
     if (!latestNotifiedApp) writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, nowIso());
-    if (!latestNotifiedEmail) writeLocalStorage(BRIEF_EMAIL_NOTIFIED_KEY, nowIso());
   }, []);
 
   useEffect(() => {
@@ -211,23 +211,6 @@ export function NotificationProvider({
       )
       .subscribe();
 
-    const emailChannel = supabase
-      .channel('notifications-brief-email-log')
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'app_settings',
-          filter: 'key=eq.brief_email_log',
-        },
-        () => {
-          if (cancelled) return;
-          void syncSummary();
-        }
-      )
-      .subscribe();
-
     const scheduleChannel = supabase
       .channel('notifications-today-schedules')
       .on(
@@ -237,8 +220,27 @@ export function NotificationProvider({
           schema: 'public',
           table: 'schedules',
         },
-        () => {
+        (payload) => {
           if (cancelled) return;
+
+          if (payload.eventType === 'INSERT' && mountedRef.current) {
+            const row = payload.new as Record<string, unknown>;
+            const createdAt = String(row.created_at ?? nowIso());
+            const scheduledAt = typeof row.scheduled_at === 'string' ? row.scheduled_at : null;
+            const scheduleText = scheduledAt ? schedulePartsInKst(scheduledAt) : null;
+
+            pushToast(
+              t('notifications.newSchedule'),
+              scheduleText
+                ? t('notifications.newScheduleBody', {
+                    date: scheduleText.date,
+                    time: scheduleText.time,
+                  }).trim()
+                : t('notifications.newScheduleBodyFallback'),
+              `schedule-${createdAt}`
+            );
+          }
+
           void syncSummary();
         }
       )
@@ -278,7 +280,6 @@ export function NotificationProvider({
     return () => {
       cancelled = true;
       void supabase.removeChannel(applicantChannel);
-      void supabase.removeChannel(emailChannel);
       void supabase.removeChannel(scheduleChannel);
       void supabase.removeChannel(lineContactChannel);
       window.clearInterval(interval);
