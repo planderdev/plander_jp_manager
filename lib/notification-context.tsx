@@ -21,6 +21,10 @@ type ToastItem = {
   body: string;
 };
 
+type PushToastOptions = {
+  browser?: boolean;
+};
+
 type NotificationContextValue = {
   newApplicantCount: number;
   todayScheduleCount: number;
@@ -74,12 +78,14 @@ export function NotificationProvider({
   const notifyBrowser = useBrowserNotification();
   const supabase = useMemo(() => createClient(), []);
 
-  const pushToast = useCallback((title: string, body: string, id: string) => {
+  const pushToast = useCallback((title: string, body: string, id: string, options?: PushToastOptions) => {
     setToasts((current) => {
       if (current.some((toast) => toast.id === id)) return current;
       return [...current, { id, title, body }];
     });
-    notifyBrowser(title, body);
+    if (options?.browser) {
+      notifyBrowser(title, body);
+    }
   }, [notifyBrowser]);
 
   const markApplicantsSeen = useCallback(() => {
@@ -120,7 +126,8 @@ export function NotificationProvider({
       pushToast(
         t('notifications.newApplicants'),
         t('notifications.newApplicantsBody', { count: data.applications.newCount }),
-        `app-${data.applications.latestCreatedAt}`
+        `app-${data.applications.latestCreatedAt}`,
+        { browser: true }
       );
       writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, data.applications.latestCreatedAt);
     }
@@ -183,7 +190,8 @@ export function NotificationProvider({
           pushToast(
             t('notifications.newApplicants'),
             t('notifications.newApplicantsBody', { count: 1 }),
-            `app-${createdAt}`
+            `app-${createdAt}`,
+            { browser: true }
           );
           writeLocalStorage(APPLICATIONS_NOTIFIED_KEY, createdAt);
         }
@@ -227,7 +235,8 @@ export function NotificationProvider({
             displayName
               ? t('notifications.newLineContactBody', { name: displayName })
               : t('notifications.newLineContactBodyFallback'),
-            `line-${createdAt}`
+            `line-${createdAt}`,
+            { browser: true }
           );
         }
       )
