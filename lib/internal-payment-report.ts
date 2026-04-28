@@ -152,6 +152,7 @@ export async function getInternalPaymentReportData({
 
   const schedules = (data ?? []) as unknown as ScheduleRecord[];
   const rows: InternalPaymentReportRow[] = schedules.map((schedule) => {
+    const client = first(schedule.clients);
     const influencer = first(schedule.influencers);
     const post = first(schedule.posts);
     const status = paymentStatus(post);
@@ -160,6 +161,7 @@ export async function getInternalPaymentReportData({
     return {
       id: post?.id ?? `schedule-${schedule.id}`,
       visitDate: schedule.scheduled_at?.slice(0, 10) ?? '-',
+      storeName: client?.company_name ?? '-',
       handle: influencer?.handle ?? '-',
       accountUrl: influencer?.account_url ?? null,
       followers: influencer?.followers ?? 0,

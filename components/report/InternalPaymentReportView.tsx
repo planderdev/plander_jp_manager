@@ -192,6 +192,7 @@ export default function InternalPaymentReportView({
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs uppercase tracking-[0.16em] text-gray-400">{row.visitDate}</p>
+                    <p className="mt-1 text-sm font-semibold text-gray-900">{row.storeName}</p>
                     <a href={row.accountUrl ?? '#'} target="_blank" className="mt-1 block text-lg font-semibold text-black underline-offset-4 hover:underline">
                       @{row.handle}
                     </a>
@@ -228,6 +229,7 @@ export default function InternalPaymentReportView({
               <thead className="bg-[#f5f6fa] text-left text-gray-600">
                 <tr>
                   <th className="px-4 py-3">{t('reportMockup.visitDate')}</th>
+                  <th className="px-4 py-3">{t('reportMockup.storeName')}</th>
                   <th className="px-4 py-3">{t('reportMockup.accountLink')}</th>
                   <th className="px-4 py-3">{t('influencer.followers')}</th>
                   <th className="px-4 py-3">{t('reportMockup.postLink')}</th>
@@ -243,6 +245,7 @@ export default function InternalPaymentReportView({
                 {data.rows.map((row) => (
                   <tr key={row.id} className="border-t border-gray-100">
                     <td className="px-4 py-3">{row.visitDate}</td>
+                    <td className="px-4 py-3">{row.storeName}</td>
                     <td className="px-4 py-3">
                       <a href={row.accountUrl ?? '#'} target="_blank" className="font-medium text-blue-700 hover:underline">
                         @{row.handle}
@@ -272,7 +275,7 @@ export default function InternalPaymentReportView({
                 ))}
                 {!data.rows.length && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
+                    <td colSpan={11} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
                   </tr>
                 )}
               </tbody>

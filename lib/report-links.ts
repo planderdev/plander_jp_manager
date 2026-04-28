@@ -3,6 +3,7 @@ import { createAdminClient } from '@/lib/supabase/admin';
 export type ReportRow = {
   id: number | string;
   visitDate: string;
+  storeName: string;
   handle: string;
   accountUrl: string | null;
   followers: number;
@@ -36,6 +37,14 @@ type PostRecord = {
         followers: number | null;
         account_url: string | null;
         channel: string | null;
+      }>
+    | null;
+  clients:
+    | {
+        company_name: string | null;
+      }
+    | Array<{
+        company_name: string | null;
       }>
     | null;
   schedules:
@@ -121,6 +130,15 @@ function normalizeInfluencer(
   return value ?? null;
 }
 
+function normalizeClient(
+  value:
+    | PostRecord['clients']
+    | null
+) {
+  if (Array.isArray(value)) return value[0] ?? null;
+  return value ?? null;
+}
+
 function isWithinMonth(value: string | null, month: string) {
   if (!value) return false;
   return value.slice(0, 7) === month;
@@ -192,6 +210,9 @@ export async function getReportViewData(clientIds: number | number[], yearMonth:
           account_url,
           channel
         ),
+        clients (
+          company_name
+        ),
         schedules (
           scheduled_at
         )
@@ -231,10 +252,12 @@ export async function getReportViewData(clientIds: number | number[], yearMonth:
     .filter((row) => isWithinMonth(resolveVisitDate(row), yearMonth))
     .map((row) => {
       const influencer = normalizeInfluencer(row.influencers);
+      const clientInfo = normalizeClient(row.clients);
       const history = currentHistoryMap.get(row.id);
       return ({
       id: row.id,
       visitDate: resolveVisitDate(row)?.slice(0, 10) ?? yearMonth,
+      storeName: clientInfo?.company_name ?? '-',
       handle: influencer?.handle ?? 'sample_creator',
       accountUrl: influencer?.account_url ?? null,
       followers: influencer?.followers ?? 0,
@@ -265,6 +288,7 @@ export async function getReportViewData(clientIds: number | number[], yearMonth:
     rows = (influencers ?? []).map((item, index) => ({
       id: item.id,
       visitDate: `${yearMonth}-${String(index + 8).padStart(2, '0')}`,
+      storeName: client?.company_name ?? '-',
       handle: item.handle,
       accountUrl: item.account_url,
       followers: item.followers ?? 0,
