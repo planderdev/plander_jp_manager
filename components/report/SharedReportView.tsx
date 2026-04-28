@@ -47,7 +47,7 @@ export default function SharedReportView({
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f5f2ea_0%,#ffffff_40%,#f6f7fb_100%)] text-gray-900">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6 px-4 py-5 md:px-8 md:py-8">
+      <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-5 md:px-8 md:py-8">
         <div className="rounded-[28px] border border-white/80 bg-white/90 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-6">
           <div className="space-y-3">
             <span className="inline-flex rounded-full bg-black px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white">
