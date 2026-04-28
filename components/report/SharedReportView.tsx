@@ -50,6 +50,11 @@ export default function SharedReportView({
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6 px-4 py-5 md:px-8 md:py-8">
         <div className="rounded-[28px] border border-white/80 bg-white/90 p-4 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur md:p-6">
           <div className="space-y-3">
+            {generatedAtLabel ? (
+              <div className="flex justify-end">
+                <p className="text-sm text-gray-500">{t('reportMockup.generatedAtBase', { date: generatedAtLabel })}</p>
+              </div>
+            ) : null}
             <span className="inline-flex rounded-full bg-black px-3 py-1 text-[11px] font-semibold tracking-[0.24em] text-white">
               {t('reportMockup.previewBadge')}
             </span>
@@ -85,9 +90,6 @@ export default function SharedReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.campaignInfo')}</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.campaignInfo')}</h2>
             </div>
-            {generatedAtLabel ? (
-              <p className="max-w-xs text-right text-sm text-gray-500">{t('reportMockup.generatedAtBase', { date: generatedAtLabel })}</p>
-            ) : null}
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard label={t('reportMockup.selectedClient')} value={data.client?.company_name ?? '-'} />
