@@ -34,7 +34,7 @@ export default async function PaymentReportsPage({
   const { locale, t } = await getI18n();
   const sb = await createClient();
   const [{ data: clients }, { data: influencers }] = await Promise.all([
-    sb.from('clients').select('id, company_name').order('company_name'),
+    sb.from('clients').select('id, company_name').in('status', ['active', 'paused', 'ended']).order('company_name'),
     sb.from('influencers').select('id, handle').order('handle'),
   ]);
 

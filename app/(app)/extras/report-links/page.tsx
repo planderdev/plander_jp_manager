@@ -22,7 +22,11 @@ export default async function ReportLinksPage({ searchParams }: { searchParams: 
   const localeCode = locale === 'ja' ? 'ja-JP' : 'ko-KR';
   const sb = createAdminClient();
 
-  const { data: clients } = await sb.from('clients').select('id, company_name').order('company_name');
+  const { data: clients } = await sb
+    .from('clients')
+    .select('id, company_name')
+    .in('status', ['active', 'paused', 'ended'])
+    .order('company_name');
   const selectedIds = selectedClientIds(client, clients?.[0]?.id);
   const selectedMonth = month || new Date().toISOString().slice(0, 7);
 

@@ -34,13 +34,16 @@ export default function SharedReportView({
   locale,
   t,
   data,
+  generatedAt,
 }: {
   locale: 'ko' | 'ja';
   t: (key: string, vars?: Record<string, string | number>) => string;
   data: ReportViewData;
+  generatedAt: string | null;
 }) {
   const localeCode = locale === 'ja' ? 'ja-JP' : 'ko-KR';
   const monthLabel = displayMonth(data.yearMonth, localeCode);
+  const generatedAtLabel = generatedAt ? formatGeneratedDate(generatedAt, locale) : null;
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f5f2ea_0%,#ffffff_40%,#f6f7fb_100%)] text-gray-900">
@@ -82,7 +85,9 @@ export default function SharedReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.campaignInfo')}</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.campaignInfo')}</h2>
             </div>
-            <p className="max-w-xs text-right text-sm text-gray-500">{t('reportMockup.mobileNote')}</p>
+            {generatedAtLabel ? (
+              <p className="max-w-xs text-right text-sm text-gray-500">{t('reportMockup.generatedAtBase', { date: generatedAtLabel })}</p>
+            ) : null}
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
             <InfoCard label={t('reportMockup.selectedClient')} value={data.client?.company_name ?? '-'} />
@@ -296,6 +301,27 @@ export default function SharedReportView({
       </div>
     </div>
   );
+}
+
+function formatGeneratedDate(value: string, locale: 'ko' | 'ja') {
+  const formatter = new Intl.DateTimeFormat('en-CA', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: 'numeric',
+    day: 'numeric',
+  });
+  const parts: Record<string, string> = {};
+  for (const part of formatter.formatToParts(new Date(value))) {
+    if (part.type !== 'literal') {
+      parts[part.type] = part.value;
+    }
+  }
+
+  if (locale === 'ja') {
+    return `${parts.year}年${parts.month}月${parts.day}日`;
+  }
+
+  return `${parts.year}년 ${parts.month}월 ${parts.day}일`;
 }
 
 function InfoCard({ label, value }: { label: string; value: string }) {
