@@ -20,34 +20,46 @@ function redirectToManager(clientIds: number[], yearMonth: string) {
   redirect(`/extras/monthly-settlement?${params.toString()}`);
 }
 
-async function compressScreenshot(file: File) {
+async function compressScreenshot(
+  file: File,
+  mode: 'preserve' | 'half',
+) {
   const input = Buffer.from(await file.arrayBuffer());
   const image = sharp(input, { failOn: 'none' });
   const metadata = await image.metadata();
-  const width = Math.max(1, Math.round((metadata.width ?? 0) * 0.5));
-  const height = Math.max(1, Math.round((metadata.height ?? 0) * 0.5));
+  const width = mode === 'half' ? Math.max(1, Math.round((metadata.width ?? 0) * 0.5)) : undefined;
+  const height = mode === 'half' ? Math.max(1, Math.round((metadata.height ?? 0) * 0.5)) : undefined;
   const ext = path.extname(file.name).toLowerCase();
 
   let buffer: Buffer;
   let type = file.type || 'image/jpeg';
   if (ext === '.png' || file.type === 'image/png') {
-    buffer = await image.resize(width || undefined, height || undefined).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+    buffer = await image
+      .resize(width, height)
+      .png({ compressionLevel: mode === 'half' ? 9 : 6, adaptiveFiltering: true })
+      .toBuffer();
     type = 'image/png';
   } else if (ext === '.webp' || file.type === 'image/webp') {
-    buffer = await image.resize(width || undefined, height || undefined).webp({ quality: 80 }).toBuffer();
+    buffer = await image
+      .resize(width, height)
+      .webp({ quality: mode === 'half' ? 80 : 92 })
+      .toBuffer();
     type = 'image/webp';
   } else {
-    buffer = await image.resize(width || undefined, height || undefined).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+    buffer = await image
+      .resize(width, height)
+      .jpeg({ quality: mode === 'half' ? 80 : 92, mozjpeg: true })
+      .toBuffer();
     type = 'image/jpeg';
   }
 
   return new File([new Uint8Array(buffer)], file.name, { type });
 }
 
-async function prepareScreenshots(files: File[]) {
+async function prepareScreenshots(files: File[], mode: 'preserve' | 'half') {
   const prepared: File[] = [];
   for (const file of files) {
-    prepared.push(await compressScreenshot(file));
+    prepared.push(await compressScreenshot(file, mode));
   }
   return prepared;
 }
@@ -91,8 +103,8 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
   }
 
   const token = crypto.randomBytes(16).toString('hex');
-  const compressedBankScreenshots = await prepareScreenshots(bankScreenshotFiles);
-  const compressedTransferProofs = await prepareScreenshots(transferProofFiles);
+  const compressedBankScreenshots = await prepareScreenshots(bankScreenshotFiles, 'preserve');
+  const compressedTransferProofs = await prepareScreenshots(transferProofFiles, 'half');
   const screenshotPaths = await uploadScreenshots(token, 'bank', compressedBankScreenshots);
   const transferProofPaths = await uploadScreenshots(token, 'transfer', compressedTransferProofs);
   const shouldProcess = screenshotPaths.length > 0;
