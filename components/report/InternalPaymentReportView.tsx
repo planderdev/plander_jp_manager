@@ -119,12 +119,16 @@ export default function InternalPaymentReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('nav.monthlySettlement')}</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('paymentReport.monthlySettlementSummary')}</h2>
             </div>
-            {data.monthlySettlementSummary ? (
-              <p className="text-sm text-gray-500">
-                {t('paymentReport.linkedSettlementCount', {
-                  count: data.monthlySettlementSummary.reports.length,
-                })}
-              </p>
+            {data.monthlySettlementSummary?.reports[0] ? (
+              <a
+                href={`/settlement-report/${data.monthlySettlementSummary.reports[0].shareToken}`}
+                target="_blank"
+                className="inline-flex items-center justify-center rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800"
+              >
+                {data.monthlySettlementSummary.reports.length === 1
+                  ? t('paymentReport.openSettlementReport')
+                  : t('paymentReport.openPrimarySettlementReport')}
+              </a>
             ) : null}
           </div>
 
@@ -137,7 +141,14 @@ export default function InternalPaymentReportView({
               </div>
 
               <div className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{t('paymentReport.linkedSettlementReports')}</p>
+                <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{t('paymentReport.linkedSettlementReports')}</p>
+                  <p className="text-sm text-gray-500">
+                    {t('paymentReport.linkedSettlementCount', {
+                      count: data.monthlySettlementSummary.reports.length,
+                    })}
+                  </p>
+                </div>
                 <div className="mt-3 space-y-3">
                   {data.monthlySettlementSummary.reports.map((report) => (
                     <div
