@@ -18,13 +18,13 @@ function gradeClass(grade: ReportViewData['rows'][number]['grade']) {
     case 'S':
       return 'bg-amber-400 text-amber-950 ring-1 ring-amber-300';
     case 'A':
-      return 'bg-black text-white';
+      return 'bg-orange-500 text-white';
     case 'B':
       return 'bg-blue-600 text-white';
     case 'C':
       return 'bg-emerald-600 text-white';
     case 'F':
-      return 'bg-gray-700 text-white';
+      return 'bg-red-600 text-white';
     default:
       return 'bg-gray-200 text-gray-600';
   }
