@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useMemo, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import { createScheduleAction, updateScheduleAction } from '@/actions/schedules';
 import SubmitButton from '@/components/SubmitButton';
 import { useI18n } from '@/lib/i18n/provider';
@@ -32,6 +33,7 @@ export default function ScheduleForm({
   influencers, clients, schedule,
 }: { influencers: InfOpt[]; clients: CliOpt[]; schedule?: any }) {
   const { t } = useI18n();
+  const pathname = usePathname();
   const initInf = schedule ? influencers.find(i => i.id === schedule.influencer_id) ?? null : null;
   const initDate = schedule ? new Date(schedule.scheduled_at) : null;
   const pad = (n: number) => String(n).padStart(2, '0');
@@ -57,7 +59,6 @@ export default function ScheduleForm({
   );
 
   const scheduledAt = date && `${date}T${hour.padStart(2,'0')}:${minute}:00+09:00`;
-  const canSubmit = selInf && selCli && date;
 
   useEffect(() => {
     if (!selectedClient) {
@@ -73,10 +74,28 @@ export default function ScheduleForm({
     setProvidedMenu(schedule.provided_menu ?? selectedClient.provided_menu ?? '');
   }, [schedule, selectedClient]);
 
+  function validateRequired() {
+    const missing: string[] = [];
+    if (!selInf) missing.push(t('scheduleForm.handle'));
+    if (!selCli) missing.push(t('scheduleForm.client'));
+    if (!date) missing.push(t('scheduleForm.date'));
+
+    if (!missing.length) return true;
+
+    window.alert(t('scheduleForm.requiredAlert', { fields: missing.join(', ') }));
+    return false;
+  }
+
   return (
     <form action={schedule ? updateScheduleAction : createScheduleAction}
+      onSubmit={(event) => {
+        if (!validateRequired()) {
+          event.preventDefault();
+        }
+      }}
       className="bg-white p-6 rounded-lg shadow space-y-5 max-w-2xl">
       {schedule && <input type="hidden" name="id" defaultValue={schedule.id} />}
+      <input type="hidden" name="return_to" value={pathname} />
       <input type="hidden" name="scheduled_at" value={scheduledAt || ''} />
       <input type="hidden" name="influencer_id" value={selInf?.id ?? ''} />
       <input type="hidden" name="client_id" value={selCli} />
