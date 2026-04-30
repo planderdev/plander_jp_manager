@@ -1,6 +1,8 @@
 'use server';
 
 import crypto from 'node:crypto';
+import path from 'node:path';
+import sharp from 'sharp';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
@@ -21,15 +23,47 @@ function redirectToManager(clientIds: number[], yearMonth: string) {
   redirect(`/extras/monthly-settlement?${params.toString()}`);
 }
 
-async function uploadScreenshots(token: string, files: File[]) {
+async function compressScreenshot(file: File) {
+  const input = Buffer.from(await file.arrayBuffer());
+  const image = sharp(input, { failOn: 'none' });
+  const metadata = await image.metadata();
+  const width = Math.max(1, Math.round((metadata.width ?? 0) * 0.5));
+  const height = Math.max(1, Math.round((metadata.height ?? 0) * 0.5));
+  const ext = path.extname(file.name).toLowerCase();
+
+  let buffer: Buffer;
+  let type = file.type || 'image/jpeg';
+  if (ext === '.png' || file.type === 'image/png') {
+    buffer = await image.resize(width || undefined, height || undefined).png({ compressionLevel: 9, adaptiveFiltering: true }).toBuffer();
+    type = 'image/png';
+  } else if (ext === '.webp' || file.type === 'image/webp') {
+    buffer = await image.resize(width || undefined, height || undefined).webp({ quality: 80 }).toBuffer();
+    type = 'image/webp';
+  } else {
+    buffer = await image.resize(width || undefined, height || undefined).jpeg({ quality: 80, mozjpeg: true }).toBuffer();
+    type = 'image/jpeg';
+  }
+
+  return new File([new Uint8Array(buffer)], file.name, { type });
+}
+
+async function prepareScreenshots(files: File[]) {
+  const prepared: File[] = [];
+  for (const file of files) {
+    prepared.push(await compressScreenshot(file));
+  }
+  return prepared;
+}
+
+async function uploadScreenshots(token: string, section: 'bank' | 'transfer', files: File[]) {
   const admin = createAdminClient();
   const uploadedPaths: string[] = [];
 
   for (const file of files) {
-    const path = `monthly-settlement-reports/${token}/${Date.now()}_${file.name}`;
-    const { error } = await admin.storage.from('payments').upload(path, file, { upsert: false });
+    const uploadPath = `monthly-settlement-reports/${token}/${section}/${Date.now()}_${file.name}`;
+    const { error } = await admin.storage.from('payments').upload(uploadPath, file, { upsert: false });
     if (error) throw new Error(error.message);
-    uploadedPaths.push(path);
+    uploadedPaths.push(uploadPath);
   }
 
   return uploadedPaths;
@@ -50,17 +84,26 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
 
   const clientIds = Array.from(new Set(formData.getAll('client_ids').map(Number).filter(Boolean)));
   const yearMonth = String(formData.get('year_month') || '');
-  const screenshotFiles = formData
-    .getAll('screenshots')
+  const bankScreenshotFiles = formData
+    .getAll('bank_screenshots')
+    .filter((item): item is File => item instanceof File && item.size > 0);
+  const transferProofFiles = formData
+    .getAll('transfer_proofs')
     .filter((item): item is File => item instanceof File && item.size > 0);
 
   if (!clientIds.length || !yearMonth) {
     throw new Error('필수값이 누락되었습니다.');
   }
+  if (transferProofFiles.length > 3) {
+    throw new Error('실 송금내역 캡처는 최대 3장까지 업로드할 수 있습니다.');
+  }
 
   const token = crypto.randomBytes(16).toString('hex');
-  const ocrDocuments = await readScreenshots(screenshotFiles);
-  const screenshotPaths = await uploadScreenshots(token, screenshotFiles);
+  const compressedBankScreenshots = await prepareScreenshots(bankScreenshotFiles);
+  const compressedTransferProofs = await prepareScreenshots(transferProofFiles);
+  const ocrDocuments = await readScreenshots(compressedBankScreenshots);
+  const screenshotPaths = await uploadScreenshots(token, 'bank', compressedBankScreenshots);
+  const transferProofPaths = await uploadScreenshots(token, 'transfer', compressedTransferProofs);
   const transactions: MonthlySettlementTransaction[] = parseTransactionsFromOcrDocuments(ocrDocuments);
 
   const admin = createAdminClient();
@@ -70,6 +113,7 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
     title: monthlySettlementTitle(yearMonth),
     share_token: token,
     screenshot_paths: screenshotPaths,
+    transfer_proof_paths: transferProofPaths,
     transactions,
     ocr_documents: ocrDocuments,
     created_by: user.id,
@@ -90,13 +134,18 @@ export async function deleteMonthlySettlementReportAction(id: number, clientIds:
   const admin = createAdminClient();
   const { data: report, error: reportError } = await admin
     .from('monthly_settlement_reports')
-    .select('screenshot_paths')
+    .select('screenshot_paths, transfer_proof_paths')
     .eq('id', id)
     .single();
   if (reportError) throw new Error(reportError.message);
 
-  if (report?.screenshot_paths?.length) {
-    await admin.storage.from('payments').remove(report.screenshot_paths);
+  const removablePaths = [
+    ...(report?.screenshot_paths ?? []),
+    ...(report?.transfer_proof_paths ?? []),
+  ];
+
+  if (removablePaths.length) {
+    await admin.storage.from('payments').remove(removablePaths);
   }
 
   const { error } = await admin.from('monthly_settlement_reports').delete().eq('id', id);

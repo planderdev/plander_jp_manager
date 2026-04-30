@@ -1,7 +1,7 @@
 import Link from 'next/link';
-import SubmitButton from '@/components/SubmitButton';
 import CopyLinkButton from '@/components/report/CopyLinkButton';
 import MonthlySettlementDeleteButton from '@/components/report/MonthlySettlementDeleteButton';
+import MonthlySettlementCreateForm from '@/components/report/MonthlySettlementCreateForm';
 import MonthlySettlementReportView from '@/components/report/MonthlySettlementReportView';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getI18n } from '@/lib/i18n/server';
@@ -86,32 +86,14 @@ export default async function MonthlySettlementPage({ searchParams }: { searchPa
 
         <div className="mt-5 rounded-3xl border border-gray-200 bg-[#fafaf8] p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reports.new')}</p>
-          <div className="mt-3 flex flex-col gap-4">
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">{displayMonth(selectedMonth, localeCode)} {t('monthlySettlement.reportSuffix')}</h2>
-              <p className="mt-1 text-sm text-gray-500">{selectedClientLabel || '-'}</p>
-            </div>
-
-            <form action={createMonthlySettlementReportAction} className="grid gap-4 md:grid-cols-[1fr_auto] md:items-end">
-              <div>
-                <label className="mb-1 block text-sm font-medium">{t('monthlySettlement.uploadScreenshots')}</label>
-                <input
-                  type="file"
-                  name="screenshots"
-                  accept="image/png,image/jpeg,image/webp"
-                  multiple
-                  className="w-full rounded-xl border border-gray-300 bg-white p-3 text-sm"
-                />
-                <p className="mt-2 text-xs text-gray-500">{t('monthlySettlement.uploadHelp')}</p>
-              </div>
-              <div className="flex items-center gap-3">
-                {selectedIds.map((clientId) => (
-                  <input key={clientId} type="hidden" name="client_ids" value={clientId} />
-                ))}
-                <input type="hidden" name="year_month" value={selectedMonth} />
-                <SubmitButton>{t('monthlySettlement.createLink')}</SubmitButton>
-              </div>
-            </form>
+          <div className="mt-3">
+            <MonthlySettlementCreateForm
+              selectedIds={selectedIds}
+              selectedMonth={selectedMonth}
+              title={`${displayMonth(selectedMonth, localeCode)} ${t('monthlySettlement.reportSuffix')}`}
+              selectedClientLabel={selectedClientLabel}
+              action={createMonthlySettlementReportAction}
+            />
           </div>
         </div>
       </section>

@@ -49,12 +49,13 @@ export default function MonthlySettlementReportView({
           </div>
         </section>
 
-        <section className="grid grid-cols-2 gap-3 md:grid-cols-5">
+        <section className="grid grid-cols-2 gap-3 md:grid-cols-6">
           <SummaryCard label="총 입금" value={money(data.totals.incoming)} tone="blue" />
           <SummaryCard label="총 출금" value={money(data.totals.outgoing)} tone="red" />
           <SummaryCard label="순액" value={money(data.totals.net)} tone={data.totals.net >= 0 ? 'black' : 'red'} />
           <SummaryCard label="완료게시물" value={`${data.totals.completedPosts}건`} tone="black" />
           <SummaryCard label="정산완료 / 예정" value={`${data.totals.settledPosts} / ${data.totals.payablePosts}`} tone="green" />
+          <SummaryCard label="실 송금 캡처" value={`${data.totals.transferProofCount}장`} tone="black" />
         </section>
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
@@ -64,65 +65,93 @@ export default function MonthlySettlementReportView({
               <h2 className="mt-2 text-xl font-bold md:text-2xl">입출금 내역</h2>
             </div>
             <p className="text-sm text-gray-500">
-              캡처 {data.ocrDocuments.length.toLocaleString()}장 · 추출 {data.transactions.length.toLocaleString()}건
+              캡처 {data.bankScreenshotImageUrls.length.toLocaleString()}장 · 추출 {data.transactions.length.toLocaleString()}건
             </p>
           </div>
 
-          <div className="space-y-3 md:hidden">
-            {data.transactions.map((item) => (
-              <div key={item.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.16em] text-gray-400">{item.happenedAt ?? item.sourceName}</p>
-                    <p className="mt-1 text-base font-semibold text-gray-900">{item.memo}</p>
-                    <p className="mt-1 text-sm text-gray-500">{item.sourceName}</p>
-                  </div>
-                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.direction === 'incoming' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200'}`}>
-                    {item.direction === 'incoming' ? '입금' : '출금'}
-                  </span>
-                </div>
-                <p className="mt-4 text-xl font-bold text-gray-950">{money(item.amount)}</p>
-              </div>
-            ))}
-            {!data.transactions.length && (
-              <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
-                추출된 입출금 내역이 없습니다.
-              </div>
-            )}
-          </div>
-
-          <div className="hidden overflow-hidden rounded-[24px] border border-gray-200 md:block">
-            <table className="w-full text-sm">
-              <thead className="bg-[#f5f6fa] text-left text-gray-600">
-                <tr>
-                  <th className="px-4 py-3">구분</th>
-                  <th className="px-4 py-3">일시</th>
-                  <th className="px-4 py-3">메모</th>
-                  <th className="px-4 py-3">금액</th>
-                  <th className="px-4 py-3">출처</th>
-                </tr>
-              </thead>
-              <tbody>
+          <div className="grid gap-4 xl:grid-cols-2">
+            <div className="space-y-3">
+              <div className="space-y-3 md:hidden">
                 {data.transactions.map((item) => (
-                  <tr key={item.id} className="border-t border-gray-100">
-                    <td className="px-4 py-3">
+                  <div key={item.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.16em] text-gray-400">{item.happenedAt ?? item.sourceName}</p>
+                        <p className="mt-1 text-base font-semibold text-gray-900">{item.memo}</p>
+                        <p className="mt-1 text-sm text-gray-500">{item.sourceName}</p>
+                      </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.direction === 'incoming' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200'}`}>
                         {item.direction === 'incoming' ? '입금' : '출금'}
                       </span>
-                    </td>
-                    <td className="px-4 py-3">{item.happenedAt ?? '-'}</td>
-                    <td className="px-4 py-3 font-medium text-gray-900">{item.memo}</td>
-                    <td className="px-4 py-3 font-semibold">{money(item.amount)}</td>
-                    <td className="px-4 py-3 text-gray-500">{item.sourceName}</td>
-                  </tr>
+                    </div>
+                    <p className="mt-4 text-xl font-bold text-gray-950">{money(item.amount)}</p>
+                  </div>
                 ))}
                 {!data.transactions.length && (
-                  <tr>
-                    <td colSpan={5} className="px-4 py-10 text-center text-gray-400">추출된 입출금 내역이 없습니다.</td>
-                  </tr>
+                  <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
+                    추출된 입출금 내역이 없습니다.
+                  </div>
                 )}
-              </tbody>
-            </table>
+              </div>
+
+              <div className="hidden overflow-hidden rounded-[24px] border border-gray-200 md:block">
+                <table className="w-full text-sm">
+                  <thead className="bg-[#f5f6fa] text-left text-gray-600">
+                    <tr>
+                      <th className="px-4 py-3">구분</th>
+                      <th className="px-4 py-3">일시</th>
+                      <th className="px-4 py-3">메모</th>
+                      <th className="px-4 py-3">금액</th>
+                      <th className="px-4 py-3">출처</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.transactions.map((item) => (
+                      <tr key={item.id} className="border-t border-gray-100">
+                        <td className="px-4 py-3">
+                          <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.direction === 'incoming' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200'}`}>
+                            {item.direction === 'incoming' ? '입금' : '출금'}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">{item.happenedAt ?? '-'}</td>
+                        <td className="px-4 py-3 font-medium text-gray-900">{item.memo}</td>
+                        <td className="px-4 py-3 font-semibold">{money(item.amount)}</td>
+                        <td className="px-4 py-3 text-gray-500">{item.sourceName}</td>
+                      </tr>
+                    ))}
+                    {!data.transactions.length && (
+                      <tr>
+                        <td colSpan={5} className="px-4 py-10 text-center text-gray-400">추출된 입출금 내역이 없습니다.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {data.bankScreenshotImageUrls.length ? (
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-1">
+                  {data.bankScreenshotImageUrls.map((item, index) => (
+                    <a
+                      key={item.path}
+                      href={item.url}
+                      target="_blank"
+                      className="overflow-hidden rounded-[24px] border border-gray-200 bg-[#fafaf8] shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                    >
+                      <img src={item.url} alt={`입출금 내역 캡처 ${index + 1}`} className="h-auto w-full object-cover" />
+                      <div className="border-t border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+                        입출금 내역 캡처 {index + 1}
+                      </div>
+                    </a>
+                  ))}
+                </div>
+              ) : (
+                <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
+                  등록된 입출금 내역 캡처가 없습니다.
+                </div>
+              )}
+            </div>
           </div>
 
           {data.ocrDocuments.length ? (
@@ -138,6 +167,38 @@ export default function MonthlySettlementReportView({
               </div>
             </details>
           ) : null}
+        </section>
+
+        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">TRANSFER PROOFS</p>
+              <h2 className="mt-2 text-xl font-bold md:text-2xl">실 송금내역 캡처</h2>
+            </div>
+            <p className="text-sm text-gray-500">{data.transferProofImageUrls.length.toLocaleString()} images</p>
+          </div>
+
+          {data.transferProofImageUrls.length ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+              {data.transferProofImageUrls.map((item, index) => (
+                <a
+                  key={item.path}
+                  href={item.url}
+                  target="_blank"
+                  className="overflow-hidden rounded-[24px] border border-gray-200 bg-[#fafaf8] shadow-[0_10px_30px_rgba(15,23,42,0.04)]"
+                >
+                  <img src={item.url} alt={`실 송금내역 캡처 ${index + 1}`} className="h-auto w-full object-cover" />
+                  <div className="border-t border-gray-200 px-4 py-3 text-sm font-medium text-gray-700">
+                    실 송금내역 캡처 {index + 1}
+                  </div>
+                </a>
+              ))}
+            </div>
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
+              등록된 실 송금내역 캡처가 없습니다.
+            </div>
+          )}
         </section>
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">

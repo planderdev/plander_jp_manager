@@ -24,6 +24,8 @@ export type MonthlySettlementReportData = {
   title: string;
   transactions: MonthlySettlementTransaction[];
   ocrDocuments: MonthlySettlementOcrDocument[];
+  bankScreenshotImageUrls: Array<{ path: string; url: string }>;
+  transferProofImageUrls: Array<{ path: string; url: string }>;
   completedPosts: MonthlySettlementCompletedPost[];
   totals: {
     incoming: number;
@@ -32,6 +34,7 @@ export type MonthlySettlementReportData = {
     completedPosts: number;
     settledPosts: number;
     payablePosts: number;
+    transferProofCount: number;
   };
   createdAtLabel: string | null;
 };
@@ -39,6 +42,8 @@ export type MonthlySettlementReportData = {
 type ReportRecord = {
   transactions: MonthlySettlementTransaction[] | null;
   ocr_documents: MonthlySettlementOcrDocument[] | null;
+  screenshot_paths?: string[] | null;
+  transfer_proof_paths?: string[] | null;
   created_at?: string | null;
 };
 
@@ -168,6 +173,24 @@ export async function getMonthlySettlementReportData(input: {
   const outgoing = transactions
     .filter((item) => item.direction === 'outgoing')
     .reduce((sum, item) => sum + item.amount, 0);
+  const transferProofPaths = input.report?.transfer_proof_paths ?? [];
+  const bankScreenshotPaths = input.report?.screenshot_paths ?? [];
+  const bankScreenshotImageUrls = bankScreenshotPaths.length
+    ? await Promise.all(
+        bankScreenshotPaths.map(async (path) => {
+          const { data } = await sb.storage.from('payments').createSignedUrl(path, 60 * 60 * 24 * 7);
+          return data?.signedUrl ? { path, url: data.signedUrl } : null;
+        }),
+      ).then((items) => items.filter((item): item is { path: string; url: string } => Boolean(item)))
+    : [];
+  const transferProofImageUrls = transferProofPaths.length
+    ? await Promise.all(
+        transferProofPaths.map(async (path) => {
+          const { data } = await sb.storage.from('payments').createSignedUrl(path, 60 * 60 * 24 * 7);
+          return data?.signedUrl ? { path, url: data.signedUrl } : null;
+        }),
+      ).then((items) => items.filter((item): item is { path: string; url: string } => Boolean(item)))
+    : [];
 
   return {
     clients: clients ?? [],
@@ -175,6 +198,8 @@ export async function getMonthlySettlementReportData(input: {
     title: monthlySettlementTitle(input.yearMonth),
     transactions,
     ocrDocuments: input.report?.ocr_documents ?? [],
+    bankScreenshotImageUrls,
+    transferProofImageUrls,
     completedPosts,
     totals: {
       incoming,
@@ -183,6 +208,7 @@ export async function getMonthlySettlementReportData(input: {
       completedPosts: completedPosts.length,
       settledPosts: completedPosts.filter((item) => item.settlementStatus === 'done').length,
       payablePosts: completedPosts.filter((item) => item.settlementStatus === 'payable').length,
+      transferProofCount: transferProofImageUrls.length,
     },
     createdAtLabel: formatCreatedAtLabel(input.report?.created_at),
   };
