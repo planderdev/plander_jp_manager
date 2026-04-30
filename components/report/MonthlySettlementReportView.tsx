@@ -78,7 +78,6 @@ export default function MonthlySettlementReportView({
                       <div>
                         <p className="text-xs uppercase tracking-[0.16em] text-gray-400">{item.happenedAt ?? item.sourceName}</p>
                         <p className="mt-1 text-base font-semibold text-gray-900">{item.memo}</p>
-                        <p className="mt-1 text-sm text-gray-500">{item.sourceName}</p>
                       </div>
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.direction === 'incoming' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200'}`}>
                         {item.direction === 'incoming' ? '입금' : '출금'}
@@ -102,7 +101,6 @@ export default function MonthlySettlementReportView({
                       <th className="px-4 py-3">일시</th>
                       <th className="px-4 py-3">메모</th>
                       <th className="px-4 py-3">금액</th>
-                      <th className="px-4 py-3">출처</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -116,12 +114,11 @@ export default function MonthlySettlementReportView({
                         <td className="px-4 py-3">{item.happenedAt ?? '-'}</td>
                         <td className="px-4 py-3 font-medium text-gray-900">{item.memo}</td>
                         <td className="px-4 py-3 font-semibold">{money(item.amount)}</td>
-                        <td className="px-4 py-3 text-gray-500">{item.sourceName}</td>
                       </tr>
                     ))}
                     {!data.transactions.length && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-10 text-center text-gray-400">입력된 입출금 내역이 없습니다.</td>
+                        <td colSpan={4} className="px-4 py-10 text-center text-gray-400">입력된 입출금 내역이 없습니다.</td>
                       </tr>
                     )}
                   </tbody>
