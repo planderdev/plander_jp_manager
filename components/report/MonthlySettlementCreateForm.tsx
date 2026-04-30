@@ -1,7 +1,7 @@
 'use client';
 
 import { useRef, useState, type ChangeEvent, type DragEvent } from 'react';
-import SubmitButton from '@/components/SubmitButton';
+import { useFormStatus } from 'react-dom';
 import { useI18n } from '@/lib/i18n/provider';
 
 type Props = {
@@ -126,6 +126,7 @@ export default function MonthlySettlementCreateForm({
           inputName="bank_screenshots"
           label={t('monthlySettlement.uploadScreenshots')}
           help={t('monthlySettlement.uploadHelp')}
+          maxFiles={3}
         />
         <FileDropField
           inputName="transfer_proofs"
@@ -140,8 +141,23 @@ export default function MonthlySettlementCreateForm({
           <input key={clientId} type="hidden" name="client_ids" value={clientId} />
         ))}
         <input type="hidden" name="year_month" value={selectedMonth} />
-        <SubmitButton>{t('monthlySettlement.createLink')}</SubmitButton>
+        <ProgressSubmitButton />
       </div>
     </form>
+  );
+}
+
+function ProgressSubmitButton() {
+  const { pending } = useFormStatus();
+  const { t } = useI18n();
+
+  return (
+    <button
+      type="submit"
+      disabled={pending}
+      className="rounded bg-black px-6 py-2 text-white hover:bg-gray-800 disabled:cursor-not-allowed disabled:bg-gray-400"
+    >
+      {pending ? t('monthlySettlement.pendingCreateSimple') : t('monthlySettlement.createLink')}
+    </button>
   );
 }
