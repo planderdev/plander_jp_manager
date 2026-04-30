@@ -100,7 +100,7 @@ export default function InternalPaymentReportView({
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.totalSummary')}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">TOTAL SUMMARY</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.totalSummary')}</h2>
             </div>
             <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-semibold text-[#3b4cca]">
@@ -116,7 +116,7 @@ export default function InternalPaymentReportView({
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('paymentReport.monthlyProgress')}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">MONTHLY PROGRESS</p>
             <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('paymentReport.monthlyProgress')}</h2>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
@@ -139,7 +139,7 @@ export default function InternalPaymentReportView({
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4">
-            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('stats.expense')}</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">EXPENSE SUMMARY</p>
             <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('paymentReport.expenseSummary')}</h2>
           </div>
           <div className="grid grid-cols-1 gap-3 md:grid-cols-4">
@@ -153,7 +153,7 @@ export default function InternalPaymentReportView({
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('nav.monthlySettlement')}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">MONTHLY SETTLEMENT</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('paymentReport.monthlySettlementSummary')}</h2>
             </div>
             {data.monthlySettlementSummary?.reports[0] ? (
@@ -214,7 +214,7 @@ export default function InternalPaymentReportView({
         </section>
 
         <section className="rounded-[28px] bg-[#10131a] px-5 py-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:px-7">
-          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/50">{t('reportMockup.resultAnalysis')}</p>
+          <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/50">RESULT ANALYSIS</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
             <div>
               <h2 className="text-2xl font-bold md:text-3xl">{t('reportMockup.platformReport')}</h2>
@@ -278,7 +278,7 @@ export default function InternalPaymentReportView({
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.influencerReport')}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">INFLUENCER REPORT</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.influencerReport')}</h2>
             </div>
             <p className="text-sm text-gray-500">{sortedRows.length.toLocaleString()} records</p>
