@@ -1,7 +1,11 @@
 import Logo from '@/components/Logo';
 import ChannelIcon from '@/components/ChannelIcon';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
 import { channelLabel } from '@/lib/labels';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 import type { InternalPaymentReportData, PaymentStatus } from '@/lib/internal-payment-report';
+
+type SearchParamsValue = string | string[] | undefined;
 
 function money(value: number) {
   return `${value.toLocaleString()}원`;
@@ -33,11 +37,44 @@ export default function InternalPaymentReportView({
   locale,
   t,
   data,
+  currentSort,
+  currentOrder,
+  searchParams,
 }: {
   locale: 'ko' | 'ja';
   t: (key: string, vars?: Record<string, string | number>) => string;
   data: InternalPaymentReportData;
+  currentSort?: string;
+  currentOrder?: SortOrder;
+  searchParams?: Record<string, SearchParamsValue>;
 }) {
+  const sortKey = currentSort ?? 'visitDate';
+  const sortOrder = currentOrder ?? 'desc';
+  const sortedRows = sortItems(data.rows, (row) => {
+    switch (sortKey) {
+      case 'storeName':
+        return row.storeName;
+      case 'handle':
+        return row.handle;
+      case 'followers':
+        return row.followers;
+      case 'postUrl':
+        return row.postUrl ?? '';
+      case 'views':
+        return row.views;
+      case 'likes':
+        return row.likes;
+      case 'comments':
+        return row.comments;
+      case 'payoutKrw':
+        return row.payoutKrw;
+      case 'paymentStatus':
+        return row.paymentStatus;
+      default:
+        return row.visitDate;
+    }
+  }, sortOrder);
+
   return (
     <div className="rounded-[32px] bg-[linear-gradient(180deg,#f5f2ea_0%,#ffffff_42%,#f6f7fb_100%)] p-3 text-gray-900 md:p-6">
       <div className="mx-auto flex w-full max-w-[1280px] flex-col gap-6">
@@ -123,11 +160,9 @@ export default function InternalPaymentReportView({
               <a
                 href={`/settlement-report/${data.monthlySettlementSummary.reports[0].shareToken}`}
                 target="_blank"
-                className="inline-flex items-center justify-center rounded-full bg-black px-5 py-2.5 text-sm font-semibold text-white hover:bg-gray-800"
+                className="inline-flex items-center justify-center rounded-full bg-red-600 px-5 py-2.5 text-sm font-semibold text-white hover:bg-red-700"
               >
-                {data.monthlySettlementSummary.reports.length === 1
-                  ? t('paymentReport.openSettlementReport')
-                  : t('paymentReport.openPrimarySettlementReport')}
+                정산보고서 자세히보기
               </a>
             ) : null}
           </div>
@@ -162,9 +197,9 @@ export default function InternalPaymentReportView({
                       <a
                         href={`/settlement-report/${report.shareToken}`}
                         target="_blank"
-                        className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                        className="inline-flex items-center justify-center rounded-full bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
                       >
-                        {t('paymentReport.openSettlementReport')}
+                        정산보고서 자세히보기
                       </a>
                     </div>
                   ))}
@@ -246,11 +281,11 @@ export default function InternalPaymentReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.influencerReport')}</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.influencerReport')}</h2>
             </div>
-            <p className="text-sm text-gray-500">{data.rows.length.toLocaleString()} records</p>
+            <p className="text-sm text-gray-500">{sortedRows.length.toLocaleString()} records</p>
           </div>
 
           <div className="space-y-3 md:hidden">
-            {data.rows.map((row) => (
+            {sortedRows.map((row) => (
               <div key={row.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -290,20 +325,20 @@ export default function InternalPaymentReportView({
             <table className="w-full text-sm">
               <thead className="bg-[#f5f6fa] text-left text-gray-600">
                 <tr>
-                  <th className="px-4 py-3">{t('reportMockup.visitDate')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.storeName')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.accountLink')}</th>
-                  <th className="px-4 py-3">{t('influencer.followers')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.postLink')}</th>
-                  <th className="px-4 py-3">{t('common.views')}</th>
-                  <th className="px-4 py-3">{t('common.likes')}</th>
-                  <th className="px-4 py-3">{t('common.comments')}</th>
-                  <th className="px-4 py-3">{t('postForm.settlementAmount')}</th>
-                  <th className="px-4 py-3">{t('common.status')}</th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.visitDate')} sortKey="visitDate" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.storeName')} sortKey="storeName" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.accountLink')} sortKey="handle" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('influencer.followers')} sortKey="followers" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.postLink')} sortKey="postUrl" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('postForm.settlementAmount')} sortKey="payoutKrw" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.status')} sortKey="paymentStatus" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
                 </tr>
               </thead>
               <tbody>
-                {data.rows.map((row) => (
+                {sortedRows.map((row) => (
                   <tr key={row.id} className="border-t border-gray-100">
                     <td className="px-4 py-3">{row.visitDate}</td>
                     <td className="px-4 py-3">{row.storeName}</td>
@@ -333,7 +368,7 @@ export default function InternalPaymentReportView({
                     </td>
                   </tr>
                 ))}
-                {!data.rows.length && (
+                {!sortedRows.length && (
                   <tr>
                     <td colSpan={10} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
                   </tr>

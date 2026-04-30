@@ -3,13 +3,17 @@ import InternalPaymentReportView from '@/components/report/InternalPaymentReport
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getI18n } from '@/lib/i18n/server';
 import { getInternalPaymentReportData } from '@/lib/internal-payment-report';
+import type { SortOrder } from '@/lib/table-sort';
 
 export default async function PublicInternalPaymentReportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{ sort?: string; order?: SortOrder }>;
 }) {
   const { token } = await params;
+  const currentSearchParams = await searchParams;
   const { locale, t } = await getI18n();
   const sb = createAdminClient();
   const { data: report, error } = await sb
@@ -29,7 +33,14 @@ export default async function PublicInternalPaymentReportPage({
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 md:px-8 md:py-8">
-      <InternalPaymentReportView locale={locale} t={t} data={data} />
+      <InternalPaymentReportView
+        locale={locale}
+        t={t}
+        data={data}
+        currentSort={currentSearchParams.sort}
+        currentOrder={currentSearchParams.order === 'asc' ? 'asc' : 'desc'}
+        searchParams={currentSearchParams}
+      />
     </main>
   );
 }

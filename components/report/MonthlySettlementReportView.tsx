@@ -1,5 +1,9 @@
 import Logo from '@/components/Logo';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 import type { MonthlySettlementReportData } from '@/lib/monthly-settlement-report';
+
+type SearchParamsValue = string | string[] | undefined;
 
 function money(value: number) {
   return `${value.toLocaleString()}원`;
@@ -17,10 +21,58 @@ function statusClass(status: 'payable' | 'done') {
 
 export default function MonthlySettlementReportView({
   data,
+  transactionSort,
+  transactionOrder,
+  postSort,
+  postOrder,
+  searchParams,
 }: {
   data: MonthlySettlementReportData;
+  transactionSort?: string;
+  transactionOrder?: SortOrder;
+  postSort?: string;
+  postOrder?: SortOrder;
+  searchParams?: Record<string, SearchParamsValue>;
 }) {
   const clientLabel = data.clients.map((client) => client.company_name).join(' / ') || '-';
+  const currentTransactionSort = transactionSort ?? 'happenedAt';
+  const currentTransactionOrder = transactionOrder ?? 'desc';
+  const currentPostSort = postSort ?? 'visitDate';
+  const currentPostOrder = postOrder ?? 'desc';
+  const sortedTransactions = sortItems(data.transactions, (item) => {
+    switch (currentTransactionSort) {
+      case 'direction':
+        return item.direction;
+      case 'memo':
+        return item.memo;
+      case 'amount':
+        return item.amount;
+      default:
+        return item.happenedAt ?? '';
+    }
+  }, currentTransactionOrder);
+  const sortedCompletedPosts = sortItems(data.completedPosts, (item) => {
+    switch (currentPostSort) {
+      case 'storeName':
+        return item.storeName;
+      case 'influencerHandle':
+        return item.influencerHandle;
+      case 'postUrl':
+        return item.postUrl ?? '';
+      case 'views':
+        return item.views;
+      case 'likes':
+        return item.likes;
+      case 'comments':
+        return item.comments;
+      case 'settlementAmount':
+        return item.settlementAmount;
+      case 'settlementStatus':
+        return item.settlementStatus;
+      default:
+        return item.visitDate;
+    }
+  }, currentPostOrder);
 
   return (
     <div className="rounded-[32px] bg-[linear-gradient(180deg,#f5f2ea_0%,#ffffff_42%,#f6f7fb_100%)] p-3 text-gray-900 md:p-6">
@@ -65,14 +117,14 @@ export default function MonthlySettlementReportView({
               <h2 className="mt-2 text-xl font-bold md:text-2xl">입출금 내역</h2>
             </div>
             <p className="text-sm text-gray-500">
-              캡처 {data.bankScreenshotImageUrls.length.toLocaleString()}장 · 입력 {data.transactions.length.toLocaleString()}건
+              캡처 {data.bankScreenshotImageUrls.length.toLocaleString()}장 · 입력 {sortedTransactions.length.toLocaleString()}건
             </p>
           </div>
 
           <div className="grid gap-4 xl:grid-cols-2">
             <div className="space-y-3">
               <div className="space-y-3 md:hidden">
-                {data.transactions.map((item) => (
+                {sortedTransactions.map((item) => (
                   <div key={item.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div>
@@ -86,7 +138,7 @@ export default function MonthlySettlementReportView({
                     <p className="mt-4 text-xl font-bold text-gray-950">{money(item.amount)}</p>
                   </div>
                 ))}
-                {!data.transactions.length && (
+                {!sortedTransactions.length && (
                   <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
                     입력된 입출금 내역이 없습니다.
                   </div>
@@ -97,14 +149,14 @@ export default function MonthlySettlementReportView({
                 <table className="w-full text-sm">
                   <thead className="bg-[#f5f6fa] text-left text-gray-600">
                     <tr>
-                      <th className="px-4 py-3">구분</th>
-                      <th className="px-4 py-3">일시</th>
-                      <th className="px-4 py-3">메모</th>
-                      <th className="px-4 py-3">금액</th>
+                      <th className="px-4 py-3"><SortableHeaderLink label="구분" sortKey="direction" currentSort={currentTransactionSort} currentOrder={currentTransactionOrder} searchParams={searchParams} sortParamName="transaction_sort" orderParamName="transaction_order" /></th>
+                      <th className="px-4 py-3"><SortableHeaderLink label="일시" sortKey="happenedAt" currentSort={currentTransactionSort} currentOrder={currentTransactionOrder} searchParams={searchParams} sortParamName="transaction_sort" orderParamName="transaction_order" /></th>
+                      <th className="px-4 py-3"><SortableHeaderLink label="메모" sortKey="memo" currentSort={currentTransactionSort} currentOrder={currentTransactionOrder} searchParams={searchParams} sortParamName="transaction_sort" orderParamName="transaction_order" /></th>
+                      <th className="px-4 py-3"><SortableHeaderLink label="금액" sortKey="amount" currentSort={currentTransactionSort} currentOrder={currentTransactionOrder} searchParams={searchParams} sortParamName="transaction_sort" orderParamName="transaction_order" /></th>
                     </tr>
                   </thead>
                   <tbody>
-                    {data.transactions.map((item) => (
+                    {sortedTransactions.map((item) => (
                       <tr key={item.id} className="border-t border-gray-100">
                         <td className="px-4 py-3">
                           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${item.direction === 'incoming' ? 'bg-blue-100 text-blue-700 ring-1 ring-blue-200' : 'bg-red-100 text-red-700 ring-1 ring-red-200'}`}>
@@ -116,7 +168,7 @@ export default function MonthlySettlementReportView({
                         <td className="px-4 py-3 font-semibold">{money(item.amount)}</td>
                       </tr>
                     ))}
-                    {!data.transactions.length && (
+                    {!sortedTransactions.length && (
                       <tr>
                         <td colSpan={4} className="px-4 py-10 text-center text-gray-400">입력된 입출금 내역이 없습니다.</td>
                       </tr>
@@ -190,11 +242,11 @@ export default function MonthlySettlementReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">SETTLED POSTS</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">정산완료게시물 목록</h2>
             </div>
-            <p className="text-sm text-gray-500">{data.completedPosts.length.toLocaleString()} records</p>
+            <p className="text-sm text-gray-500">{sortedCompletedPosts.length.toLocaleString()} records</p>
           </div>
 
           <div className="space-y-3 md:hidden">
-            {data.completedPosts.map((item) => (
+            {sortedCompletedPosts.map((item) => (
               <div key={item.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -227,7 +279,7 @@ export default function MonthlySettlementReportView({
                 </div>
               </div>
             ))}
-            {!data.completedPosts.length && (
+            {!sortedCompletedPosts.length && (
               <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
                 해당 월의 완료게시물이 없습니다.
               </div>
@@ -238,19 +290,19 @@ export default function MonthlySettlementReportView({
             <table className="w-full text-sm">
               <thead className="bg-[#f5f6fa] text-left text-gray-600">
                 <tr>
-                  <th className="px-4 py-3">방문일</th>
-                  <th className="px-4 py-3">가게명</th>
-                  <th className="px-4 py-3">인플루언서</th>
-                  <th className="px-4 py-3">게시물</th>
-                  <th className="px-4 py-3">조회수</th>
-                  <th className="px-4 py-3">좋아요</th>
-                  <th className="px-4 py-3">댓글</th>
-                  <th className="px-4 py-3">정산금액</th>
-                  <th className="px-4 py-3">상태</th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="방문일" sortKey="visitDate" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="가게명" sortKey="storeName" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="인플루언서" sortKey="influencerHandle" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="게시물" sortKey="postUrl" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="조회수" sortKey="views" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="좋아요" sortKey="likes" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="댓글" sortKey="comments" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="정산금액" sortKey="settlementAmount" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label="상태" sortKey="settlementStatus" currentSort={currentPostSort} currentOrder={currentPostOrder} searchParams={searchParams} sortParamName="post_sort" orderParamName="post_order" /></th>
                 </tr>
               </thead>
               <tbody>
-                {data.completedPosts.map((item) => (
+                {sortedCompletedPosts.map((item) => (
                   <tr key={item.id} className="border-t border-gray-100">
                     <td className="px-4 py-3">{item.visitDate}</td>
                     <td className="px-4 py-3">{item.storeName}</td>
@@ -277,7 +329,7 @@ export default function MonthlySettlementReportView({
                     </td>
                   </tr>
                 ))}
-                {!data.completedPosts.length && (
+                {!sortedCompletedPosts.length && (
                   <tr>
                     <td colSpan={9} className="px-4 py-10 text-center text-gray-400">해당 월의 완료게시물이 없습니다.</td>
                   </tr>

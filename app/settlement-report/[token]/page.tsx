@@ -2,13 +2,22 @@ import { notFound } from 'next/navigation';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getMonthlySettlementReportData } from '@/lib/monthly-settlement-report';
 import MonthlySettlementReportView from '@/components/report/MonthlySettlementReportView';
+import type { SortOrder } from '@/lib/table-sort';
 
 export default async function PublicMonthlySettlementReportPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ token: string }>;
+  searchParams: Promise<{
+    transaction_sort?: string;
+    transaction_order?: SortOrder;
+    post_sort?: string;
+    post_order?: SortOrder;
+  }>;
 }) {
   const { token } = await params;
+  const currentSearchParams = await searchParams;
   const sb = createAdminClient();
   const { data: report, error } = await sb
     .from('monthly_settlement_reports')
@@ -26,7 +35,14 @@ export default async function PublicMonthlySettlementReportPage({
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 md:px-8 md:py-8">
-      <MonthlySettlementReportView data={data} />
+      <MonthlySettlementReportView
+        data={data}
+        transactionSort={currentSearchParams.transaction_sort}
+        transactionOrder={currentSearchParams.transaction_order === 'asc' ? 'asc' : 'desc'}
+        postSort={currentSearchParams.post_sort}
+        postOrder={currentSearchParams.post_order === 'asc' ? 'asc' : 'desc'}
+        searchParams={currentSearchParams}
+      />
     </main>
   );
 }

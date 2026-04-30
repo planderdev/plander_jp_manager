@@ -1,7 +1,11 @@
 import Logo from '@/components/Logo';
 import ChannelIcon from '@/components/ChannelIcon';
+import SortableHeaderLink from '@/components/table/SortableHeaderLink';
 import { channelLabel } from '@/lib/labels';
+import { sortItems, type SortOrder } from '@/lib/table-sort';
 import { displayMonth, type ReportViewData } from '@/lib/report-links';
+
+type SearchParamsValue = string | string[] | undefined;
 
 function diffClass(diff: number) {
   if (diff < 0) return 'text-red-500';
@@ -35,15 +39,45 @@ export default function SharedReportView({
   t,
   data,
   generatedAt,
+  currentSort,
+  currentOrder,
+  searchParams,
 }: {
   locale: 'ko' | 'ja';
   t: (key: string, vars?: Record<string, string | number>) => string;
   data: ReportViewData;
   generatedAt: string | null;
+  currentSort?: string;
+  currentOrder?: SortOrder;
+  searchParams?: Record<string, SearchParamsValue>;
 }) {
   const localeCode = locale === 'ja' ? 'ja-JP' : 'ko-KR';
   const monthLabel = displayMonth(data.yearMonth, localeCode);
   const generatedAtLabel = generatedAt ? formatGeneratedDate(generatedAt, locale) : null;
+  const sortKey = currentSort ?? 'visitDate';
+  const sortOrder = currentOrder ?? 'desc';
+  const sortedRows = sortItems(data.rows, (row) => {
+    switch (sortKey) {
+      case 'storeName':
+        return row.storeName;
+      case 'handle':
+        return row.handle;
+      case 'followers':
+        return row.followers;
+      case 'postUrl':
+        return row.postUrl ?? '';
+      case 'views':
+        return row.views;
+      case 'likes':
+        return row.likes;
+      case 'comments':
+        return row.comments;
+      case 'grade':
+        return row.grade;
+      default:
+        return row.visitDate;
+    }
+  }, sortOrder);
 
   return (
     <div className="min-h-screen bg-[linear-gradient(180deg,#f5f2ea_0%,#ffffff_40%,#f6f7fb_100%)] text-gray-900">
@@ -98,8 +132,8 @@ export default function SharedReportView({
             <InfoCard label={t('reportMockup.contractProduct')} value={data.client?.contract_product ?? '-'} />
             <InfoCard label={t('reportMockup.region')} value={[data.client?.sales_region, data.client?.category].filter(Boolean).join(' / ') || '-'} />
             <InfoCard label={t('reportMockup.manager')} value={data.client?.manager_name ?? '-'} />
-            <InfoCard label={t('reportMockup.totalCreators')} value={`${data.rows.length.toLocaleString()}${t('common.people')}`} />
-            <InfoCard label={t('reportMockup.totalPosts')} value={data.rows.length.toLocaleString()} />
+            <InfoCard label={t('reportMockup.totalCreators')} value={`${sortedRows.length.toLocaleString()}${t('common.people')}`} />
+            <InfoCard label={t('reportMockup.totalPosts')} value={sortedRows.length.toLocaleString()} />
           </div>
         </section>
 
@@ -206,11 +240,11 @@ export default function SharedReportView({
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('reportMockup.influencerReport')}</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('reportMockup.influencerReport')}</h2>
             </div>
-            <p className="text-sm text-gray-500">{data.rows.length.toLocaleString()} records</p>
+            <p className="text-sm text-gray-500">{sortedRows.length.toLocaleString()} records</p>
           </div>
 
           <div className="space-y-3 md:hidden">
-            {data.rows.map((row) => (
+            {sortedRows.map((row) => (
               <div key={row.id} className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
@@ -249,19 +283,19 @@ export default function SharedReportView({
             <table className="w-full text-sm">
               <thead className="bg-[#f5f6fa] text-left text-gray-600">
                 <tr>
-                  <th className="px-4 py-3">{t('reportMockup.visitDate')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.storeName')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.accountLink')}</th>
-                  <th className="px-4 py-3">{t('influencer.followers')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.postLink')}</th>
-                  <th className="px-4 py-3">{t('common.views')}</th>
-                  <th className="px-4 py-3">{t('common.likes')}</th>
-                  <th className="px-4 py-3">{t('common.comments')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.selfGrade')}</th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.visitDate')} sortKey="visitDate" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.storeName')} sortKey="storeName" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.accountLink')} sortKey="handle" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('influencer.followers')} sortKey="followers" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.postLink')} sortKey="postUrl" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
+                  <th className="px-4 py-3"><SortableHeaderLink label={t('reportMockup.selfGrade')} sortKey="grade" currentSort={sortKey} currentOrder={sortOrder} searchParams={searchParams} /></th>
                 </tr>
               </thead>
               <tbody>
-                {data.rows.map((row) => (
+                {sortedRows.map((row) => (
                   <tr key={row.id} className="border-t border-gray-100">
                     <td className="px-4 py-3">{row.visitDate}</td>
                     <td className="px-4 py-3">{row.storeName}</td>
@@ -290,7 +324,7 @@ export default function SharedReportView({
                     </td>
                   </tr>
                 ))}
-                {!data.rows.length && (
+                {!sortedRows.length && (
                   <tr>
                     <td colSpan={9} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
                   </tr>
