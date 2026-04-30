@@ -190,8 +190,8 @@ export default function MonthlySettlementReportView({
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">COMPLETED POSTS</p>
-              <h2 className="mt-2 text-xl font-bold md:text-2xl">완료게시물 목록</h2>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">SETTLED POSTS</p>
+              <h2 className="mt-2 text-xl font-bold md:text-2xl">정산완료게시물 목록</h2>
             </div>
             <p className="text-sm text-gray-500">{data.completedPosts.length.toLocaleString()} records</p>
           </div>
