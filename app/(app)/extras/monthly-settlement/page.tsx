@@ -121,6 +121,9 @@ export default async function MonthlySettlementPage({ searchParams }: { searchPa
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <CopyLinkButton token={report.share_token} basePath="/settlement-report" />
+                <Link href={`/extras/monthly-settlement/${report.id}`} className="text-blue-700 hover:underline">
+                  {t('common.edit')}
+                </Link>
                 <Link href={`/settlement-report/${report.share_token}`} target="_blank" className="text-emerald-700 hover:underline">
                   {t('common.link')}
                 </Link>

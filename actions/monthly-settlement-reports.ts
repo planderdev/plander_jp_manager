@@ -76,36 +76,49 @@ async function uploadScreenshots(token: string, section: 'bank' | 'transfer', fi
   return uploadedPaths;
 }
 
-function parseManualTransactions(raw: string): MonthlySettlementTransaction[] {
-  return raw
-    .split('\n')
-    .map((line) => line.trim())
-    .filter(Boolean)
-    .reduce<MonthlySettlementTransaction[]>((items, line, index) => {
-      const parts = line.split('|').map((part) => part.trim());
-      const directionToken = parts[0] ?? '';
-      const amountValue = Number((parts[1] ?? '').replace(/[^\d-]/g, ''));
-      const memo = parts[2] ?? '메모 없음';
-      const happenedAt = parts[3] ?? null;
-      const direction =
-        directionToken.includes('입')
-          ? 'incoming'
-          : 'outgoing';
+function parseTransactionsJson(raw: string): MonthlySettlementTransaction[] {
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return [];
+  }
 
-      if (!Number.isFinite(amountValue) || amountValue <= 0) return items;
+  if (!Array.isArray(parsed)) return [];
 
-      items.push({
-        id: `manual-${index}-${amountValue}`,
-        direction,
-        amount: amountValue,
-        memo,
-        rawText: line,
-        happenedAt,
-        sourceName: 'manual',
-      } satisfies MonthlySettlementTransaction);
+  return parsed.reduce<MonthlySettlementTransaction[]>((items, entry, index) => {
+    if (!entry || typeof entry !== 'object') return items;
 
-      return items;
-    }, []);
+    const record = entry as Record<string, unknown>;
+    const direction = record.direction === 'incoming' ? 'incoming' : 'outgoing';
+    const amountValue = Number(record.amount ?? 0);
+    const memo = String(record.memo ?? '').trim() || '메모 없음';
+    const happenedAt = record.happenedAt ? String(record.happenedAt).trim() : null;
+    if (!Number.isFinite(amountValue) || amountValue <= 0) return items;
+
+    items.push({
+      id: String(record.id ?? `manual-${index}-${amountValue}`),
+      direction,
+      amount: amountValue,
+      memo,
+      rawText: `${direction === 'incoming' ? '입금' : '출금'} | ${amountValue} | ${memo} | ${happenedAt ?? ''}`,
+      happenedAt,
+      sourceName: 'manual',
+    });
+
+    return items;
+  }, []);
+}
+
+function sanitizeKeptPaths(values: FormDataEntryValue[], originals: string[]) {
+  const originalSet = new Set(originals);
+  return Array.from(
+    new Set(
+      values
+        .map((value) => String(value))
+        .filter((value) => originalSet.has(value)),
+    ),
+  );
 }
 
 export async function createMonthlySettlementReportAction(formData: FormData) {
@@ -121,7 +134,7 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
   const transferProofFiles = formData
     .getAll('transfer_proofs')
     .filter((item): item is File => item instanceof File && item.size > 0);
-  const manualTransactions = parseManualTransactions(String(formData.get('manual_transactions') || ''));
+  const manualTransactions = parseTransactionsJson(String(formData.get('transactions_json') || '[]'));
 
   if (!clientIds.length || !yearMonth) {
     throw new Error('필수값이 누락되었습니다.');
@@ -155,6 +168,83 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
 
   await setFlashMessage({ title: '작업 완료', body: '월말 결산보고 링크가 생성되었습니다.' });
   revalidatePath('/extras/monthly-settlement');
+  redirectToManager(clientIds, yearMonth);
+}
+
+export async function updateMonthlySettlementReportAction(id: number, formData: FormData) {
+  const sb = await createClient();
+  const { data: { user } } = await sb.auth.getUser();
+  if (!user) throw new Error('Unauthorized');
+
+  const clientIds = Array.from(new Set(formData.getAll('client_ids').map(Number).filter(Boolean)));
+  const yearMonth = String(formData.get('year_month') || '');
+  const bankScreenshotFiles = formData
+    .getAll('bank_screenshots')
+    .filter((item): item is File => item instanceof File && item.size > 0);
+  const transferProofFiles = formData
+    .getAll('transfer_proofs')
+    .filter((item): item is File => item instanceof File && item.size > 0);
+  const transactions = parseTransactionsJson(String(formData.get('transactions_json') || '[]'));
+
+  if (!clientIds.length || !yearMonth) {
+    throw new Error('필수값이 누락되었습니다.');
+  }
+
+  const admin = createAdminClient();
+  const { data: report, error: reportError } = await admin
+    .from('monthly_settlement_reports')
+    .select('share_token, screenshot_paths, transfer_proof_paths')
+    .eq('id', id)
+    .single();
+  if (reportError || !report) throw new Error(reportError?.message ?? '보고서를 찾을 수 없습니다.');
+
+  const keptScreenshotPaths = sanitizeKeptPaths(
+    formData.getAll('keep_bank_screenshots_paths'),
+    report.screenshot_paths ?? [],
+  );
+  const keptTransferProofPaths = sanitizeKeptPaths(
+    formData.getAll('keep_transfer_proofs_paths'),
+    report.transfer_proof_paths ?? [],
+  );
+
+  if (keptScreenshotPaths.length + bankScreenshotFiles.length > 3) {
+    throw new Error('입출금 내역 캡처는 최대 3장까지 업로드할 수 있습니다.');
+  }
+  if (keptTransferProofPaths.length + transferProofFiles.length > 3) {
+    throw new Error('실 송금내역 캡처는 최대 3장까지 업로드할 수 있습니다.');
+  }
+
+  const compressedBankScreenshots = await prepareScreenshots(bankScreenshotFiles, 'preserve');
+  const compressedTransferProofs = await prepareScreenshots(transferProofFiles, 'half');
+  const uploadedScreenshotPaths = await uploadScreenshots(report.share_token, 'bank', compressedBankScreenshots);
+  const uploadedTransferProofPaths = await uploadScreenshots(report.share_token, 'transfer', compressedTransferProofs);
+
+  const removedPaths = [
+    ...(report.screenshot_paths ?? []).filter((path: string) => !keptScreenshotPaths.includes(path)),
+    ...(report.transfer_proof_paths ?? []).filter((path: string) => !keptTransferProofPaths.includes(path)),
+  ];
+  if (removedPaths.length) {
+    await admin.storage.from('payments').remove(removedPaths);
+  }
+
+  const { error } = await admin
+    .from('monthly_settlement_reports')
+    .update({
+      client_ids: clientIds,
+      year_month: yearMonth,
+      title: monthlySettlementTitle(yearMonth),
+      screenshot_paths: [...keptScreenshotPaths, ...uploadedScreenshotPaths],
+      transfer_proof_paths: [...keptTransferProofPaths, ...uploadedTransferProofPaths],
+      transactions,
+    })
+    .eq('id', id);
+
+  if (error) throw new Error(error.message);
+
+  await setFlashMessage({ title: '작업 완료', body: '월말 결산보고가 저장되었습니다.' });
+  revalidatePath('/extras/monthly-settlement');
+  revalidatePath(`/extras/monthly-settlement/${id}`);
+  revalidatePath(`/settlement-report/${report.share_token}`);
   redirectToManager(clientIds, yearMonth);
 }
 
