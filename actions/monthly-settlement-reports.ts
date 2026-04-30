@@ -9,9 +9,6 @@ import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { setFlashMessage } from '@/lib/flash';
 import {
-  parseTransactionsFromOcrDocuments,
-  readBankScreenshot,
-  type MonthlySettlementOcrDocument,
   type MonthlySettlementTransaction,
 } from '@/lib/bank-ocr';
 import { monthlySettlementTitle } from '@/lib/monthly-settlement-report';
@@ -69,14 +66,6 @@ async function uploadScreenshots(token: string, section: 'bank' | 'transfer', fi
   return uploadedPaths;
 }
 
-async function readScreenshots(files: File[]) {
-  const documents: MonthlySettlementOcrDocument[] = [];
-  for (const file of files) {
-    documents.push(await readBankScreenshot(file));
-  }
-  return documents;
-}
-
 export async function createMonthlySettlementReportAction(formData: FormData) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
@@ -97,14 +86,17 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
   if (transferProofFiles.length > 3) {
     throw new Error('실 송금내역 캡처는 최대 3장까지 업로드할 수 있습니다.');
   }
+  if (bankScreenshotFiles.length > 3) {
+    throw new Error('입출금 내역 캡처는 최대 3장까지 업로드할 수 있습니다.');
+  }
 
   const token = crypto.randomBytes(16).toString('hex');
   const compressedBankScreenshots = await prepareScreenshots(bankScreenshotFiles);
   const compressedTransferProofs = await prepareScreenshots(transferProofFiles);
-  const ocrDocuments = await readScreenshots(compressedBankScreenshots);
   const screenshotPaths = await uploadScreenshots(token, 'bank', compressedBankScreenshots);
   const transferProofPaths = await uploadScreenshots(token, 'transfer', compressedTransferProofs);
-  const transactions: MonthlySettlementTransaction[] = parseTransactionsFromOcrDocuments(ocrDocuments);
+  const shouldProcess = screenshotPaths.length > 0;
+  const transactions: MonthlySettlementTransaction[] = [];
 
   const admin = createAdminClient();
   const { error } = await admin.from('monthly_settlement_reports').insert({
@@ -115,7 +107,9 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
     screenshot_paths: screenshotPaths,
     transfer_proof_paths: transferProofPaths,
     transactions,
-    ocr_documents: ocrDocuments,
+    ocr_documents: [],
+    processing_status: shouldProcess ? 'pending' : 'done',
+    processing_error: null,
     created_by: user.id,
   });
 
