@@ -85,7 +85,6 @@ export default function MonthlySettlementReportView({
             <div className="flex items-center gap-3">
               <Logo className="h-5 w-auto text-black" />
               <div className="h-5 w-px bg-gray-300" />
-              <p className="text-sm text-gray-500">대표 보고용 월말 결산 페이지입니다.</p>
             </div>
             <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
               <div>

@@ -86,7 +86,6 @@ export default function InternalPaymentReportView({
             <div className="flex items-center gap-3">
               <Logo className="h-5 w-auto text-black" />
               <div className="h-5 w-px bg-gray-300" />
-              <p className="text-sm text-gray-500">{t('paymentReport.description')}</p>
             </div>
             <div>
               <h1 className="text-2xl font-bold md:text-4xl">{t('paymentReport.title')}</h1>
