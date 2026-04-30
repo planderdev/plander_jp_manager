@@ -113,6 +113,52 @@ export default function InternalPaymentReportView({
           </div>
         </section>
 
+        <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
+          <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">{t('nav.monthlySettlement')}</p>
+              <h2 className="mt-2 text-xl font-bold md:text-2xl">{t('paymentReport.monthlySettlementSummary')}</h2>
+            </div>
+            {data.monthlySettlementSummary ? (
+              <p className="text-sm text-gray-500">
+                {t('paymentReport.linkedSettlementCount', {
+                  count: data.monthlySettlementSummary.reports.length,
+                })}
+              </p>
+            ) : null}
+          </div>
+
+          {data.monthlySettlementSummary ? (
+            <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
+                <ExpenseCard label={t('paymentReport.totalIncoming')} value={data.monthlySettlementSummary.incomingTotal} tone="green" />
+                <ExpenseCard label={t('paymentReport.totalOutgoing')} value={data.monthlySettlementSummary.outgoingTotal} tone="red" />
+                <ExpenseCard label={t('paymentReport.netBalance')} value={data.monthlySettlementSummary.netTotal} tone={data.monthlySettlementSummary.netTotal >= 0 ? 'black' : 'red'} />
+              </div>
+
+              <div className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{t('paymentReport.linkedSettlementReports')}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {data.monthlySettlementSummary.reports.map((report) => (
+                    <a
+                      key={report.id}
+                      href={`/settlement-report/${report.shareToken}`}
+                      target="_blank"
+                      className="inline-flex rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-900 hover:text-gray-900"
+                    >
+                      {report.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
+              {t('paymentReport.noMonthlySettlement')}
+            </div>
+          )}
+        </section>
+
         <section className="rounded-[28px] bg-[#10131a] px-5 py-6 text-white shadow-[0_24px_80px_rgba(15,23,42,0.22)] md:px-7">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-white/50">{t('reportMockup.resultAnalysis')}</p>
           <div className="mt-2 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">

@@ -1,5 +1,6 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { sumRows, type ReportClient, type ReportRow } from '@/lib/report-links';
+import type { MonthlySettlementTransaction } from '@/lib/bank-ocr';
 
 export type PaymentStatus = 'upload_pending' | 'settled' | 'settlement_pending';
 
@@ -27,6 +28,17 @@ export type InternalPaymentReportData = {
     pendingTotal: number;
     grandTotal: number;
   };
+  monthlySettlementSummary: {
+    incomingTotal: number;
+    outgoingTotal: number;
+    netTotal: number;
+    reports: Array<{
+      id: number;
+      title: string;
+      yearMonth: string;
+      shareToken: string;
+    }>;
+  } | null;
   periodLabel: string;
 };
 
@@ -98,6 +110,38 @@ function makePeriodLabel(fromDate?: string | null, toDate?: string | null) {
   return '전체 기간';
 }
 
+function collectYearMonths(fromDate?: string | null, toDate?: string | null, schedules: ScheduleRecord[] = []) {
+  const months = new Set<string>();
+
+  if (fromDate && toDate) {
+    const start = new Date(`${fromDate}T00:00:00+09:00`);
+    const end = new Date(`${toDate}T00:00:00+09:00`);
+    if (!Number.isNaN(start.getTime()) && !Number.isNaN(end.getTime()) && start <= end) {
+      let year = start.getFullYear();
+      let month = start.getMonth();
+      const endYear = end.getFullYear();
+      const endMonth = end.getMonth();
+
+      while (year < endYear || (year === endYear && month <= endMonth)) {
+        months.add(`${year}-${String(month + 1).padStart(2, '0')}`);
+        month += 1;
+        if (month > 11) {
+          month = 0;
+          year += 1;
+        }
+      }
+    }
+  }
+
+  schedules.forEach((schedule) => {
+    if (schedule.scheduled_at?.slice(0, 7)) {
+      months.add(schedule.scheduled_at.slice(0, 7));
+    }
+  });
+
+  return Array.from(months).sort();
+}
+
 export async function getInternalPaymentReportData({
   clientId,
   influencerId,
@@ -151,6 +195,13 @@ export async function getInternalPaymentReportData({
   if (error) throw new Error(`internal payment report schedules: ${error.message}`);
 
   const schedules = (data ?? []) as unknown as ScheduleRecord[];
+  const relatedClientIds = Array.from(
+    new Set(
+      schedules
+        .map((schedule) => first(schedule.clients)?.id)
+        .filter((value): value is number => Number.isFinite(value)),
+    ),
+  );
   const rows: InternalPaymentReportRow[] = schedules.map((schedule) => {
     const client = first(schedule.clients);
     const influencer = first(schedule.influencers);
@@ -206,6 +257,52 @@ export async function getInternalPaymentReportData({
     .filter((row) => row.paymentStatus === 'upload_pending')
     .reduce((acc, row) => acc + row.payoutKrw, 0);
 
+  const reportMonths = collectYearMonths(fromDate, toDate, schedules);
+  let monthlySettlementSummary: InternalPaymentReportData['monthlySettlementSummary'] = null;
+
+  if (reportMonths.length && relatedClientIds.length) {
+    let settlementQuery = sb.from('monthly_settlement_reports')
+      .select('id, title, year_month, share_token, client_ids, transactions')
+      .in('year_month', reportMonths)
+      .order('year_month', { ascending: false })
+      .order('created_at', { ascending: false });
+
+    if (clientId) {
+      settlementQuery = settlementQuery.contains('client_ids', [clientId]);
+    }
+
+    const { data: settlementReports } = await settlementQuery;
+    const filteredReports = (settlementReports ?? []).filter((report: any) => {
+      const ids = Array.isArray(report.client_ids) ? report.client_ids.map(Number) as number[] : [];
+      return ids.some((id: number) => relatedClientIds.includes(id));
+    });
+
+    if (filteredReports.length) {
+      const transactions = filteredReports.flatMap((report: any) =>
+        ((report.transactions ?? []) as MonthlySettlementTransaction[]),
+      );
+
+      monthlySettlementSummary = {
+        incomingTotal: transactions
+          .filter((item) => item.direction === 'incoming')
+          .reduce((sum, item) => sum + item.amount, 0),
+        outgoingTotal: transactions
+          .filter((item) => item.direction === 'outgoing')
+          .reduce((sum, item) => sum + item.amount, 0),
+        netTotal: transactions.reduce(
+          (sum, item) => sum + (item.direction === 'incoming' ? item.amount : -item.amount),
+          0,
+        ),
+        reports: filteredReports.map((report: any) => ({
+          id: report.id,
+          title: report.title,
+          yearMonth: report.year_month,
+          shareToken: report.share_token,
+        })),
+      };
+    }
+  }
+
   return {
     client: first(schedules.find((schedule) => first(schedule.clients))?.clients) ?? null,
     influencer: first(schedules.find((schedule) => first(schedule.influencers))?.influencers) ?? null,
@@ -221,6 +318,7 @@ export async function getInternalPaymentReportData({
       pendingTotal,
       grandTotal: paidTotal + payableTotal + pendingTotal,
     },
+    monthlySettlementSummary,
     periodLabel: makePeriodLabel(fromDate, toDate),
   };
 }
