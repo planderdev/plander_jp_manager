@@ -43,8 +43,6 @@ export default async function CompletedPage({
         return post.likes ?? 0;
       case 'comments':
         return post.comments ?? 0;
-      case 'shares':
-        return post.shares ?? 0;
       case 'unit_price':
         return post.influencers?.unit_price ?? 0;
       case 'settlement_amount':
@@ -89,7 +87,6 @@ export default async function CompletedPage({
               <th className="p-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
-              <th className="p-3"><SortableHeaderLink label={t('common.shares')} sortKey="shares" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3"><SortableHeaderLink label={t('common.unitPrice')} sortKey="unit_price" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3"><SortableHeaderLink label={t('postForm.settlementAmount')} sortKey="settlement_amount" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
               <th className="p-3"><SortableHeaderLink label={t('postForm.settlementStatus')} sortKey="settlement_status" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
@@ -120,7 +117,6 @@ export default async function CompletedPage({
                 <td className="p-3">{p.views?.toLocaleString()}</td>
                 <td className="p-3">{p.likes?.toLocaleString()}</td>
                 <td className="p-3">{p.comments?.toLocaleString()}</td>
-                <td className="p-3">{p.shares?.toLocaleString()}</td>
                 <td className="p-3"><MoneyText value={p.influencers?.unit_price} suffix=" JPY" /></td>
                 <td className="p-3"><MoneyText value={(p.influencers?.unit_price ?? 0) * 10} /></td>
                 <td className="p-3">
@@ -132,7 +128,7 @@ export default async function CompletedPage({
               </tr>
             ))}
             {!sortedPosts.length && (
-              <tr><td colSpan={12} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
+              <tr><td colSpan={11} className="p-8 text-center text-gray-400">{t('completed.none')}</td></tr>
             )}
           </tbody>
         </table>

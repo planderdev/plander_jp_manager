@@ -8,7 +8,7 @@ export async function getMetricsForMonth(month: string) {
   const sb = await createClient();
 
   const { data: posts } = await sb.from('posts')
-    .select('id, post_url, uploaded_on, views, likes, comments, shares, clients(company_name, status), influencers(handle)')
+    .select('id, post_url, uploaded_on, views, likes, comments, clients(company_name, status), influencers(handle)')
     .not('post_url', 'is', null);
 
   const targets = (posts ?? []).filter((p: any) => p.clients?.status !== 'ended');
@@ -32,11 +32,11 @@ export async function saveMetricsForMonth(fd: FormData) {
 
   const sb = await createClient();
 
-  const entries: { post_id: number; views: number; likes: number; comments: number; shares: number; self_grade: SelfGrade }[] = [];
+  const entries: { post_id: number; views: number; likes: number; comments: number; self_grade: SelfGrade }[] = [];
 
   const postIds = new Set<number>();
   for (const key of fd.keys()) {
-    const m = key.match(/^(views|likes|comments|shares|self_grade)_(\d+)$/);
+    const m = key.match(/^(views|likes|comments|self_grade)_(\d+)$/);
     if (m) postIds.add(Number(m[2]));
   }
 
@@ -46,7 +46,6 @@ export async function saveMetricsForMonth(fd: FormData) {
       views: Number(fd.get(`views_${pid}`)) || 0,
       likes: Number(fd.get(`likes_${pid}`)) || 0,
       comments: Number(fd.get(`comments_${pid}`)) || 0,
-      shares: Number(fd.get(`shares_${pid}`)) || 0,
       self_grade: (String(fd.get(`self_grade_${pid}`) || 'pending') as SelfGrade),
     });
   }
@@ -58,7 +57,6 @@ export async function saveMetricsForMonth(fd: FormData) {
       views: e.views,
       likes: e.likes,
       comments: e.comments,
-      shares: e.shares,
       self_grade: e.self_grade,
       collected_at: new Date().toISOString(),
       entered_at: new Date().toISOString(),
@@ -68,7 +66,6 @@ export async function saveMetricsForMonth(fd: FormData) {
       views: e.views,
       likes: e.likes,
       comments: e.comments,
-      shares: e.shares,
       last_synced_at: new Date().toISOString(),
     }).eq('id', e.post_id);
   }

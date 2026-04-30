@@ -42,7 +42,7 @@ export default async function StatsPage({
 
   if (!rangeError) {
     let q = sb.from('posts')
-      .select('client_id, influencer_id, post_url, views, likes, comments, shares, created_at, settlement_status, influencers(unit_price)');
+      .select('client_id, influencer_id, post_url, views, likes, comments, created_at, settlement_status, influencers(unit_price)');
     if (client) q = q.eq('client_id', Number(client));
     if (influencer) q = q.eq('influencer_id', Number(influencer));
     if (fromDate) q = q.gte('created_at', `${fromDate}T00:00:00+09:00`);
@@ -97,8 +97,6 @@ export default async function StatsPage({
   const pl = sumKey(prevHist ?? [], 'likes');
   const tc = sumKey(thisHist ?? [], 'comments');
   const pc = sumKey(prevHist ?? [], 'comments');
-  const ts = sumKey(thisHist ?? [], 'shares');
-  const ps = sumKey(prevHist ?? [], 'shares');
   
   function delta(cur: number, prev: number): string {
     if (prev === 0) return cur > 0 ? t('stats.newDelta') : '-';
@@ -127,7 +125,6 @@ export default async function StatsPage({
   const totalViews = posts.reduce((a, p) => a + (p.views ?? 0), 0);
   const totalLikes = posts.reduce((a, p) => a + (p.likes ?? 0), 0);
   const totalComments = posts.reduce((a, p) => a + (p.comments ?? 0), 0);
-  const totalShares = posts.reduce((a, p) => a + (p.shares ?? 0), 0);
   const paidTotal = posts
     .filter((p: any) => p.settlement_status === 'done')
     .reduce((a, p: any) => a + (p.influencers?.unit_price ?? 0), 0) * 10;
@@ -155,7 +152,6 @@ export default async function StatsPage({
     { label: t('stats.monthViews', { month: thisMonth }), value: tv },
     { label: t('stats.monthLikes', { month: thisMonth }), value: tl },
     { label: t('stats.monthComments', { month: thisMonth }), value: tc },
-    { label: t('stats.monthShares', { month: thisMonth }), value: ts },
   ];
 
   return (
@@ -217,16 +213,14 @@ export default async function StatsPage({
         <MetricCard label={t('common.likes')} value={totalLikes} />
         <MetricCard label={t('common.comments')} value={totalComments} />
         <MetricCard label={t('common.views')} value={totalViews} />
-        <MetricCard label={t('common.shares')} value={totalShares} />
       </Group>
       
       <div className="bg-white rounded-lg shadow p-5">
         <h2 className="text-lg font-semibold mb-4">{t('stats.compareToPrev', { thisMonth, prevMonth })}</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
           <DeltaCard label={t('common.views')} cur={tv} prev={pv} newLabel={t('stats.newDelta')} />
           <DeltaCard label={t('common.likes')} cur={tl} prev={pl} newLabel={t('stats.newDelta')} />
           <DeltaCard label={t('common.comments')} cur={tc} prev={pc} newLabel={t('stats.newDelta')} />
-          <DeltaCard label={t('common.shares')} cur={ts} prev={ps} newLabel={t('stats.newDelta')} />
         </div>
       </div>
     </div>

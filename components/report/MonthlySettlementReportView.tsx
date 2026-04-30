@@ -215,7 +215,6 @@ export default function MonthlySettlementReportView({
                   <MetricChip label="조회수" value={item.views} />
                   <MetricChip label="좋아요" value={item.likes} />
                   <MetricChip label="댓글" value={item.comments} />
-                  <MetricChip label="리포스트" value={item.shares} />
                 </div>
                 <div className="mt-4 flex flex-wrap items-center gap-2">
                   {item.postUrl ? (
@@ -249,7 +248,6 @@ export default function MonthlySettlementReportView({
                   <th className="px-4 py-3">조회수</th>
                   <th className="px-4 py-3">좋아요</th>
                   <th className="px-4 py-3">댓글</th>
-                  <th className="px-4 py-3">리포스트</th>
                   <th className="px-4 py-3">정산금액</th>
                   <th className="px-4 py-3">상태</th>
                 </tr>
@@ -274,7 +272,6 @@ export default function MonthlySettlementReportView({
                     <td className="px-4 py-3">{item.views.toLocaleString()}</td>
                     <td className="px-4 py-3">{item.likes.toLocaleString()}</td>
                     <td className="px-4 py-3">{item.comments.toLocaleString()}</td>
-                    <td className="px-4 py-3">{item.shares.toLocaleString()}</td>
                     <td className="px-4 py-3 font-semibold">{money(item.settlementAmount)}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${statusClass(item.settlementStatus)}`}>
@@ -285,7 +282,7 @@ export default function MonthlySettlementReportView({
                 ))}
                 {!data.completedPosts.length && (
                   <tr>
-                    <td colSpan={10} className="px-4 py-10 text-center text-gray-400">해당 월의 완료게시물이 없습니다.</td>
+                    <td colSpan={9} className="px-4 py-10 text-center text-gray-400">해당 월의 완료게시물이 없습니다.</td>
                   </tr>
                 )}
               </tbody>

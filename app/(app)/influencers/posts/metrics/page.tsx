@@ -43,8 +43,6 @@ export default async function MetricsPage({
         return historyRow?.likes ?? post.likes ?? 0;
       case 'comments':
         return historyRow?.comments ?? post.comments ?? 0;
-      case 'shares':
-        return historyRow?.shares ?? post.shares ?? 0;
       case 'self_grade':
         return historyRow?.self_grade ?? 'pending';
       case 'entered_at':
@@ -83,7 +81,7 @@ export default async function MetricsPage({
           <input type="hidden" name="month" value={month} />
 
           <div className="bg-white rounded-lg shadow overflow-x-auto">
-            <table className="w-full text-sm min-w-[1100px]">
+            <table className="w-full text-sm min-w-[1000px]">
               <thead className="bg-gray-100 text-left">
                 <tr>
                   <th className="p-3"><SortableHeaderLink label={t('common.uploadDate')} sortKey="uploaded_on" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
@@ -93,7 +91,6 @@ export default async function MetricsPage({
                   <th className="p-3"><SortableHeaderLink label={t('common.views')} sortKey="views" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                   <th className="p-3"><SortableHeaderLink label={t('common.likes')} sortKey="likes" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                   <th className="p-3"><SortableHeaderLink label={t('common.comments')} sortKey="comments" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
-                  <th className="p-3"><SortableHeaderLink label={t('common.shares')} sortKey="shares" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                   <th className="p-3"><SortableHeaderLink label={t('reportMockup.selfGrade')} sortKey="self_grade" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                   <th className="p-3"><SortableHeaderLink label={t('metrics.lastEntered')} sortKey="entered_at" currentSort={currentSort} currentOrder={currentOrder} searchParams={currentSearchParams} /></th>
                 </tr>
@@ -122,10 +119,6 @@ export default async function MetricsPage({
                       </td>
                       <td className="p-3">
                         <input type="number" name={`comments_${p.id}`} defaultValue={h?.comments ?? p.comments ?? 0}
-                          className="border border-gray-400 rounded p-1 w-20 text-right" />
-                      </td>
-                      <td className="p-3">
-                        <input type="number" name={`shares_${p.id}`} defaultValue={h?.shares ?? p.shares ?? 0}
                           className="border border-gray-400 rounded p-1 w-20 text-right" />
                       </td>
                       <td className="p-3">

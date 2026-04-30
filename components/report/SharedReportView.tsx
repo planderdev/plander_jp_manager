@@ -113,11 +113,10 @@ export default function SharedReportView({
               {monthLabel}
             </span>
           </div>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
             <SummaryCard label={t('common.views')} value={data.currentTotals.views} diff={data.currentTotals.views - data.prevTotals.views} />
             <SummaryCard label={t('common.likes')} value={data.currentTotals.likes} diff={data.currentTotals.likes - data.prevTotals.likes} />
             <SummaryCard label={t('common.comments')} value={data.currentTotals.comments} diff={data.currentTotals.comments - data.prevTotals.comments} />
-            <SummaryCard label={t('reportMockup.reposts')} value={data.currentTotals.shares} diff={data.currentTotals.shares - data.prevTotals.shares} />
           </div>
         </section>
 
@@ -146,11 +145,10 @@ export default function SharedReportView({
               <h2 className="text-2xl font-bold md:text-3xl">{t('reportMockup.platformReport')}</h2>
               <p className="mt-2 text-sm text-white/70">{monthLabel} · {data.client?.company_name ?? 'Plander'}</p>
             </div>
-            <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
               <MiniStat label={t('reportMockup.totalViews')} value={data.currentTotals.views} />
               <MiniStat label={t('reportMockup.totalLikes')} value={data.currentTotals.likes} />
               <MiniStat label={t('reportMockup.totalComments')} value={data.currentTotals.comments} />
-              <MiniStat label={t('reportMockup.totalShares')} value={data.currentTotals.shares} />
             </div>
           </div>
 
@@ -231,7 +229,6 @@ export default function SharedReportView({
                   <MetricChip label={t('common.views')} value={row.views} />
                   <MetricChip label={t('common.likes')} value={row.likes} />
                   <MetricChip label={t('common.comments')} value={row.comments} />
-                  <MetricChip label={t('reportMockup.reposts')} value={row.shares} />
                 </div>
                 <div className="mt-4">
                   {row.postUrl ? (
@@ -260,7 +257,6 @@ export default function SharedReportView({
                   <th className="px-4 py-3">{t('common.views')}</th>
                   <th className="px-4 py-3">{t('common.likes')}</th>
                   <th className="px-4 py-3">{t('common.comments')}</th>
-                  <th className="px-4 py-3">{t('reportMockup.reposts')}</th>
                   <th className="px-4 py-3">{t('reportMockup.selfGrade')}</th>
                 </tr>
               </thead>
@@ -287,7 +283,6 @@ export default function SharedReportView({
                     <td className="px-4 py-3">{row.views.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.likes.toLocaleString()}</td>
                     <td className="px-4 py-3">{row.comments.toLocaleString()}</td>
-                    <td className="px-4 py-3">{row.shares.toLocaleString()}</td>
                     <td className="px-4 py-3">
                       <span className={`rounded-full px-3 py-1 text-xs font-semibold ${gradeClass(row.grade)}`}>
                         {row.grade === 'pending' ? t('grade.pending') : row.grade}
@@ -295,6 +290,11 @@ export default function SharedReportView({
                     </td>
                   </tr>
                 ))}
+                {!data.rows.length && (
+                  <tr>
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-400">{t('reports.none')}</td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>

@@ -31,11 +31,9 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
   const tv = sumKey(thisHist, 'views');
   const tl = sumKey(thisHist, 'likes');
   const tc = sumKey(thisHist, 'comments');
-  const ts = sumKey(thisHist, 'shares');
   const pv = sumKey(prevHist, 'views');
   const pl = sumKey(prevHist, 'likes');
   const pc = sumKey(prevHist, 'comments');
-  const ps = sumKey(prevHist, 'shares');
 
   const fmt = (cur: number, prev: number) => {
     if (prev === 0) return cur > 0 ? `(전월대비 ${cur.toLocaleString()}증가)` : '-';
@@ -52,7 +50,7 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
 
         <View style={s.box}>
           <Text>전체 스케줄: {schedules.length}건</Text>
-          <Text>총 조회수: {tv.toLocaleString()}   총 좋아요수: {tl.toLocaleString()}   총 댓글수: {tc.toLocaleString()}   총 공유수: {ts.toLocaleString()}</Text>
+          <Text>총 조회수: {tv.toLocaleString()}   총 좋아요수: {tl.toLocaleString()}   총 댓글수: {tc.toLocaleString()}</Text>
           <Text>전월({prevMonth}) 대비 — 조회수 {fmt(tv, pv)}   좋아요수 {fmt(tl, pl)}</Text>
         </View>
 
@@ -65,7 +63,6 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
           <Text style={s.cNum}>조회수</Text>
           <Text style={s.cNum}>좋아요수</Text>
           <Text style={s.cNum}>댓글수</Text>
-          <Text style={s.cNum}>공유수</Text>
         </View>
         {schedules.map((s2: any) => {
           const p = s2.posts?.find((p: any) => p.post_url);
@@ -86,7 +83,6 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
               <Text style={s.cNum}>{(h?.views ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(h?.likes ?? 0).toLocaleString()}</Text>
               <Text style={s.cNum}>{(h?.comments ?? 0).toLocaleString()}</Text>
-              <Text style={s.cNum}>{(h?.shares ?? 0).toLocaleString()}</Text>
             </View>
           );
         })}
@@ -102,7 +98,6 @@ export function ReportDoc({ client, month, schedules, thisHist, prevHist, prevMo
           <Text>총 조회수: {tv.toLocaleString()} {fmt(tv, pv)}</Text>
           <Text>총 좋아요: {tl.toLocaleString()} {fmt(tl, pl)}</Text>
           <Text>총 댓글: {tc.toLocaleString()} {fmt(tc, pc)}</Text>
-          <Text>총 공유: {ts.toLocaleString()} {fmt(ts, ps)}</Text>
         </View>
 
         {/* 생성일 */}
