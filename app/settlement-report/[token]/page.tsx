@@ -12,7 +12,7 @@ export default async function PublicMonthlySettlementReportPage({
   const sb = createAdminClient();
   const { data: report, error } = await sb
     .from('monthly_settlement_reports')
-    .select('client_ids, year_month, transactions, ocr_documents, screenshot_paths, transfer_proof_paths, processing_status, processing_error, created_at')
+    .select('client_ids, year_month, transactions, screenshot_paths, transfer_proof_paths, created_at')
     .eq('share_token', token)
     .single();
 

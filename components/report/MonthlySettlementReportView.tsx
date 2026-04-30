@@ -61,11 +61,11 @@ export default function MonthlySettlementReportView({
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">
           <div className="mb-4 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
             <div>
-              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">BANK OCR</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-400">BANK ENTRIES</p>
               <h2 className="mt-2 text-xl font-bold md:text-2xl">입출금 내역</h2>
             </div>
             <p className="text-sm text-gray-500">
-              캡처 {data.bankScreenshotImageUrls.length.toLocaleString()}장 · 추출 {data.transactions.length.toLocaleString()}건
+              캡처 {data.bankScreenshotImageUrls.length.toLocaleString()}장 · 입력 {data.transactions.length.toLocaleString()}건
             </p>
           </div>
 
@@ -89,7 +89,7 @@ export default function MonthlySettlementReportView({
                 ))}
                 {!data.transactions.length && (
                   <div className="rounded-[24px] border border-dashed border-gray-300 bg-[#fafaf8] p-8 text-center text-sm text-gray-400">
-                    추출된 입출금 내역이 없습니다.
+                    입력된 입출금 내역이 없습니다.
                   </div>
                 )}
               </div>
@@ -121,7 +121,7 @@ export default function MonthlySettlementReportView({
                     ))}
                     {!data.transactions.length && (
                       <tr>
-                        <td colSpan={5} className="px-4 py-10 text-center text-gray-400">추출된 입출금 내역이 없습니다.</td>
+                        <td colSpan={5} className="px-4 py-10 text-center text-gray-400">입력된 입출금 내역이 없습니다.</td>
                       </tr>
                     )}
                   </tbody>
@@ -153,20 +153,6 @@ export default function MonthlySettlementReportView({
               )}
             </div>
           </div>
-
-          {data.ocrDocuments.length ? (
-            <details className="mt-4 rounded-[22px] border border-gray-200 bg-[#fafaf8] p-4">
-              <summary className="cursor-pointer text-sm font-semibold text-gray-700">OCR 원문 보기</summary>
-              <div className="mt-4 space-y-3">
-                {data.ocrDocuments.map((document) => (
-                  <div key={document.sourceName} className="rounded-2xl bg-white p-4">
-                    <p className="text-sm font-semibold text-gray-900">{document.sourceName}</p>
-                    <pre className="mt-2 whitespace-pre-wrap break-words text-xs leading-6 text-gray-600">{document.text || document.lines.join('\n')}</pre>
-                  </div>
-                ))}
-              </div>
-            </details>
-          ) : null}
         </section>
 
         <section className="rounded-[28px] bg-white p-5 shadow-[0_18px_60px_rgba(15,23,42,0.08)] md:p-7">

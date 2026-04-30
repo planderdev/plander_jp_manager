@@ -2,7 +2,6 @@ import Link from 'next/link';
 import CopyLinkButton from '@/components/report/CopyLinkButton';
 import MonthlySettlementDeleteButton from '@/components/report/MonthlySettlementDeleteButton';
 import MonthlySettlementCreateForm from '@/components/report/MonthlySettlementCreateForm';
-import MonthlySettlementProcessingBadge from '@/components/report/MonthlySettlementProcessingBadge';
 import MonthlySettlementReportView from '@/components/report/MonthlySettlementReportView';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getI18n } from '@/lib/i18n/server';
@@ -40,10 +39,10 @@ export default async function MonthlySettlementPage({ searchParams }: { searchPa
   const { data: reports } = selectedIds.length
     ? await sb
         .from('monthly_settlement_reports')
-        .select('id, client_ids, year_month, title, share_token, created_at, processing_status, processing_error')
+        .select('id, client_ids, year_month, title, share_token, created_at')
         .contains('client_ids', selectedIds)
         .order('created_at', { ascending: false })
-    : { data: [] as Array<{ id: number; client_ids: number[]; year_month: string; title: string; share_token: string; created_at: string; processing_status: 'pending' | 'processing' | 'done' | 'error'; processing_error: string | null }> };
+    : { data: [] as Array<{ id: number; client_ids: number[]; year_month: string; title: string; share_token: string; created_at: string }> };
 
   const selectedClientLabel = (clients ?? [])
     .filter((item) => selectedIds.includes(item.id))
@@ -119,13 +118,6 @@ export default async function MonthlySettlementPage({ searchParams }: { searchPa
                     .map((item) => item.company_name)
                     .join(' / ') || '-'}
                 </p>
-                <div className="mt-2">
-                  <MonthlySettlementProcessingBadge
-                    reportId={report.id}
-                    status={report.processing_status ?? 'done'}
-                    error={report.processing_error}
-                  />
-                </div>
               </div>
               <div className="flex items-center gap-4 text-sm">
                 <CopyLinkButton token={report.share_token} basePath="/settlement-report" />

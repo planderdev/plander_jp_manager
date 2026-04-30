@@ -8,9 +8,7 @@ import { redirect } from 'next/navigation';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { setFlashMessage } from '@/lib/flash';
-import {
-  type MonthlySettlementTransaction,
-} from '@/lib/bank-ocr';
+import type { MonthlySettlementTransaction } from '@/lib/bank-ocr';
 import { monthlySettlementTitle } from '@/lib/monthly-settlement-report';
 
 function redirectToManager(clientIds: number[], yearMonth: string) {
@@ -78,6 +76,38 @@ async function uploadScreenshots(token: string, section: 'bank' | 'transfer', fi
   return uploadedPaths;
 }
 
+function parseManualTransactions(raw: string): MonthlySettlementTransaction[] {
+  return raw
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .reduce<MonthlySettlementTransaction[]>((items, line, index) => {
+      const parts = line.split('|').map((part) => part.trim());
+      const directionToken = parts[0] ?? '';
+      const amountValue = Number((parts[1] ?? '').replace(/[^\d-]/g, ''));
+      const memo = parts[2] ?? '메모 없음';
+      const happenedAt = parts[3] ?? null;
+      const direction =
+        directionToken.includes('입')
+          ? 'incoming'
+          : 'outgoing';
+
+      if (!Number.isFinite(amountValue) || amountValue <= 0) return items;
+
+      items.push({
+        id: `manual-${index}-${amountValue}`,
+        direction,
+        amount: amountValue,
+        memo,
+        rawText: line,
+        happenedAt,
+        sourceName: 'manual',
+      } satisfies MonthlySettlementTransaction);
+
+      return items;
+    }, []);
+}
+
 export async function createMonthlySettlementReportAction(formData: FormData) {
   const sb = await createClient();
   const { data: { user } } = await sb.auth.getUser();
@@ -91,6 +121,7 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
   const transferProofFiles = formData
     .getAll('transfer_proofs')
     .filter((item): item is File => item instanceof File && item.size > 0);
+  const manualTransactions = parseManualTransactions(String(formData.get('manual_transactions') || ''));
 
   if (!clientIds.length || !yearMonth) {
     throw new Error('필수값이 누락되었습니다.');
@@ -107,8 +138,6 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
   const compressedTransferProofs = await prepareScreenshots(transferProofFiles, 'half');
   const screenshotPaths = await uploadScreenshots(token, 'bank', compressedBankScreenshots);
   const transferProofPaths = await uploadScreenshots(token, 'transfer', compressedTransferProofs);
-  const shouldProcess = screenshotPaths.length > 0;
-  const transactions: MonthlySettlementTransaction[] = [];
 
   const admin = createAdminClient();
   const { error } = await admin.from('monthly_settlement_reports').insert({
@@ -118,10 +147,7 @@ export async function createMonthlySettlementReportAction(formData: FormData) {
     share_token: token,
     screenshot_paths: screenshotPaths,
     transfer_proof_paths: transferProofPaths,
-    transactions,
-    ocr_documents: [],
-    processing_status: shouldProcess ? 'pending' : 'done',
-    processing_error: null,
+    transactions: manualTransactions,
     created_by: user.id,
   });
 

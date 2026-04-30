@@ -1,5 +1,5 @@
 import { createAdminClient } from '@/lib/supabase/admin';
-import type { MonthlySettlementOcrDocument, MonthlySettlementTransaction } from '@/lib/bank-ocr';
+import type { MonthlySettlementTransaction } from '@/lib/bank-ocr';
 
 export type MonthlySettlementCompletedPost = {
   id: number;
@@ -23,12 +23,9 @@ export type MonthlySettlementReportData = {
   yearMonth: string;
   title: string;
   transactions: MonthlySettlementTransaction[];
-  ocrDocuments: MonthlySettlementOcrDocument[];
   bankScreenshotImageUrls: Array<{ path: string; url: string }>;
   transferProofImageUrls: Array<{ path: string; url: string }>;
   completedPosts: MonthlySettlementCompletedPost[];
-  processingStatus: 'pending' | 'processing' | 'done' | 'error';
-  processingError: string | null;
   totals: {
     incoming: number;
     outgoing: number;
@@ -43,11 +40,8 @@ export type MonthlySettlementReportData = {
 
 type ReportRecord = {
   transactions: MonthlySettlementTransaction[] | null;
-  ocr_documents: MonthlySettlementOcrDocument[] | null;
   screenshot_paths?: string[] | null;
   transfer_proof_paths?: string[] | null;
-  processing_status?: string | null;
-  processing_error?: string | null;
   created_at?: string | null;
 };
 
@@ -201,12 +195,9 @@ export async function getMonthlySettlementReportData(input: {
     yearMonth: input.yearMonth,
     title: monthlySettlementTitle(input.yearMonth),
     transactions,
-    ocrDocuments: input.report?.ocr_documents ?? [],
     bankScreenshotImageUrls,
     transferProofImageUrls,
     completedPosts,
-    processingStatus: (input.report?.processing_status as MonthlySettlementReportData['processingStatus'] | undefined) ?? 'done',
-    processingError: input.report?.processing_error ?? null,
     totals: {
       incoming,
       outgoing,

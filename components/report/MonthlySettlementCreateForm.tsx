@@ -127,6 +127,10 @@ export default function MonthlySettlementCreateForm({
   action,
 }: Props) {
   const { t } = useI18n();
+  const transactionPlaceholder = [
+    '입금 | 1200000 | 클라이언트 입금 | 2026-04-30 14:20',
+    '출금 | 300000 | @sample_1 3건 입금 | 2026-04-30 15:10',
+  ].join('\n');
 
   return (
     <form action={action} className="grid gap-4">
@@ -148,6 +152,17 @@ export default function MonthlySettlementCreateForm({
           help={t('monthlySettlement.uploadTransferProofsHelp')}
           maxFiles={3}
         />
+      </div>
+
+      <div className="space-y-2">
+        <label className="block text-sm font-medium text-gray-900">{t('monthlySettlement.manualTransactions')}</label>
+        <textarea
+          name="manual_transactions"
+          rows={6}
+          placeholder={transactionPlaceholder}
+          className="w-full rounded-2xl border border-gray-300 bg-white p-3 text-sm"
+        />
+        <p className="text-xs text-gray-500">{t('monthlySettlement.manualTransactionsHelp')}</p>
       </div>
 
       <div className="flex items-center gap-3">
