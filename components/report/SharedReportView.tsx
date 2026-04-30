@@ -16,7 +16,7 @@ function diffText(diff: number) {
 function gradeClass(grade: ReportViewData['rows'][number]['grade']) {
   switch (grade) {
     case 'S':
-      return 'bg-red-600 text-white';
+      return 'bg-amber-400 text-amber-950 ring-1 ring-amber-300';
     case 'A':
       return 'bg-black text-white';
     case 'B':
