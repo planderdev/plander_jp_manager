@@ -40,6 +40,10 @@ function FileDropField({
     applyFilesToInput(inputRef.current, limited);
   }
 
+  function removeFile(targetIndex: number) {
+    syncFiles(files.filter((_, index) => index !== targetIndex));
+  }
+
   function handleInputChange(event: ChangeEvent<HTMLInputElement>) {
     syncFiles(Array.from(event.target.files ?? []));
   }
@@ -94,8 +98,18 @@ function FileDropField({
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">Selected</p>
           <ul className="mt-2 space-y-1 text-sm text-gray-700">
             {files.map((file, index) => (
-              <li key={`${file.name}-${index}`} className="truncate">
-                {index + 1}. {file.name}
+              <li key={`${file.name}-${index}`} className="flex items-center justify-between gap-3">
+                <span className="truncate">
+                  {index + 1}. {file.name}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => removeFile(index)}
+                  className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full border border-gray-300 text-xs font-semibold text-gray-500 hover:border-red-300 hover:text-red-500"
+                  aria-label={`${file.name} 삭제`}
+                >
+                  X
+                </button>
               </li>
             ))}
           </ul>
