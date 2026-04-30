@@ -138,16 +138,24 @@ export default function InternalPaymentReportView({
 
               <div className="rounded-[24px] border border-gray-200 bg-[#fafaf8] p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.14em] text-gray-400">{t('paymentReport.linkedSettlementReports')}</p>
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 space-y-3">
                   {data.monthlySettlementSummary.reports.map((report) => (
-                    <a
+                    <div
                       key={report.id}
-                      href={`/settlement-report/${report.shareToken}`}
-                      target="_blank"
-                      className="inline-flex rounded-full border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:border-gray-900 hover:text-gray-900"
+                      className="flex flex-col gap-3 rounded-2xl border border-gray-200 bg-white px-4 py-4 md:flex-row md:items-center md:justify-between"
                     >
-                      {report.title}
-                    </a>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-900">{report.title}</p>
+                        <p className="mt-1 text-xs text-gray-500">{report.yearMonth}</p>
+                      </div>
+                      <a
+                        href={`/settlement-report/${report.shareToken}`}
+                        target="_blank"
+                        className="inline-flex items-center justify-center rounded-full bg-black px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+                      >
+                        {t('paymentReport.openSettlementReport')}
+                      </a>
+                    </div>
                   ))}
                 </div>
               </div>
