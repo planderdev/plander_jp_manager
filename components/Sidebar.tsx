@@ -83,6 +83,7 @@ export default function Sidebar({
           <NavLink href="/extras/reports" pathname={pathname} onClick={close}>{t('nav.reportExport')}</NavLink>
           <NavLink href="/extras/report-links" pathname={pathname} onClick={close}>{t('nav.reportCreate')}</NavLink>
           <NavLink href="/extras/payment-reports" pathname={pathname} onClick={close}>{t('nav.paymentReport')}</NavLink>
+          <NavLink href="/extras/monthly-settlement" pathname={pathname} onClick={close}>{t('nav.monthlySettlement')}</NavLink>
         </nav>
         <WebPushToggle />
         <div className="mt-0 mb-2 w-full rounded border border-gray-700 bg-transparent">
