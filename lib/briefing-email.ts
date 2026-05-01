@@ -15,7 +15,6 @@ import {
 import { sendWebPushNotification } from '@/lib/web-push';
 
 type SendMode = 'manual' | 'scheduled';
-const AUTOMATION_WINDOW_MS = 5 * 60 * 1000;
 
 function krDateParts(date: Date) {
   const formatter = new Intl.DateTimeFormat('en-CA', {
@@ -62,7 +61,7 @@ function formatYmdInKst(value: string | Date) {
 function getScheduledWindow(now: Date, minutesBefore: number) {
   const leadMs = minutesBefore * 60 * 1000;
   return {
-    windowStartIso: new Date(now.getTime() + leadMs - AUTOMATION_WINDOW_MS).toISOString(),
+    windowStartIso: now.toISOString(),
     windowEndIso: new Date(now.getTime() + leadMs).toISOString(),
   };
 }
@@ -303,11 +302,16 @@ export async function runScheduledBriefingEmails(now = new Date()) {
   for (const schedule of schedules ?? []) {
     const scheduleTargetDate = formatYmdInKst(schedule.scheduled_at);
     const triggerAt = new Date(new Date(schedule.scheduled_at).getTime() - emailSendMinutesBefore * 60 * 1000);
-    const diffFromTrigger = now.getTime() - triggerAt.getTime();
 
-    if (diffFromTrigger < 0 || diffFromTrigger >= AUTOMATION_WINDOW_MS) {
+    if (now.getTime() < triggerAt.getTime()) {
       skipped += 1;
-      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'outside_send_window' });
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'before_send_time' });
+      continue;
+    }
+
+    if (now.getTime() >= new Date(schedule.scheduled_at).getTime()) {
+      skipped += 1;
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'visit_time_passed' });
       continue;
     }
 
@@ -402,11 +406,16 @@ export async function runScheduledBriefingLineMessages(now = new Date()) {
     const scheduledAt = new Date(brief.scheduledAt);
     const triggerAt = new Date(scheduledAt.getTime() - lineSendMinutesBefore * 60 * 1000);
     const scheduleTargetDate = formatYmdInKst(brief.scheduledAt);
-    const diffFromTrigger = now.getTime() - triggerAt.getTime();
 
-    if (diffFromTrigger < 0 || diffFromTrigger >= AUTOMATION_WINDOW_MS) {
+    if (now.getTime() < triggerAt.getTime()) {
       skipped += 1;
-      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'outside_send_window' });
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'before_send_time' });
+      continue;
+    }
+
+    if (now.getTime() >= scheduledAt.getTime()) {
+      skipped += 1;
+      results.push({ scheduleId: schedule.id, status: 'skipped', reason: 'visit_time_passed' });
       continue;
     }
 
