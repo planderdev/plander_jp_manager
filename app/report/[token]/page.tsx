@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import StandaloneSwipeBack from '@/components/StandaloneSwipeBack';
 import SharedReportView from '@/components/report/SharedReportView';
 import { getI18n } from '@/lib/i18n/server';
 import { getReportViewData } from '@/lib/report-links';
@@ -54,14 +55,17 @@ export default async function PublicReportPage({
 
   const data = await getReportViewData(report.client_ids?.length ? report.client_ids : report.client_id, report.year_month);
   return (
-    <SharedReportView
-      locale={locale}
-      t={t}
-      data={data}
-      generatedAt={report.created_at ?? null}
-      currentSort={currentSearchParams.sort}
-      currentOrder={currentSearchParams.order === 'asc' ? 'asc' : 'desc'}
-      searchParams={currentSearchParams}
-    />
+    <>
+      <StandaloneSwipeBack />
+      <SharedReportView
+        locale={locale}
+        t={t}
+        data={data}
+        generatedAt={report.created_at ?? null}
+        currentSort={currentSearchParams.sort}
+        currentOrder={currentSearchParams.order === 'asc' ? 'asc' : 'desc'}
+        searchParams={currentSearchParams}
+      />
+    </>
   );
 }

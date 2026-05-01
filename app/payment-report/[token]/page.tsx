@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import StandaloneSwipeBack from '@/components/StandaloneSwipeBack';
 import InternalPaymentReportView from '@/components/report/InternalPaymentReportView';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getI18n } from '@/lib/i18n/server';
@@ -33,6 +34,7 @@ export default async function PublicInternalPaymentReportPage({
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 md:px-8 md:py-8">
+      <StandaloneSwipeBack />
       <InternalPaymentReportView
         locale={locale}
         t={t}

@@ -1,4 +1,5 @@
 import { notFound } from 'next/navigation';
+import StandaloneSwipeBack from '@/components/StandaloneSwipeBack';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getMonthlySettlementReportData } from '@/lib/monthly-settlement-report';
 import MonthlySettlementReportView from '@/components/report/MonthlySettlementReportView';
@@ -35,6 +36,7 @@ export default async function PublicMonthlySettlementReportPage({
 
   return (
     <main className="min-h-screen bg-[#f6f7fb] px-3 py-4 md:px-8 md:py-8">
+      <StandaloneSwipeBack />
       <MonthlySettlementReportView
         data={data}
         transactionSort={currentSearchParams.transaction_sort}
